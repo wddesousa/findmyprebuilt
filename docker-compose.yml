@@ -1,14 +1,19 @@
 services:
   web:
-    build: .
+    build: 
+      context: .
+      target: dev
     ports:
       - '3000:3000'
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     depends_on:
       - db
     networks:
       - my_network
+    volumes:
+      - .:/app
+      - /app/node_modules
 
   db:
     image: postgres:latest
@@ -23,17 +28,17 @@ services:
     networks:
       - my_network
 
-  cron:
-    image: alpine/curl
-    command: >
-      sh -c "
-        echo '*/10 * * * * curl -X POST http://web:3000/db/clear' > /etc/crontabs/root && \
-        crond -f -l 2
-      "
-    depends_on:
-      - web
-    networks:
-      - my_network
+  # cron:
+  #   image: alpine/curl
+  #   command: >
+  #     sh -c "
+  #       echo '*/10 * * * * curl -X POST http://web:3000/db/clear' > /etc/crontabs/root && \
+  #       crond -f -l 2
+  #     "
+  #   depends_on:
+  #     - web
+  #   networks:
+  #     - my_network
 
 volumes:
   postgres_data:
