@@ -12,3 +12,24 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model PC {
+  id   String   @id @default(cuid())
+  name  String
+  memory  Int
+  storage Int
+  fans  Int
+
+  mobo MOBA  @relation(fields: [moboId], references: [id])
+  moboId String 
+}
+
+model GPU {
+    id   String   @id @default(cuid())
+
+} 
+
+model MOBA {
+    id   String   @id @default(cuid())
+    pcs PC[]
+}
