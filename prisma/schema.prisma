@@ -19,17 +19,112 @@ model PC {
   memory  Int
   storage Int
   fans  Int
-
+  warranty Int //warranty in months
+  os String
+  height Float
+  width Float
+  depth Float
   mobo MOBA  @relation(fields: [moboId], references: [id])
   moboId String 
 }
 
+model Variations {
+    id   String   @id @default(cuid())
+    
+}
+
 model GPU {
     id   String   @id @default(cuid())
-
+  manufacturer  String
+  model String
+  part_number String
+  chipset String
+  memory  Int
+  memory_type String
+  core_clock  Int
+  boost_clock Int
+  effective_memory_clock  Int
+  interface String
+  color String
+  frame_sync  String
+  length  Int
+  tdp Int
+  case_expansion_slot_width Int
+  total_slot_width  Int
+  cooling Int
+  external_power  String
+  hdmi_outputs  Int
+  displayport_outputs Int
 } 
+
+model CPU {
+  id   String   @id @default(cuid())
+  name String
+  manufacturer String
+  part_number String
+  series String
+  microarchitecture String
+  core_family String
+  socket String
+  core_count Int
+  thread_count Int
+  performance_core_clock Float
+  performance_core_boost_clock Float
+  l2_cache Int
+  l3_cache Int
+  tdp Int
+  integrated_graphics String
+  maximum_supported_memory Int
+  ecc_support Boolean
+  includes_cooler Boolean
+  packaging String
+  lithography Int
+  includes_cpu_cooler Boolean
+  simultaneous_multithreading Boolean
+}
 
 model MOBA {
     id   String   @id @default(cuid())
-    pcs PC[]
+    name String
+  manufacturer String
+  part_number String
+  socket_cpu String
+  form_factor String
+  chipset String
+  memory_max  Int
+  memory_type String
+  memory_slots  Int
+  memory_speed String
+  color String
+  pcie_x16_slots  Int
+  pcie_x8_slots Int
+  pcie_x_slots  Int
+  pcie_x1_slots Int
+  pci_slots Int
+  m_2_slots String
+  mini_pcie_slots Int
+  half_mini_pcie_slots  Int
+  mini_pcie_msata_slots Int
+  msata_slots Int
+  sata_6_0_gbs  Int
+  onboard_ethernet String
+  onboard_video String
+  usb_2_0_headers Int
+  usb_2_0_headers_single_port Int
+  usb_3_2_gen_1_headers Int
+  usb_3_2_gen_2_headers Int
+  usb_3_2_gen_2x2_headers Int
+  supports_ecc  Boolean
+  wireless_networking String
+  raid_support  Boolean
+  uses_back_connect_connectors  Boolean
+  pcs PC[]    
+}
+
+// use at pcpartpicker 
+//var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
+model Socket {
+    id   String   @id @default(cuid())
+    name String
+
 }
