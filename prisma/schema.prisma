@@ -13,30 +13,92 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model PC {
+model Prebuilt {
   id   String   @id @default(cuid())
-  name  String
-  memory  Int
-  storage Int
-  fans  Int
-  warranty Int //warranty in months
+  model  String @unique //this is what will be shown on the page title
+  brand String
+  front_fans  Int
+  front_fans_mm Float
+  bottom_fans Float
+  bottom_fans_mm Float
+  warranty_months Int //warranty in months
   os String
   height Float
   width Float
   depth Float
-  mobo MOBA  @relation(fields: [moboId], references: [id])
-  moboId String 
+  created DateTime
+  last_updated DateTime
+  prices Variations[]
 }
 
 model Variations {
+  id   String   @id @default(cuid())
+  variation_name String //name to display when comparing variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  total_memory Int
+  memory_slots Int
+  memory_type MemoryType
+  memory_speed Int
+  main_storage_gb Int
+  seconday_storage_gb Int?
+  prebuilt Prebuilt @relation(fields: [prebuilt_id], references: [id])
+  prebuilt_id String
+  cpu_variation CPU @relation(fields: [cpu_id], references: [id])
+  cpu_id String
+  moba_variation MOBA @relation(fields: [moba_id], references: [id])
+  moba_id String
+  gpu_variation GPU @relation(fields: [gpu_id], references: [id])
+  gpu_id String
+  case Case? @relation(fields: [case_id], references: [id])
+  case_id String?
+  variation_prices VariationPrices[]
+  @@unique([variation_name, prebuilt_id])
+}
+
+model Case {
     id   String   @id @default(cuid())
-    
+    model String @unique
+    case_type String
+    front_fans  Int
+    front_fans_mm Float
+    bottom_fans Float
+    bottom_fans_mm Float
+    variations Variations[]
+}
+
+model Memory {
+    id   String   @id @default(cuid())
+    model String @unique
+    total_memory Int
+    memory_slots Int
+    memory_type MemoryType
+    memory_speed Int
+}
+
+enum MemoryType {
+  DDR2
+  DDR3
+  DDR4
+  DDR5
+  DDR6
+  DDR7
+}
+
+
+model VariationPrices {
+  id   String   @id @default(cuid())
+  price Float
+  created DateTime
+  store_id String
+  variation Variations @relation(fields: [variation_id], references: [id])
+  variation_id String
+
+  @@unique([store_id, variation_id])
 }
 
 model GPU {
     id   String   @id @default(cuid())
   manufacturer  String
-  model String
+  model String @unique
   part_number String
   chipset String
   memory  Int
@@ -55,11 +117,12 @@ model GPU {
   external_power  String
   hdmi_outputs  Int
   displayport_outputs Int
+  variation_prices Variations[]
 } 
 
 model CPU {
   id   String   @id @default(cuid())
-  name String
+  model String @unique
   manufacturer String
   part_number String
   series String
@@ -81,11 +144,12 @@ model CPU {
   lithography Int
   includes_cpu_cooler Boolean
   simultaneous_multithreading Boolean
+  variation_prices Variations[]
 }
 
 model MOBA {
     id   String   @id @default(cuid())
-    name String
+    model String @unique
   manufacturer String
   part_number String
   socket_cpu String
@@ -118,13 +182,13 @@ model MOBA {
   wireless_networking String
   raid_support  Boolean
   uses_back_connect_connectors  Boolean
-  pcs PC[]    
+  variation_prices Variations[]
 }
 
 // use at pcpartpicker 
 //var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
 model Socket {
     id   String   @id @default(cuid())
-    name String
+    model String
 
 }
