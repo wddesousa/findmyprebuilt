@@ -13,61 +13,84 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Prebuilt {
-  id   String   @id @default(cuid())
-  model  String @unique //this is what will be shown on the page title
+model Product {
+  product_id   String   @id @default(cuid())
+  product_name String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  product_type ProductType
   brand String
-  front_fans  Int
-  front_fans_mm Float
-  bottom_fans Float
-  bottom_fans_mm Float
-  warranty_months Int //warranty in months
-  os String
-  height Float
-  width Float
-  depth Float
-  created DateTime
-  last_updated DateTime
-  prices Variations[]
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  prices Price[]
+  prebuilt_attributes PrebuiltAttributes[]
 }
 
-model Variations {
-  id   String   @id @default(cuid())
-  variation_name String //name to display when comparing variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+enum ProductType {
+  GPU
+  CPU
+  MOBA
+  CASE
+  PREBUILT
+  MEMORY
+  STORAGE
+  FAN
+  HEATSINK
+}
+
+model BasePrebuilt {
+  //here's the main, base prebuilt that can have multiple variations in the prebuiltattributes table
+  base_prebuilt_id   String   @id @default(cuid())
+  base_prebuilt_name  String @unique //this is what will be shown on the page title
+  warranty_months Int //warranty in months
+  os String
+  prebuilt_attributes PrebuiltAttributes[]
+}
+
+model PrebuiltAttributes {
+  product Product @relation(fields: [product_id], references: [product_id])
+  product_id   String @id
+  prebuilt BasePrebuilt @relation(fields: [prebuilt_id], references: [base_prebuilt_id])
+  prebuilt_id String
   total_memory Int
-  memory_slots Int
+  memory_slots_used Int
   memory_type MemoryType
   memory_speed Int
   main_storage_gb Int
+  main_storage_type StorageType
   seconday_storage_gb Int?
-  prebuilt Prebuilt @relation(fields: [prebuilt_id], references: [id])
-  prebuilt_id String
-  cpu_variation CPU @relation(fields: [cpu_id], references: [id])
+  secondary_storage_type StorageType
+  cpu_variation CPU @relation(fields: [product_id], references: [product_id])
   cpu_id String
-  moba_variation MOBA @relation(fields: [moba_id], references: [id])
+  moba_variation MOBA @relation(fields: [product_id], references: [product_id])
   moba_id String
-  gpu_variation GPU @relation(fields: [gpu_id], references: [id])
+  gpu_variation GPU @relation(fields: [product_id], references: [product_id])
   gpu_id String
-  case Case? @relation(fields: [case_id], references: [id])
-  case_id String?
-  variation_prices VariationPrices[]
-  @@unique([variation_name, prebuilt_id])
+  case Case @relation(fields: [case_id], references: [product_id])
+  case_id String
+}
+
+enum StorageType {
+  NVME
+  SSD
+  HD
 }
 
 model Case {
-    id   String   @id @default(cuid())
-    model String @unique
+    product Product @relation(fields: [product_id], references: [product_id])
+    product_id   String @id
     case_type String
     front_fans  Int
     front_fans_mm Float
     bottom_fans Float
     bottom_fans_mm Float
-    variations Variations[]
+    case_height Float
+    case_width Float
+    case_depth Float
+    variations PrebuiltAttributes[]
 }
 
 model Memory {
-    id   String   @id @default(cuid())
-    model String @unique
+    product Product @relation(fields: [product_id], references: [product_id])
+    product_id   String @id
     total_memory Int
     memory_slots Int
     memory_type MemoryType
@@ -84,21 +107,23 @@ enum MemoryType {
 }
 
 
-model VariationPrices {
+model Price {
   id   String   @id @default(cuid())
   price Float
   created DateTime
   store_id String
-  variation Variations @relation(fields: [variation_id], references: [id])
-  variation_id String
+  product Product @relation(fields: [product_id], references: [product_id])
+  product_id String
 
-  @@unique([store_id, variation_id])
+  @@unique([store_id, product_id])
 }
 
+
+
 model GPU {
-    id   String   @id @default(cuid())
+  product Product @relation(fields: [product_id], references: [product_id])
+  product_id   String @id  
   manufacturer  String
-  model String @unique
   part_number String
   chipset String
   memory  Int
@@ -117,12 +142,12 @@ model GPU {
   external_power  String
   hdmi_outputs  Int
   displayport_outputs Int
-  variation_prices Variations[]
+  prices PrebuiltAttributes[]
 } 
 
 model CPU {
-  id   String   @id @default(cuid())
-  model String @unique
+    product Product @relation(fields: [product_id], references: [product_id])
+    product_id   String @id
   manufacturer String
   part_number String
   series String
@@ -144,12 +169,12 @@ model CPU {
   lithography Int
   includes_cpu_cooler Boolean
   simultaneous_multithreading Boolean
-  variation_prices Variations[]
+  prices PrebuiltAttributes[]
 }
 
 model MOBA {
-    id   String   @id @default(cuid())
-    model String @unique
+    product Product @relation(fields: [product_id], references: [product_id])
+    product_id   String @id
   manufacturer String
   part_number String
   socket_cpu String
@@ -182,7 +207,7 @@ model MOBA {
   wireless_networking String
   raid_support  Boolean
   uses_back_connect_connectors  Boolean
-  variation_prices Variations[]
+  prices PrebuiltAttributes[]
 }
 
 // use at pcpartpicker 
