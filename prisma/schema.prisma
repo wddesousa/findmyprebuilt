@@ -14,14 +14,28 @@ datasource db {
 }
 
 model Product {
-  product_id   String   @id @default(cuid())
-  product_name String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
-  product_type ProductType
-  brand String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
-  prices Price[]
+  product_id          String               @id @default(cuid())
+  product_name        String  //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  product_type        ProductType
+  brand               Brand                @relation(fields: [brand_id], references: [id])
+  brand_id            String
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @default(now())
+  prices              Price[]
   prebuilt_attributes PrebuiltAttributes[]
+  cases               Case[]
+  memories            Memory[]
+  gpus                Gpu[]
+  cpus                Cpu[]
+  mobas               Moba[]
+
+  @@unique([product_name, brand_id])
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  brand    String    @unique
+  products Product[]
 }
 
 enum ProductType {
@@ -38,34 +52,40 @@ enum ProductType {
 
 model BasePrebuilt {
   //here's the main, base prebuilt that can have multiple variations in the prebuiltattributes table
-  base_prebuilt_id   String   @id @default(cuid())
-  base_prebuilt_name  String @unique //this is what will be shown on the page title
-  warranty_months Int //warranty in months
-  os String
+  base_prebuilt_id    String               @id @default(cuid())
+  base_prebuilt_name  String               @unique //this is what will be shown on the page title
+  warranty_months     Int //warranty in months
+  os                  String
   prebuilt_attributes PrebuiltAttributes[]
 }
 
 model PrebuiltAttributes {
-  product Product @relation(fields: [product_id], references: [product_id])
-  product_id   String @id
-  prebuilt BasePrebuilt @relation(fields: [prebuilt_id], references: [base_prebuilt_id])
-  prebuilt_id String
-  total_memory Int
-  memory_slots_used Int
-  memory_type MemoryType
-  memory_speed Int
-  main_storage_gb Int
-  main_storage_type StorageType
-  seconday_storage_gb Int?
-  secondary_storage_type StorageType
-  cpu_variation CPU @relation(fields: [product_id], references: [product_id])
-  cpu_id String
-  moba_variation MOBA @relation(fields: [product_id], references: [product_id])
-  moba_id String
-  gpu_variation GPU @relation(fields: [product_id], references: [product_id])
-  gpu_id String
-  case Case @relation(fields: [case_id], references: [product_id])
-  case_id String
+  product                Product      @relation(fields: [product_id], references: [product_id])
+  product_id             String       @id
+  prebuilt               BasePrebuilt @relation(fields: [prebuilt_id], references: [base_prebuilt_id])
+  prebuilt_id            String
+  total_memory           Int
+  memory_slots_used      Int
+  memory_type            MemoryType
+  memory_speed           Int
+  main_storage_gb        Int
+  main_storage_type      StorageType
+  seconday_storage_gb    Int?
+  secondary_storage_type StorageType?
+  front_fans     Int?
+  front_fans_mm  Float?
+  bottom_fans    Float?
+  bottom_fans_mm Float?
+  moba_chipset           MobaChipset? @relation(fields: [moba_chipset_id], references: [id])
+  moba_chipset_id           String? //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket
+  cpu_variation          Cpu          @relation(fields: [cpu_id], references: [product_id])
+  cpu_id                 String
+  moba_variation         Moba?         @relation(fields: [moba_id], references: [product_id])
+  moba_id                String?
+  gpu_variation          Gpu          @relation(fields: [gpu_id], references: [product_id])
+  gpu_id                 String
+  case                   Case         @relation(fields: [case_id], references: [product_id])
+  case_id                String
 }
 
 enum StorageType {
@@ -75,26 +95,43 @@ enum StorageType {
 }
 
 model Case {
-    product Product @relation(fields: [product_id], references: [product_id])
-    product_id   String @id
-    case_type String
-    front_fans  Int
-    front_fans_mm Float
-    bottom_fans Float
-    bottom_fans_mm Float
-    case_height Float
-    case_width Float
-    case_depth Float
-    variations PrebuiltAttributes[]
+  product        Product              @relation(fields: [product_id], references: [product_id])
+  product_id     String               @id
+  case_height    Float
+  case_width     Float
+  case_depth     Float
+  variations     PrebuiltAttributes[]
+  part_n String
+  case_type String
+  color String
+  power_supply String?
+  side_panel String
+  power_supply_shroud Boolean
+  usb_32_gen_1_type_a Int
+  usb_32_gen_2_type_c Int
+  usb_2 Int
+  moba_form_factors FormFactor[]
+  maximum_video_card_length_mm Int
+  drive_bays String[]
+  expansion_slots String
+  volume_ml Int 
 }
 
+model FormFactor {
+    id         String   @id @default(cuid())
+  form_factor String @unique
+  cases Case[]
+  mobas Moba[]
+}
+
+
 model Memory {
-    product Product @relation(fields: [product_id], references: [product_id])
-    product_id   String @id
-    total_memory Int
-    memory_slots Int
-    memory_type MemoryType
-    memory_speed Int
+  product      Product    @relation(fields: [product_id], references: [product_id])
+  product_id   String     @id
+  total_memory Int
+  memory_slots Int
+  memory_type  MemoryType
+  memory_speed Int
 }
 
 enum MemoryType {
@@ -106,114 +143,134 @@ enum MemoryType {
   DDR7
 }
 
-
 model Price {
-  id   String   @id @default(cuid())
-  price Float
-  created DateTime
-  store_id String
-  product Product @relation(fields: [product_id], references: [product_id])
+  id         String   @id @default(cuid())
+  price      Decimal  @db.Decimal(7, 2)
+  created_at DateTime
+  store      Store    @relation(fields: [store_id], references: [id])
+  store_id   String
+  product    Product  @relation(fields: [product_id], references: [product_id])
   product_id String
 
   @@unique([store_id, product_id])
 }
 
-
-
-model GPU {
-  product Product @relation(fields: [product_id], references: [product_id])
-  product_id   String @id  
-  manufacturer  String
-  part_number String
-  chipset String
-  memory  Int
-  memory_type String
-  core_clock  Int
-  boost_clock Int
-  effective_memory_clock  Int
-  interface String
-  color String
-  frame_sync  String
-  length  Int
-  tdp Int
-  case_expansion_slot_width Int
-  total_slot_width  Int
-  cooling Int
-  external_power  String
-  hdmi_outputs  Int
-  displayport_outputs Int
-  prices PrebuiltAttributes[]
-} 
-
-model CPU {
-    product Product @relation(fields: [product_id], references: [product_id])
-    product_id   String @id
-  manufacturer String
-  part_number String
-  series String
-  microarchitecture String
-  core_family String
-  socket String
-  core_count Int
-  thread_count Int
-  performance_core_clock Float
-  performance_core_boost_clock Float
-  l2_cache Int
-  l3_cache Int
-  tdp Int
-  integrated_graphics String
-  maximum_supported_memory Int
-  ecc_support Boolean
-  includes_cooler Boolean
-  packaging String
-  lithography Int
-  includes_cpu_cooler Boolean
-  simultaneous_multithreading Boolean
-  prices PrebuiltAttributes[]
+model Store {
+  id               String  @id @default(cuid())
+  store_name       String
+  store_region_iso String
+  prices           Price[]
 }
 
-model MOBA {
-    product Product @relation(fields: [product_id], references: [product_id])
-    product_id   String @id
-  manufacturer String
-  part_number String
-  socket_cpu String
-  form_factor String
-  chipset String
-  memory_max  Int
-  memory_type String
-  memory_slots  Int
-  memory_speed String
-  color String
-  pcie_x16_slots  Int
-  pcie_x8_slots Int
-  pcie_x_slots  Int
-  pcie_x1_slots Int
-  pci_slots Int
-  m_2_slots String
-  mini_pcie_slots Int
-  half_mini_pcie_slots  Int
-  mini_pcie_msata_slots Int
-  msata_slots Int
-  sata_6_0_gbs  Int
-  onboard_ethernet String
-  onboard_video String
-  usb_2_0_headers Int
-  usb_2_0_headers_single_port Int
-  usb_3_2_gen_1_headers Int
-  usb_3_2_gen_2_headers Int
-  usb_3_2_gen_2x2_headers Int
-  supports_ecc  Boolean
-  wireless_networking String
-  raid_support  Boolean
-  uses_back_connect_connectors  Boolean
-  prices PrebuiltAttributes[]
+model Gpu {
+  product                   Product              @relation(fields: [product_id], references: [product_id])
+  product_id                String               @id
+  part_number               String
+  chipset                   String
+  memory                    Int
+  memory_type               String
+  core_clock                Int
+  boost_clock               Int
+  effective_memory_clock    Int
+  interface                 String
+  color                     String
+  frame_sync                String
+  length                    Int
+  tdp                       Int
+  case_expansion_slot_width Int
+  total_slot_width          Int
+  cooling                   Int
+  external_power            String
+  hdmi_outputs              Int
+  displayport_outputs       Int
+  prices                    PrebuiltAttributes[]
+}
+
+model MobaChipset {
+  id       String @id @default(cuid())
+  chipset  String @unique
+  pci_generation Decimal @db.Decimal(2,1)
+  cpu_oc Boolean
+  memory_oc Boolean
+  max_usb_5_gbps Int
+  max_usb_10_gbps Int
+  max_usb_20_gbps Int
+  max_sata_ports Int
+  usb_4_guaranteed Boolean
+  prebuilt_attributes PrebuiltAttributes[]
+  mobas Moba[]
+}
+
+model Cpu {
+  product                      Product              @relation(fields: [product_id], references: [product_id])
+  product_id                   String               @id
+  part_number                  String
+  series                       String
+  microarchitecture            String
+  core_family                  String
+  socket                       String
+  core_count                   Int
+  thread_count                 Int
+  performance_core_clock       Float
+  performance_core_boost_clock Float
+  l2_cache                     Int
+  l3_cache                     Int
+  tdp                          Int
+  integrated_graphics          String
+  maximum_supported_memory     Int
+  ecc_support                  Boolean
+  includes_cooler              Boolean
+  packaging                    String
+  lithography                  Int
+  includes_cpu_cooler          Boolean
+  simultaneous_multithreading  Boolean
+  prices                       PrebuiltAttributes[]
+}
+
+model Moba {
+  //moba parts
+  // * -> parts to use if only the chipset is specified for a prebuilt
+  product                      Product              @relation(fields: [product_id], references: [product_id])
+  product_id                   String               @id
+  part_number                  String
+  socket_cpu                   String
+  moba_form_factor FormFactor  @relation(fields: [moba_form_factor_id], references: [id])
+  moba_form_factor_id String  
+  chipset                      MobaChipset @relation(fields: [chipset_id], references: [id])
+  chipset_id                      String
+  memory_max                   Int
+  memory_type                  String
+  memory_slots                 Int
+  memory_speed                 String
+  color                        String
+  pcie_x16_slots               Int
+  pcie_x8_slots                Int
+  pcie_x_slots                 Int
+  pcie_x1_slots                Int
+  pci_slots                    Int
+  m_2_slots                    String
+  mini_pcie_slots              Int
+  half_mini_pcie_slots         Int
+  mini_pcie_msata_slots        Int
+  msata_slots                  Int
+  sata_6_0_gbs                 Int
+  onboard_ethernet             String
+  onboard_video                String
+  usb_2_0_headers              Int
+  usb_2_0_headers_single_port  Int
+  usb_3_2_gen_1_headers        Int
+  usb_3_2_gen_2_headers        Int
+  usb_3_2_gen_2x2_headers      Int
+  supports_ecc                 Boolean
+  wireless_networking          String
+  raid_support                 Boolean
+  uses_back_connect_connectors Boolean
+  prices                       PrebuiltAttributes[]
 }
 
 // use at pcpartpicker 
 //var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
 model Socket {
-    id   String   @id @default(cuid())
-    model String
-
+  id    String @id @default(cuid())
+  model String
 }
