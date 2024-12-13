@@ -229,7 +229,6 @@ model Cpu {
 
 model Moba {
   //moba parts
-  // * -> parts to use if only the chipset is specified for a prebuilt
   product                      Product              @relation(fields: [product_id], references: [product_id])
   product_id                   String               @id
   part_number                  String
