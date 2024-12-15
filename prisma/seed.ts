@@ -6,9 +6,9 @@ async function main() {
             data: [{brand: 'NVIDIA'}, {brand: 'Intel'}, {brand: 'AMD'}, {brand: 'NZXT'}]
         }
     )
-    const products = await prisma.product.createMany(
+    const products = await prisma.product.createManyAndReturn(
         {
-            data: [{}]
+            data: [{ brand_id: brands[0].id, product_name: 'Geforce 7800', product_type: 'GPU' }]
         }
     )
     const gpus = await prisma.gpu.createManyAndReturn({
