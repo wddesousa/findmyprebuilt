@@ -15,11 +15,11 @@
         "TDP": ["tdp", true],
         "Integrated Graphics": ["integrated_graphics", false],
         "Maximum Supported Memory": ["maximum_supported_memory", true],
-        "ECC Support": ["ecc_support", true],
-        "Includes Cooler": ["includes_cooler", true],
+        "ECC Support": ["ecc_support", false],
+        "Includes Cooler": ["includes_cooler", false],
         "Packaging": ["packaging", false],
         "Lithography": ["lithography", true],
-        "Includes CPU Cooler": ["includes_cpu_cooler", true],
-        "Simultaneous Multithreading": ["simultaneous_multithreading", true]
+        "Includes CPU Cooler": ["includes_cpu_cooler", false],
+        "Simultaneous Multithreading": ["simultaneous_multithreading", false]
     }
 }

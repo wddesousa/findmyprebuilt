@@ -6,6 +6,7 @@ import { Cpu, PrismaClient } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import {ProductType} from '@prisma/client'
 import { UniversalSerializationMap, PartType, PrismaModelMap } from './types'
+import { genericSerialize } from './serializers'
 
 const prisma = new PrismaClient()
 
@@ -53,8 +54,9 @@ export async function ScrapeCpu(url: string) {
     }
     const specs = await page.$$('.xs-hide .group--spec')
     const product_type = await page.$eval('.breadcrumb a', (l) => (l as HTMLAnchorElement).innerText.toLowerCase() as keyof UniversalSerializationMap)
-    const map = untypedMap as unknown as UniversalSerializationMap['cpu']
-    let serialized
+    const map = untypedMap as unknown as UniversalSerializationMap
+    //TODO: if product_type not in keys of map
+    let serialized: Record<string, any> = {}
 
 
     for (const spec of specs) {
@@ -71,31 +73,36 @@ export async function ScrapeCpu(url: string) {
         
         const [snakeSpecName, mappedSpecSerializationType] = mapped
 
+        //TODO
         const specValue = await spec.evaluate(
             (s) => s.childNodes[1]?.textContent
         )
+        //
 
         if (specValue == null || specValue.trim() === '') {
             serialized[snakeSpecName] = null
         } else if (mappedSpecSerializationType === 'custom') {
-            serialized[snakeSpecName] =
-                customSerializers[endpoint]![snakeSpecName]!(specValue)
+            // serialized[snakeSpecName] =
+                // customSerializers[endpoint]![snakeSpecName]!(specValue)
         } else {
             serialized[snakeSpecName] = genericSerialize(
                 specValue,
                 mappedSpecSerializationType
             )
         }
+    }           
+
+    switch (product_type) {
+        case 'cpu':
+            saveCpu(serialized)
+            break;
+    
+        default:
+            break;
     }
-
-
-    const example_info = await page.evaluate(() => {
-        console.log('Evaluating')
-        return document.querySelector('h1')?.innerText;
-    });
-    console.log(example_info)
-
-    await browser.close()
-    return {title: example_info}
+    
 }
 
+function saveCpu(specs: UniversalSerializationMap['cpu']) {
+
+}
