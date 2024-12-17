@@ -1,0 +1,25 @@
+{
+    "cpu": {
+        "Manufacturer": ["brand", false],
+        "Part #": ["part_number", false],
+        "Series": ["series", false],
+        "Microarchitecture": ["microarchitecture", false],
+        "Core Family": ["core_family", false],
+        "Socket": ["socket", false],
+        "Core Count": ["core_count", true],
+        "Thread Count": ["thread_count", true],
+        "Performance Core Clock": ["performance_core_clock", true],
+        "Performance Core Boost Clock": ["performance_core_boost_clock", true],
+        "L2 Cache": ["l2_cache", true],
+        "L3 Cache": ["l3_cache", true],
+        "TDP": ["tdp", true],
+        "Integrated Graphics": ["integrated_graphics", false],
+        "Maximum Supported Memory": ["maximum_supported_memory", true],
+        "ECC Support": ["ecc_support", true],
+        "Includes Cooler": ["includes_cooler", true],
+        "Packaging": ["packaging", false],
+        "Lithography": ["lithography", true],
+        "Includes CPU Cooler": ["includes_cpu_cooler", true],
+        "Simultaneous Multithreading": ["simultaneous_multithreading", true]
+    }
+}

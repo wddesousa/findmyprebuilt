@@ -12,7 +12,8 @@ WORKDIR /app
 RUN apk add --no-cache \
     udev \
     ttf-freefont \
-    chromium
+    chromium 
+
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

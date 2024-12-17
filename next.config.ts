@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  serverExternalPackages: [
+      'puppeteer-extra', 
+      'puppeteer-extra-plugin-stealth',
+      'puppeteer-extra-plugin-recaptcha',
+  ],
   output: 'standalone',
   webpackDevMiddleware: (config: any) => {
     config.watchOptions = {
