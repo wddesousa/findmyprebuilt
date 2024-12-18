@@ -10,8 +10,8 @@ export type PartType =
 export type Part = Record<string, any>
 
 export type PrismaModelMap = {
-    cpu: Cpu;
-    gpu: Gpu;
+    cpu: Omit<Cpu, 'product_id'>;
+    gpu: Omit<Gpu, 'product_id'>;
   };
 
 
@@ -31,5 +31,3 @@ export type UniversalSerializationMap = {
 // export type GpuSerializationmap = SerializationMap<Gpu>
 // export type CaseSerializationmap = SerializationMap<Case>
 // export type MemorySerializationmap = SerializationMap<Memory>
-
-const foo

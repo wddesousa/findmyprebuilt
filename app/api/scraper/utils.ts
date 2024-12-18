@@ -2,11 +2,12 @@ import puppeteer from 'puppeteer-extra'
 import { connect } from 'puppeteer-real-browser'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import untypedMap from './serialization-map.json'
-import { Cpu, PrismaClient } from '@prisma/client'
+import { Cpu, Gpu, PrismaClient } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import {ProductType} from '@prisma/client'
 import { UniversalSerializationMap, PartType, PrismaModelMap } from './types'
 import { genericSerialize } from './serializers'
+import { ElementHandle } from 'puppeteer'
 
 const prisma = new PrismaClient()
 
@@ -55,18 +56,33 @@ export async function ScrapeCpu(url: string) {
     const specs = await page.$$('.xs-hide .group--spec')
     const product_type = await page.$eval('.breadcrumb a', (l) => (l as HTMLAnchorElement).innerText.toLowerCase() as keyof UniversalSerializationMap)
     const map = untypedMap as unknown as UniversalSerializationMap
+    
     //TODO: if product_type not in keys of map
-    let serialized: Record<string, any> = {}
+    switch (product_type) {
+        case 'cpu':
+            const SERIALIZED = serializeProduct('cpu', specs)
+            saveCpu(SERIALIZED)
+            break;
+    
+        default:
+            break;
+    }
+    
+}
 
-
+function serializeProduct<T extends keyof PrismaModelMap>(
+    productType: T,
+    specs: ElementHandle<Element>[]
+): PrismaModelMap[T] {
+    const serialized: Partial<PrismaModelMap[T]> = {}
+    const map = untypedMap as unknown as UniversalSerializationMap
+    
     for (const spec of specs) {
         const specName = await spec.$eval('.group__title', (l) =>
             (l as HTMLHeadingElement).innerText.trim()
         )
 
-        // await prisma[untypedMap as unknown as keyof UniversalSerializationMap].create({data: {}})
-
-        const mapped = map[product_type][specName]
+        const mapped = map[productType][specName]
 
         if (typeof mapped === 'undefined')
             throw new Error(`No mapping found for spec '${specName}'`)
@@ -75,12 +91,13 @@ export async function ScrapeCpu(url: string) {
 
         //TODO
         const specValue = await spec.evaluate(
-            (s) => s.childNodes[1]?.textContent
+            (s) => 'a string' //s.childNodes[1]?.textContent
         )
         //
 
         if (specValue == null || specValue.trim() === '') {
-            serialized[snakeSpecName] = null
+            // serialized[snakeSpecName] = null
+            throw new Error(`Spec '${specName}' cannot be undefined or empty`)
         } else if (mappedSpecSerializationType === 'custom') {
             // serialized[snakeSpecName] =
                 // customSerializers[endpoint]![snakeSpecName]!(specValue)
@@ -90,19 +107,20 @@ export async function ScrapeCpu(url: string) {
                 mappedSpecSerializationType
             )
         }
-    }           
-
-    switch (product_type) {
-        case 'cpu':
-            saveCpu(serialized)
-            break;
-    
-        default:
-            break;
     }
-    
+    return serialized
 }
 
-function saveCpu(specs: UniversalSerializationMap['cpu']) {
 
+function saveCpu(specs: Partial<Cpu>) {
+    prisma.cpu.create({
+        data: {
+            product: {
+                create: {
+                    product_name: 'test',
+                    brand: {connectOrCreate: specs. }
+                }
+            }
+        }
+    })
 }
