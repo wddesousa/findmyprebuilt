@@ -8,6 +8,7 @@ import {ProductType} from '@prisma/client'
 import { UniversalSerializationMap, PartType, PrismaModelMap } from './types'
 import { genericSerialize } from './serializers'
 import { ElementHandle } from 'puppeteer'
+import { AssertionError } from 'assert'
 
 const prisma = new PrismaClient()
 
@@ -60,8 +61,8 @@ export async function ScrapeCpu(url: string) {
     //TODO: if product_type not in keys of map
     switch (product_type) {
         case 'cpu':
-            const SERIALIZED = serializeProduct('cpu', specs)
-            saveCpu(SERIALIZED)
+            const serialized = serializeProduct('cpu', specs)
+            saveCpu(serialized)
             break;
     
         default:
@@ -107,11 +108,19 @@ function serializeProduct<T extends keyof PrismaModelMap>(
                 mappedSpecSerializationType
             )
         }
+        for (const spec in map[productType]) {
+            if (map[productType][spec][0] in serialized === undefined)
+                throw new Error(`No mapping found for spec '${specName}'`)
+        }
     }
     return serialized
 }
 
-
+function assertPropertyExists(val: any): asserts val is undefined {
+    if (typeof val === undefined) {
+      throw new AssertionError("Not a string!");
+    }
+  }
 function saveCpu(specs: Partial<Cpu>) {
     prisma.cpu.create({
         data: {
