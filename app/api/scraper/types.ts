@@ -1,5 +1,4 @@
-import { ProductType, Cpu, Moba, Gpu, Case, Memory } from '@prisma/client'; // Adjust based on your models
-import type { Prisma } from '@prisma/client';
+import { Product, Cpu, Moba, Gpu, Case, Memory, Brand } from '@prisma/client'; // Adjust based on your models
 export type PartType =
     | 'cpu'
     | 'moba'
@@ -10,8 +9,8 @@ export type PartType =
 export type Part = Record<string, any>
 
 export type PrismaModelMap = {
-    cpu: Omit<Cpu, 'product_id'>;
-    gpu: Omit<Gpu, 'product_id'>;
+    cpu: Omit<Product & Brand & Cpu, 'product_id' | 'brand_id'>;
+    gpu: Omit<Product & Brand & Gpu, 'product_id' | 'brand_id'>;
   };
 
 

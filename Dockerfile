@@ -15,7 +15,6 @@ RUN apk add --no-cache \
     chromium 
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 EXPOSE 3000
 CMD ["bun", "run", "dev"]
@@ -23,6 +22,10 @@ CMD ["bun", "run", "dev"]
 # # Stage 2: Build the application
 FROM base AS builder
 WORKDIR /app
+RUN apk add --no-cache \
+    udev \
+    ttf-freefont \
+    chromium 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN bun run build
