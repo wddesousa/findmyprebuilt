@@ -21,6 +21,8 @@ model Product {
   brand_id            String
   created_at          DateTime             @default(now())
   updated_at          DateTime             @default(now())
+  url String @unique
+  asin String? 
   prices              Price[]
   prebuilt_attributes PrebuiltAttributes[]
   cases               Case[]
@@ -167,15 +169,15 @@ model Gpu {
   product_id                String               @id
   part_number               String
   chipset                   String
-  memory                    Int
+  memory_gb                    Int
   memory_type               String
-  core_clock                Int
-  boost_clock               Int
-  effective_memory_clock    Int
+  core_clock_mhz                Int
+  boost_clock_mhz               Int
+  effective_memory_clock_mhz    Int
   interface                 String
   color                     String
   frame_sync                String
-  length                    Int
+  length_mm                    Int
   tdp_w                       Int
   case_expansion_slot_width Int
   total_slot_width          Int

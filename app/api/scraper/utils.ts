@@ -70,6 +70,7 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
     const serialized: Partial<PrismaModelMap[T]> = {}
     const map = untypedMap as unknown as UniversalSerializationMap
     const specs = await page.$$('.xs-hide .group--spec')
+    serialized.url = page.url()
     serialized.product_name = await page.$eval('.pageTitle', (l) =>
         (l as HTMLHeadingElement).innerText.trim()
     )
@@ -120,7 +121,8 @@ async function saveCpu(specs: PrismaModelMap['cpu']) {
                             create: { brand: specs.brand }
                          } 
                     },
-                    product_type: 'CPU'
+                    product_type: 'CPU',
+                    url: specs.url
                 }
             },
             part_number: specs.part_number,

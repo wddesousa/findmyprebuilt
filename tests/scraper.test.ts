@@ -1,18 +1,19 @@
-import {expect, test} from 'vitest'
+import {describe, expect, test} from 'vitest'
 import { scrape_and_save } from '@/app/api/scraper/utils'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
-test('scraper', async () => {
+describe('parts specs scraper', async () => {
     try {
         await prisma.product.delete({ where: {
             product_name: 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor'
         } })
     } catch {}
 
-    const cpu = await scrape_and_save('https://pcpartpicker.com/product/3hyH99/amd-ryzen-7-7800x3d-42-ghz-8-core-processor-100-100000910wof')
+    test('cpu', async () => {
+        const cpu = await scrape_and_save('https://pcpartpicker.com/product/3hyH99/amd-ryzen-7-7800x3d-42-ghz-8-core-processor-100-100000910wof')
 
-    expect(cpu, 'crawler and serialization').toMatchObject({
+    expect(cpu).toMatchObject({
         part_number: '100-100000910WOF',
         series: 'AMD Ryzen 7',
         microarchitecture: 'Zen 4',
@@ -36,6 +37,19 @@ test('scraper', async () => {
         product: {
           product_name: 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor',
           product_type: 'CPU',
+          url: 'https://pcpartpicker.com/product/3hyH99/amd-ryzen-7-7800x3d-42-ghz-8-core-processor-100-100000910wof'
         }
       })
+    })
+
+    test('gpu', async () => {
+
+        const gpu = await scrape_and_save('https://pcpartpicker.com/product/pD8bt6/msi-geforce-rtx-3060-ventus-2x-12g-geforce-rtx-3060-12gb-12-gb-video-card-rtx3060ventus2x12goc')
+
+        expect(gpu).toMatchObject({
+          product_name: 'MSI GeForce RTX 3060 Ventus 2X 12G GeForce RTX 3060 12GB 12 GB Video Card'
+        })
+    })
+    
+
 })
