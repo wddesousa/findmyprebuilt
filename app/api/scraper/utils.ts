@@ -17,7 +17,7 @@ const launch_config = {
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
     args: ['--no-sandbox', '--disable-gpu' ],
  }
-export async function Scrape(url: string) {
+export async function scrape_and_save(url: string) {
     // const { browser, page } = await connect({
     //     headless: false,
 
@@ -33,15 +33,11 @@ export async function Scrape(url: string) {
     //     ignoreAllFlags: false
     // })
     puppeteer.use(StealthPlugin())
-    console.log(`starting`)
     const browser = await puppeteer.launch(launch_config)
-    console.log(`launching`)
     const page = await browser.newPage()
-    console.log(`going to... ${url}`)
     const res = await page.goto(url)
 
     try {
-        console.log('Awaiting')
         await page.waitForSelector('nav', { timeout: 5000 })
     } catch {
         console.error(
@@ -59,8 +55,7 @@ export async function Scrape(url: string) {
     switch (product_type) {
         case 'cpu':
             const serialized = await serializeProduct('cpu', page)
-            saveCpu(serialized)
-            break;
+            return await saveCpu(serialized)
 
         default:
             break;
@@ -92,7 +87,7 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 
         //TODO
         const specValue = await spec.evaluate(
-            (s) => 'a string' //s.childNodes[1]?.textContent
+            (s) => s.childNodes[3]?.textContent?.trim()
         )
         //
 
@@ -114,7 +109,7 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 }
 
 async function saveCpu(specs: PrismaModelMap['cpu']) {
-    const cpu = await prisma.cpu.create({
+    return await prisma.cpu.create({
         data: {
             product: {
                 create: {
@@ -135,21 +130,21 @@ async function saveCpu(specs: PrismaModelMap['cpu']) {
             socket: specs.socket,
             core_count: specs.core_count,
             thread_count: specs.thread_count,
-            performance_core_clock: specs.performance_core_clock,
-            performance_core_boost_clock: specs.performance_core_boost_clock,
-            l2_cache: specs.l2_cache,
-            l3_cache: specs.l3_cache,
-            tdp: specs.tdp,
+            performance_core_clock_ghz: specs.performance_core_clock_ghz,
+            performance_core_boost_clock_ghz: specs.performance_core_boost_clock_ghz,
+            l2_cache_mb: specs.l2_cache_mb,
+            l3_cache_mb: specs.l3_cache_mb,
+            tdp_w: specs.tdp_w,
             integrated_graphics: specs.integrated_graphics,
-            maximum_supported_memory: specs.maximum_supported_memory,
+            maximum_supported_memory_gb: specs.maximum_supported_memory_gb,
             ecc_support: specs.ecc_support,
             includes_cooler: specs.includes_cooler,
             packaging: specs.packaging,
-            lithography: specs.lithography,
+            lithography_nm: specs.lithography_nm,
             includes_cpu_cooler: specs.includes_cpu_cooler,
             simultaneous_multithreading: specs.simultaneous_multithreading,
 
-        }
+        },
+        include: {product: true}
     })
-    console.log(`New cpu created ${cpu}`)
 }

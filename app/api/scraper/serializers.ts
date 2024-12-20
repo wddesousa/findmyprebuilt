@@ -1,6 +1,7 @@
 const SERIALIZED_VALUES: Record<string, any> = {
 	none: null,
 	yes: true,
+	no: false,
 }
 
 const DECIMAL_REGEX = /\d*\.?\d*/g

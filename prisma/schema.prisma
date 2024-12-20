@@ -15,7 +15,7 @@ datasource db {
 
 model Product {
   product_id          String               @id @default(cuid())
-  product_name        String  //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  product_name        String               @unique//for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
   product_type        ProductType
   brand               Brand                @relation(fields: [brand_id], references: [id])
   brand_id            String
@@ -60,7 +60,7 @@ model BasePrebuilt {
 }
 
 model PrebuiltAttributes {
-  product                Product      @relation(fields: [product_id], references: [product_id])
+  product                Product      @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id             String       @id
   prebuilt               BasePrebuilt @relation(fields: [prebuilt_id], references: [base_prebuilt_id])
   prebuilt_id            String
@@ -95,7 +95,7 @@ enum StorageType {
 }
 
 model Case {
-  product        Product              @relation(fields: [product_id], references: [product_id])
+  product        Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id     String               @id
   case_height    Float
   case_width     Float
@@ -126,7 +126,7 @@ model FormFactor {
 
 
 model Memory {
-  product      Product    @relation(fields: [product_id], references: [product_id])
+  product      Product    @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id   String     @id
   total_memory Int
   memory_slots Int
@@ -149,7 +149,7 @@ model Price {
   created_at DateTime
   store      Store    @relation(fields: [store_id], references: [id])
   store_id   String
-  product    Product  @relation(fields: [product_id], references: [product_id])
+  product    Product  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id String
 
   @@unique([store_id, product_id])
@@ -163,7 +163,7 @@ model Store {
 }
 
 model Gpu {
-  product                   Product              @relation(fields: [product_id], references: [product_id])
+  product                   Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                String               @id
   part_number               String
   chipset                   String
@@ -176,7 +176,7 @@ model Gpu {
   color                     String
   frame_sync                String
   length                    Int
-  tdp                       Int
+  tdp_w                       Int
   case_expansion_slot_width Int
   total_slot_width          Int
   cooling                   Int
@@ -202,7 +202,7 @@ model MobaChipset {
 }
 
 model Cpu {
-  product                      Product              @relation(fields: [product_id], references: [product_id])
+  product                      Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                   String               @id
   part_number                  String
   series                       String
@@ -211,17 +211,17 @@ model Cpu {
   socket                       String
   core_count                   Int
   thread_count                 Int
-  performance_core_clock       Float
-  performance_core_boost_clock Float
-  l2_cache                     Int
-  l3_cache                     Int
-  tdp                          Int
+  performance_core_clock_ghz       Float
+  performance_core_boost_clock_ghz Float
+  l2_cache_mb                     Int
+  l3_cache_mb                     Int
+  tdp_w                          Int
   integrated_graphics          String
-  maximum_supported_memory     Int
+  maximum_supported_memory_gb     Int
   ecc_support                  Boolean
   includes_cooler              Boolean
   packaging                    String
-  lithography                  Int
+  lithography_nm                  Int
   includes_cpu_cooler          Boolean
   simultaneous_multithreading  Boolean
   prices                       PrebuiltAttributes[]
@@ -229,7 +229,7 @@ model Cpu {
 
 model Moba {
   //moba parts
-  product                      Product              @relation(fields: [product_id], references: [product_id])
+  product                      Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                   String               @id
   part_number                  String
   socket_cpu                   String
