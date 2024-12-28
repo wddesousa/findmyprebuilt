@@ -21,5 +21,27 @@
         "Lithography": ["lithography_nm", true],
         "Includes CPU Cooler": ["includes_cpu_cooler", false],
         "Simultaneous Multithreading": ["simultaneous_multithreading", false]
+    },
+    "gpu": {
+        "Manufacturer": ["brand", false],
+        "Model": ["product_name", false],
+        "Part #": ["part_number", "custom"],
+        "Chipset": ["chipset", false],
+        "Memory": ["memory_gb", true],
+        "Memory Type": ["memory_type", false],
+        "Core Clock": ["core_clock_mhz", true],
+        "Boost Clock": ["boost_clock_mhz", true],
+        "Effective Memory Clock": ["effective_memory_clock_mhz", true],
+        "Interface": ["interface", false],
+        "Color": ["color", false],
+        "Frame Sync": ["frame_sync", false],
+        "Length": ["length_mm", true],
+        "TDP": ["tdp_w", true],
+        "Case Expansion Slot Width": ["case_expansion_slot_width", true],
+        "Total Slot Width": ["total_slot_width", true],
+        "Cooling": ["cooling", true],
+        "External Power": ["external_power", false],
+        "HDMI Outputs": ["hdmi_outputs", true],
+        "DisplayPort Outputs": ["displayport_outputs", true]
     }
 }

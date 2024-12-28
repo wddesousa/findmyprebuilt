@@ -1,35 +1,40 @@
 import { PrismaClient } from '@prisma/client'
+import { scrapeAmdMobaChipsets } from '@/app/api/scrapers/utils'
+
 const prisma = new PrismaClient()
 async function main() {
-    const brands = await prisma.brand.createManyAndReturn(
-        {
-            data: [{brand: 'NVIDIA'}, {brand: 'Intel'}, {brand: 'AMD'}, {brand: 'NZXT'}]
-        }
-    )
-    const products = await prisma.product.createManyAndReturn(
-        {
-            data: [{ brand_id: brands[0].id, product_name: 'Geforce 7800', product_type: 'GPU' }]
-        }
-    )
-    const gpus = await prisma.gpu.createManyAndReturn({
-        data: [
+  //   const brands = await prisma.brand.createManyAndReturn(
+  //       {
+  //           data: [{brand: 'NVIDIA'}, {brand: 'Intel'}, {brand: 'AMD'}, {brand: 'NZXT'}]
+  //       }
+  //   )
+  //   const products = await prisma.product.createManyAndReturn(
+  //       {
+  //           data: [{ brand_id: brands[0].id, product_name: 'Geforce 7800', product_type: 'GPU' }]
+  //       }
+  //   )
+  //   const gpus = await prisma.gpu.createManyAndReturn({
+  //       data: [
             
-        ]
-    })
+  //       ]
+  //   })
 
-  const player_one = await prisma.basePrebuilt.upsert({
-    where: { base_prebuilt_name: 'Player: One' },
-    update: {},
-    create: {
-      base_prebuilt_name: 'Player: One',
-      prebuilt_attributes: {
-        createMany: {
-            data: [{ moba_id: 'Check out Prisma with Next.js',}]
-        },
-        where: {  }
-      },
-    },
-  })
+  // const player_one = await prisma.basePrebuilt.upsert({
+  //   where: { base_prebuilt_name: 'Player: One' },
+  //   update: {},
+  //   create: {
+  //     base_prebuilt_name: 'Player: One',
+  //     prebuilt_attributes: {
+  //       createMany: {
+  //           data: [{ moba_id: 'Check out Prisma with Next.js',}]
+  //       },
+  //       where: {  }
+  //     },
+  //   },
+  // })
+
+
+
 }
 main()
   .then(async () => {

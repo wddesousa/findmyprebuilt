@@ -167,7 +167,7 @@ model Store {
 model Gpu {
   product                   Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                String               @id
-  part_number               String
+  part_number               String[]
   chipset                   String
   memory_gb                    Int
   memory_type               String
@@ -186,21 +186,6 @@ model Gpu {
   hdmi_outputs              Int
   displayport_outputs       Int
   prices                    PrebuiltAttributes[]
-}
-
-model MobaChipset {
-  id       String @id @default(cuid())
-  chipset  String @unique
-  pci_generation Decimal @db.Decimal(2,1)
-  cpu_oc Boolean
-  memory_oc Boolean
-  max_usb_5_gbps Int
-  max_usb_10_gbps Int
-  max_usb_20_gbps Int
-  max_sata_ports Int
-  usb_4_guaranteed Boolean
-  prebuilt_attributes PrebuiltAttributes[]
-  mobas Moba[]
 }
 
 model Cpu {
@@ -268,6 +253,23 @@ model Moba {
   uses_back_connect_connectors Boolean
   prices                       PrebuiltAttributes[]
 }
+
+
+model MobaChipset {
+  id       String @id @default(cuid())
+  chipset  String @unique
+  pci_generation Decimal @db.Decimal(2,1)
+  cpu_oc Boolean
+  memory_oc Boolean
+  max_usb_5_gbps Int
+  max_usb_10_gbps Int
+  max_usb_20_gbps Int
+  max_sata_ports Int
+  usb_4_guaranteed Boolean? //null = no support, true = guaranteed, false = optionally
+  prebuilt_attributes PrebuiltAttributes[]
+  mobas Moba[]
+}
+
 
 // use at pcpartpicker 
 //var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
