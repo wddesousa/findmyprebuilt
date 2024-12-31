@@ -24,9 +24,7 @@ export const serializeNumber = (value: string) => {
 	const matches = numbers.filter((n) => n !== '')
 	if (!matches.length) return null
 
-	return matches.length === 1
-		? parseFloat(matches[0]!)
-		: matches.map((n) => parseFloat(n))
+	return parseFloat(matches[0]!)
 }
 
 export const customSerializers: Partial<{

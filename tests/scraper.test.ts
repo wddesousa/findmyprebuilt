@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest'
-import { scrapeAndSavePart, scrapeAmdMobaChipsets } from '@/app/api/scrapers/utils'
+import { scrapeAndSavePart } from '@/app/api/scrapers/utils'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -77,10 +77,6 @@ describe('parts specs scraper', async () => {
            tdp_w: 170,
            total_slot_width: 2,
         })
-    })
-
-    test('mobaChipset', async () => {
-      console.log(scrapeAmdMobaChipsets('https://www.amd.com/en/products/processors/chipsets/am4.html'))
     })
     
     // test('moba', async () => {

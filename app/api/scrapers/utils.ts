@@ -2,12 +2,10 @@ import puppeteer from 'puppeteer-extra'
 import { connect } from 'puppeteer-real-browser'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import untypedMap from './serialization-map.json'
-import { Cpu, Gpu, PrismaClient, MobaChipset } from '@prisma/client'
-import { Prisma } from '@prisma/client'
+import { Cpu, Gpu, PrismaClient, Prisma, MobaChipset } from '@prisma/client'
 import { UniversalSerializationMap, PrismaModelMap, MobaChipsetSpecs } from './types'
-import { genericSerialize, customSerializers } from './serializers'
+import { genericSerialize, customSerializers, serializeNumber } from './serializers'
 import { Page, Browser } from 'puppeteer'
-import { AssertionError } from 'assert'
 
 const LAUNCH_CONFIG = {
     headless: true,
@@ -211,8 +209,25 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
 }
 
 export async function scrapeAmdMobaChipsets(url: string) {
+    const prisma = new PrismaClient()
+    const brand = await prisma.brand.upsert({
+        where: { brand: 'AMD' },
+        update: {},
+        create: { brand: 'AMD' }
+    })
     const [browser, page] = await getPuppeteerInstance(url, '.table-responsive')
-    const specIndexes: Record<string, Record<keyof MobaChipsetSpecs, number | null>> = {
+    type mobaAmdChipsetIndexes = {
+        chipset: number,
+        cpu_oc: number,
+        max_sata_ports: number,
+        max_usb_10_gbps: number,
+        max_usb_20_gbps: number | null,
+        max_usb_5_gbps: number,
+        memory_oc: number | null,
+        pci_generation: number,
+        usb_4_guaranteed: number | null
+    }
+    const specIndexes: Record<string, mobaAmdChipsetIndexes> = {
         am4: {
             chipset: 0,
             cpu_oc: 8,
@@ -223,8 +238,20 @@ export async function scrapeAmdMobaChipsets(url: string) {
             memory_oc: null,
             pci_generation: 6,
             usb_4_guaranteed: null
+        },
+        am5: {
+            chipset: 0,
+            cpu_oc: 4,
+            max_sata_ports: 9,
+            max_usb_10_gbps: 7,
+            max_usb_20_gbps: 8,
+            max_usb_5_gbps: 6,
+            memory_oc: 5,
+            pci_generation: 1,
+            usb_4_guaranteed: 10
         }
     }
+
     const urlSegments = url.split('/')
     const cpuChipset =  urlSegments.pop()?.replace('.html', '')
     
@@ -232,10 +259,60 @@ export async function scrapeAmdMobaChipsets(url: string) {
         throw Error(`Chipset ${cpuChipset} not found`)
     
     
-    const table = page.$$eval('.table-responsive', (tables)=> {
-        tables.pop()
+    const table = (await page.$$(`table`))[cpuChipset === "am4" ? 1 : 0]
+    
+    const rows = (await table.evaluate(async (table) => {
+        return Array.from(table.rows).slice(2).map((row) => {
+            return Array.from(row.cells).map((cell) => {
+                cell.querySelector('sup')?.remove()
+                return cell.innerText
+            })  
+        })
+    })).filter((row) => row.length > 4)
+
+    browser.close()
+
+    const data: MobaChipsetSpecs[] = rows.map((row) => {
+        const indexes = specIndexes[cpuChipset]
+
+            const getString = (index: number) =>  {
+                return row[index].replaceAll(/["*]/g, '').toLowerCase().trim()
+            }
+            const getNumber = (index: number | null) => {
+                if (index === null) return 0
+                const number = serializeNumber(row[index])
+                return number ?? 0;
+            }
+
+            const getBoolean = (index: number | null) => index === null ? false : (getString(index) === 'yes' ? true: false)
+
+            const customFormatters = {
+                pci_generation: (index: number) => {
+                    const value = row[index].toLowerCase().split("pcie")
+                    if (value.length <= 1)
+                        return 4.0 //some bad columns for am5 are badly coded, but they are all 4th gen
+                    const number = serializeNumber(value[1])
+                    if (number === null)
+                        throw Error("PCI generation number can't be null")
+                    return number
+                }
+            }
+
+            return {
+                chipset: getString(indexes.chipset),
+                cpu_oc: getBoolean(indexes.cpu_oc),
+                max_sata_ports: getNumber(indexes.max_sata_ports),
+                max_usb_10_gbps: getNumber(indexes.max_usb_10_gbps),
+                max_usb_20_gbps: getNumber(indexes.max_usb_20_gbps),
+                max_usb_5_gbps: getNumber(indexes.max_usb_5_gbps),
+                memory_oc: getBoolean(indexes.memory_oc),
+                usb_4_guaranteed: indexes.usb_4_guaranteed === null ?  null : getBoolean(indexes.usb_4_guaranteed),
+                pci_generation: new Prisma.Decimal(customFormatters['pci_generation'](indexes.pci_generation)),
+                brand_id: brand.id
+            }
     })
 
-    return cpuChipset
-    browser.close()
+    return await prisma.mobaChipset.createManyAndReturn({
+        data: data
+    })    
 }
