@@ -210,11 +210,16 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
 
 export async function scrapeAmdMobaChipsets(url: string) {
     const prisma = new PrismaClient()
+
     const brand = await prisma.brand.upsert({
         where: { brand: 'AMD' },
         update: {},
         create: { brand: 'AMD' }
     })
+    // await prisma.mobaChipset.deleteMany({
+    //     where: {brand_id: brand.id}
+    // })
+
     const [browser, page] = await getPuppeteerInstance(url, '.table-responsive')
     type mobaAmdChipsetIndexes = {
         chipset: number,
@@ -284,7 +289,19 @@ export async function scrapeAmdMobaChipsets(url: string) {
                 return number ?? 0;
             }
 
-            const getBoolean = (index: number | null) => index === null ? false : (getString(index) === 'yes' ? true: false)
+            const getBoolean = (index: number | null) => {
+                const booleanValues:Record<string, boolean> = {
+                    yes: true,
+                    standard: true,
+                    optional: false,
+                    no: false
+                }
+                if (index === null) return false 
+                const value = getString(index)
+                if (booleanValues[value] === undefined)
+                    throw Error(`Boolean value for ${value} for amd chipset unknown`)
+                return booleanValues[value]
+            }
 
             const customFormatters = {
                 pci_generation: (index: number) => {
