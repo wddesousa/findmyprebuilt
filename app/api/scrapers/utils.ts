@@ -2,7 +2,8 @@ import puppeteer from 'puppeteer-extra'
 import { connect } from 'puppeteer-real-browser'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import untypedMap from './serialization-map.json'
-import { Cpu, Gpu, PrismaClient, Prisma, MobaChipset } from '@prisma/client'
+import { Cpu, Gpu, Prisma, MobaChipset } from '@prisma/client'
+import prisma from '@/app/db'
 import { UniversalSerializationMap, PrismaModelMap, MobaChipsetSpecs } from './types'
 import { genericSerialize, customSerializers, serializeNumber } from './serializers'
 import { Page, Browser } from 'puppeteer'
@@ -11,12 +12,12 @@ const LAUNCH_CONFIG = {
     headless: true,
     defaultViewport: null,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-gpu' ],
- }
- puppeteer.use(StealthPlugin())
+    args: ['--no-sandbox', '--disable-gpu'],
+}
+puppeteer.use(StealthPlugin())
 
 async function getPuppeteerInstance(url: string, waitForSelector: string): Promise<[Browser, Page]> {
-// const { browser, page } = await connect({
+    // const { browser, page } = await connect({
     //     headless: false,
 
     //     args: [],
@@ -38,17 +39,15 @@ async function getPuppeteerInstance(url: string, waitForSelector: string): Promi
         await page.waitForSelector(waitForSelector, { timeout: 5000 })
     } catch {
         console.error(
-            `Initial fetch test failed (HTTP ${
-                res?.status() ?? '?'
+            `Initial fetch test failed (HTTP ${res?.status() ?? '?'
             }). Try running with \`{ headless: false }\` to see what the problem is.`
         )
-        throw new Error(`Initial fetch test failed (HTTP ${
-                res?.status() ?? '?'
+        throw new Error(`Initial fetch test failed (HTTP ${res?.status() ?? '?'
             }). Try running with \`{ headless: false }\` to see what the problem is.`)
     }
 
     return [browser, page]
- }
+}
 
 export async function scrapeAndSavePart(url: string) {
 
@@ -66,15 +65,15 @@ export async function scrapeAndSavePart(url: string) {
         throw Error(`Product type ${product_type} not configured for serialization`)
 
     const serialized = await serializeProduct(productKey, page)
-    browser.close()
+    await browser.close()
     return serialized
-    
+
 }
 
 async function serializeProduct<T extends keyof PrismaModelMap>(
     productType: T,
     page: Page
-){
+) {
     const serialized: Partial<PrismaModelMap[T]> = {}
     const map = untypedMap as unknown as UniversalSerializationMap
     const specs = await page.$$('.xs-hide .group--spec')
@@ -92,7 +91,7 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 
         if (typeof mapped === 'undefined')
             throw new Error(`No mapping found for spec '${specName}'`)
-        
+
         const [snakeSpecName, mappedSpecSerializationType] = mapped
 
         //TODO
@@ -125,17 +124,16 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 }
 
 async function saveCpu(specs: PrismaModelMap['cpu']) {
-    const prisma = new PrismaClient()
     return await prisma.cpu.create({
         data: {
             product: {
                 create: {
                     product_name: specs.product_name,
                     brand: {
-                        connectOrCreate: { 
+                        connectOrCreate: {
                             where: { brand: specs.brand },
                             create: { brand: specs.brand }
-                         } 
+                        }
                     },
                     product_type: 'CPU',
                     url: specs.url
@@ -163,22 +161,21 @@ async function saveCpu(specs: PrismaModelMap['cpu']) {
             simultaneous_multithreading: specs.simultaneous_multithreading,
 
         },
-        include: {product: true}
+        include: { product: true }
     })
 }
 
 async function saveGpu(specs: PrismaModelMap['gpu']) {
-    const prisma = new PrismaClient()
     return await prisma.gpu.create({
         data: {
             product: {
                 create: {
                     product_name: specs.product_name,
                     brand: {
-                        connectOrCreate: { 
+                        connectOrCreate: {
                             where: { brand: specs.brand },
                             create: { brand: specs.brand }
-                         } 
+                        }
                     },
                     product_type: 'GPU',
                     url: specs.url
@@ -204,18 +201,15 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
             displayport_outputs: specs.displayport_outputs
 
         },
-        include: {product: true}
+        include: { product: true }
     })
 }
 
 export async function scrapeAmdMobaChipsets(url: string) {
-    const prisma = new PrismaClient()
+    //this function scans inidividual table in a specific amd intel page and saves to database all of them
 
-    const brand = await prisma.brand.upsert({
-        where: { brand: 'AMD' },
-        update: {},
-        create: { brand: 'AMD' }
-    })
+    const brand = await upsertBrand('AMD')
+
     // await prisma.mobaChipset.deleteMany({
     //     where: {brand_id: brand.id}
     // })
@@ -258,78 +252,107 @@ export async function scrapeAmdMobaChipsets(url: string) {
     }
 
     const urlSegments = url.split('/')
-    const cpuChipset =  urlSegments.pop()?.replace('.html', '')
-    
+    const cpuChipset = urlSegments.pop()?.replace('.html', '')
+
     if (typeof cpuChipset === 'undefined' || typeof specIndexes[cpuChipset] === 'undefined')
         throw Error(`Chipset ${cpuChipset} not found`)
-    
-    
+
+
     const table = (await page.$$(`table`))[cpuChipset === "am4" ? 1 : 0]
-    
+
     const rows = (await table.evaluate(async (table) => {
         return Array.from(table.rows).slice(2).map((row) => {
             return Array.from(row.cells).map((cell) => {
                 cell.querySelector('sup')?.remove()
                 return cell.innerText
-            })  
+            })
         })
     })).filter((row) => row.length > 4)
 
-    browser.close()
+    await browser.close()
 
     const data: MobaChipsetSpecs[] = rows.map((row) => {
         const indexes = specIndexes[cpuChipset]
 
-            const getString = (index: number) =>  {
-                return row[index].replaceAll(/["*]/g, '').toLowerCase().trim()
-            }
-            const getNumber = (index: number | null) => {
-                if (index === null) return 0
-                const number = serializeNumber(row[index])
-                return number ?? 0;
-            }
+        const getString = (index: number) => {
+            return row[index].replaceAll(/["*]/g, '').toLowerCase().trim()
+        }
+        const getNumber = (index: number | null) => {
+            if (index === null) return 0
+            const number = serializeNumber(row[index])
+            return number ?? 0;
+        }
 
-            const getBoolean = (index: number | null) => {
-                const booleanValues:Record<string, boolean> = {
-                    yes: true,
-                    standard: true,
-                    optional: false,
-                    no: false
-                }
-                if (index === null) return false 
-                const value = getString(index)
-                if (booleanValues[value] === undefined)
-                    throw Error(`Boolean value for ${value} for amd chipset unknown`)
-                return booleanValues[value]
+        const getBoolean = (index: number | null) => {
+            const booleanValues: Record<string, boolean> = {
+                yes: true,
+                standard: true,
+                optional: false,
+                no: false
             }
+            if (index === null) return false
+            const value = getString(index)
+            if (booleanValues[value] === undefined)
+                throw Error(`Boolean value for ${value} for amd chipset unknown`)
+            return booleanValues[value]
+        }
 
-            const customFormatters = {
-                pci_generation: (index: number) => {
-                    const value = row[index].toLowerCase().split("pcie")
-                    if (value.length <= 1)
-                        return 4.0 //some bad columns for am5 are badly coded, but they are all 4th gen
-                    const number = serializeNumber(value[1])
-                    if (number === null)
-                        throw Error("PCI generation number can't be null")
-                    return number
-                }
+        const customFormatters = {
+            pci_generation: (index: number) => {
+                const value = row[index].toLowerCase().split("pcie")
+                if (value.length <= 1)
+                    return 4.0 //some bad columns for am5 are badly coded, but they are all 4th gen
+                const number = serializeNumber(value[1])
+                if (number === null)
+                    throw Error("PCI generation number can't be null")
+                return number
             }
+        }
 
-            return {
-                chipset: getString(indexes.chipset),
-                cpu_oc: getBoolean(indexes.cpu_oc),
-                max_sata_ports: getNumber(indexes.max_sata_ports),
-                max_usb_10_gbps: getNumber(indexes.max_usb_10_gbps),
-                max_usb_20_gbps: getNumber(indexes.max_usb_20_gbps),
-                max_usb_5_gbps: getNumber(indexes.max_usb_5_gbps),
-                memory_oc: getBoolean(indexes.memory_oc),
-                usb_4_guaranteed: indexes.usb_4_guaranteed === null ?  null : getBoolean(indexes.usb_4_guaranteed),
-                pci_generation: new Prisma.Decimal(customFormatters['pci_generation'](indexes.pci_generation)),
-                brand_id: brand.id
-            }
+        return {
+            chipset: getString(indexes.chipset),
+            cpu_oc: getBoolean(indexes.cpu_oc),
+            max_sata_ports: getNumber(indexes.max_sata_ports),
+            max_usb_10_gbps: getNumber(indexes.max_usb_10_gbps),
+            max_usb_20_gbps: getNumber(indexes.max_usb_20_gbps),
+            max_usb_5_gbps: getNumber(indexes.max_usb_5_gbps),
+            memory_oc: getBoolean(indexes.memory_oc),
+            usb_4_guaranteed: indexes.usb_4_guaranteed === null ? null : getBoolean(indexes.usb_4_guaranteed),
+            pci_generation: new Prisma.Decimal(customFormatters['pci_generation'](indexes.pci_generation)),
+            brand_id: brand.id
+        }
     })
 
     return await prisma.mobaChipset.createManyAndReturn({
         data: data
-    })    
+    })
+}
+
+export async function scrapeIntelMobaChipsets(url: string) {
+    //this function scans the list of intel chipsets and updates database with the ones missing
+    const [browser, page] = await getPuppeteerInstance(url, '.table')
+    const brand = await upsertBrand('Intel')
+    const chipsets = await page.$$eval("table tr > td:first-of-type", (cells) => cells.map((cell) => {
+        const a = cell.querySelector('a')
+        if (a === null || a.textContent === null)
+            throw Error("Error checking Intel chipset")
+        return {
+            url: a['href'],
+            name: a.textContent.split(' ').slice(1, -2).join(' ').trim()
+        }
+    }))
+
+    if (chipsets.length === 0)
+        throw Error("Couldn't find Intel table data")
+
+
+    await browser.close()
+}
+
+async function upsertBrand(brand: string) {
+    return prisma.brand.upsert({
+        where: { brand: brand },
+        update: {},
+        create: { brand: brand }
+    })
 }
