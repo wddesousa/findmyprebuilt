@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 describe('parts specs scraper', async () => {
     try {
         await prisma.product.deleteMany({ where: {
-            product_name: {
+            name: {
               in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor']
             }
         } })
@@ -20,7 +20,6 @@ describe('parts specs scraper', async () => {
         series: 'AMD Ryzen 7',
         microarchitecture: 'Zen 4',
         core_family: 'Raphael',
-        socket: 'AM5',
         core_count: 8,
         thread_count: 16,
         performance_core_clock_ghz: 4.2,
@@ -37,9 +36,12 @@ describe('parts specs scraper', async () => {
         includes_cpu_cooler: false,
         simultaneous_multithreading: true,
         product: {
-          product_name: 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor',
-          product_type: 'CPU',
+          name: 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor',
+          type: 'CPU',
           url: 'https://pcpartpicker.com/product/3hyH99/amd-ryzen-7-7800x3d-42-ghz-8-core-processor-100-100000910wof'
+        },
+        socket: {
+          name: 'AM5',
         }
       })
     })
@@ -70,8 +72,8 @@ describe('parts specs scraper', async () => {
              "912-V397-039",
            ],
            product: {
-             product_name: "GeForce RTX 3060 Ventus 2X 12G",
-             product_type: "GPU",
+             name: "GeForce RTX 3060 Ventus 2X 12G",
+             type: "GPU",
              url: "https://pcpartpicker.com/product/pD8bt6/msi-geforce-rtx-3060-ventus-2x-12g-geforce-rtx-3060-12gb-12-gb-video-card-rtx3060ventus2x12goc",
            },
            tdp_w: 170,

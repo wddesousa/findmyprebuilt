@@ -2,18 +2,29 @@ import { Product, Cpu, Moba, Gpu, Case, Memory, Brand, MobaChipset } from '@pris
 
 export type Part = Record<string, any>
 
+type ProductSpecs = Omit<{
+  product_name: string,
+  socket: string,
+  brand: string
+} & Product, 'product_id' | 'brand_id' | 'name'>
+
 export type PrismaModelMap = {
-    cpu: Omit<Product & Brand & Cpu, 'product_id' | 'brand_id'>
-    gpu: Omit<Product & Brand & Gpu, 'product_id' | 'brand_id'>
+    cpu: ProductSpecs & Cpu
+    gpu: ProductSpecs & Gpu
   };
 
 export type MappedSerialization<T> = [keyof T, boolean | 'custom']
+
+export type MobaChipsetSpecs = Omit<MobaChipset, 'id'>
 
 export type UniversalSerializationMap = {
     [K in keyof PrismaModelMap]: Record<string, MappedSerialization<PrismaModelMap[K]>>;
   };
 
-export type MobaChipsetSpecs = Omit<MobaChipset, 'id'>
+export type MobaChipsetlSerializationMap = {
+    'Intel': Record<string, MappedSerialization<Omit<MobaChipsetSpecs, 'name'>>>;
+  };
+
 
 // type SerializationMap<T> = Record<
 // 	PartType,

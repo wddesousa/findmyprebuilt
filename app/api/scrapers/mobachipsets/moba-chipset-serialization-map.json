@@ -1,0 +1,13 @@
+{
+    "Intel": {
+        "": ["pci_generation", false],
+        "": ["cpu_oc", false],
+        "": ["memory_oc", false],
+        "": ["max_usb_5_gbps", false],
+        "": ["max_usb_10_gbps", false],
+        "": ["max_usb_20_gbps", false],
+        "": ["max_sata_ports", false],
+        "": ["usb_4_guaranteed", false],
+        "": ["brand_id", false]
+    }
+}

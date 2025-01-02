@@ -15,8 +15,8 @@ datasource db {
 
 model Product {
   product_id          String               @id @default(cuid())
-  product_name        String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
-  product_type        ProductType
+  name        String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  type        ProductType
   brand               Brand                @relation(fields: [brand_id], references: [id])
   brand_id            String
   created_at          DateTime             @default(now())
@@ -31,12 +31,12 @@ model Product {
   cpus                Cpu[]
   mobas               Moba[]
 
-  @@unique([product_name, brand_id])
+  @@unique([name, brand_id])
 }
 
 model Brand {
   id          String        @id @default(cuid())
-  brand       String        @unique
+  name       String        @unique
   products    Product[]
   moba_chipset MobaChipset[]
 }
@@ -55,8 +55,8 @@ enum ProductType {
 
 model BasePrebuilt {
   //here's the main, base prebuilt that can have multiple variations in the prebuiltattributes table
-  base_prebuilt_id    String               @id @default(cuid())
-  base_prebuilt_name  String               @unique //this is what will be shown on the page title
+  id    String               @id @default(cuid())
+  name  String               @unique //this is what will be shown on the page title
   warranty_months     Int //warranty in months
   os                  String
   prebuilt_attributes PrebuiltAttributes[]
@@ -65,7 +65,7 @@ model BasePrebuilt {
 model PrebuiltAttributes {
   product                Product      @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id             String       @id
-  prebuilt               BasePrebuilt @relation(fields: [prebuilt_id], references: [base_prebuilt_id])
+  prebuilt               BasePrebuilt @relation(fields: [prebuilt_id], references: [id])
   prebuilt_id            String
   total_memory           Int
   memory_slots_used      Int
@@ -159,7 +159,7 @@ model Price {
 
 model Store {
   id               String  @id @default(cuid())
-  store_name       String
+  name       String
   store_region_iso String
   prices           Price[]
 }
@@ -195,7 +195,8 @@ model Cpu {
   series                           String
   microarchitecture                String
   core_family                      String
-  socket                           String
+  socket Socket @relation(fields: [socket_id], references: [id])
+  socket_id                String
   core_count                       Int
   thread_count                     Int
   performance_core_clock_ghz       Float
@@ -219,7 +220,8 @@ model Moba {
   product                      Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                   String               @id
   part_number                  String
-  socket_cpu                   String
+  socket Socket @relation(fields: [socket_id], references: [id])
+  socket_id                String
   moba_form_factor             FormFactor           @relation(fields: [moba_form_factor_id], references: [id])
   moba_form_factor_id          String
   chipset                      MobaChipset          @relation(fields: [chipset_id], references: [id])
@@ -256,7 +258,7 @@ model Moba {
 
 model MobaChipset {
   id                  String               @id @default(cuid())
-  chipset             String               @unique
+  name             String               @unique
   pci_generation      Decimal              @db.Decimal(2, 1)
   cpu_oc              Boolean
   memory_oc           Boolean
@@ -275,5 +277,7 @@ model MobaChipset {
 //var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
 model Socket {
   id    String @id @default(cuid())
-  model String
+  name String @unique
+  mobas Moba[]
+  cpus Cpu[]
 }
