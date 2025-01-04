@@ -1,13 +1,10 @@
 {
     "Intel": {
-        "": ["pci_generation", false],
-        "": ["cpu_oc", false],
-        "": ["memory_oc", false],
-        "": ["max_usb_5_gbps", false],
-        "": ["max_usb_10_gbps", false],
-        "": ["max_usb_20_gbps", false],
-        "": ["max_sata_ports", false],
-        "": ["usb_4_guaranteed", false],
-        "": ["brand_id", false]
+        "PCI Express Revision": ["pci_generation", "custom"],
+        "Supports Overclocking": ["cpu_oc", "custom"],
+        "Supports Memory Overclocking": ["memory_oc", false],
+        "USB Configuration": ["max_usb_5_gbps", "custom"],
+        "Max # of SATA 6.0 Gb/s Ports": ["max_sata_ports", true],
+        "USB Revision": ["usb_4_guaranteed", "custom"]    
     }
 }

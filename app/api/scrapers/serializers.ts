@@ -1,4 +1,4 @@
-import { PrismaModelMap } from "./types"
+import { MobaChipsetSpecs, PrismaModelMap } from "./types"
 
 const SERIALIZED_VALUES: Record<string, any> = {
 	none: null,
@@ -11,7 +11,7 @@ const DECIMAL_REGEX = /\d*\.?\d*/g
 export const genericSerialize = (value: string, extractNumber = false) => {
 	if (extractNumber) return serializeNumber(value)
 
-	const lower = value.toLowerCase()
+	const lower = value.toLowerCase().trim()
 	const serialized = SERIALIZED_VALUES[lower]
 
 	return typeof serialized === 'undefined' ? value : serialized
@@ -65,5 +65,13 @@ export const customSerializers: Partial<{
 		part_number: (value) => {
 			return value.split("\n").filter(l => l.trim() !== "").map(l => l.trim())
 		},
+	}
+}
+
+export const mobaChipsetCustomSerializer: Record<string, Partial<Record<keyof Omit<MobaChipsetSpecs, 'name'>, (value: string) => any>>> = {
+	intel: {
+		usb_4_guaranteed: (value) =>  value.includes('4.0') ? false : null,
+		pci_generation: (value) => Math.max(...value.trim().split(',').map(Number)),
+		cpu_oc: (value) => true
 	}
 }

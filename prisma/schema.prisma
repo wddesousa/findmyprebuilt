@@ -266,6 +266,7 @@ model MobaChipset {
   max_usb_10_gbps     Int
   max_usb_20_gbps     Int
   max_sata_ports      Int
+  max_usb_2_gen       Int
   usb_4_guaranteed    Boolean? //null = no support, true = guaranteed, false = optionally
   brand               Brand                @relation(fields: [brand_id], references: [id])
   brand_id            String

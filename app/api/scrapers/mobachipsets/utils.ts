@@ -1,6 +1,6 @@
 import { upsertBrand, getPuppeteerInstance } from "../utils"
 import { MobaChipsetSpecs, MobaChipsetlSerializationMap } from '../types'
-import { serializeNumber } from "../serializers"
+import { genericSerialize, mobaChipsetCustomSerializer, serializeNumber } from "../serializers"
 import prisma from '@/app/db'
 import { Prisma } from '@prisma/client'
 import chipsetUntypedMap from './moba-chipset-serialization-map.json'
@@ -21,7 +21,8 @@ export async function scrapeAmdMobaChipsets(url: string) {
         max_sata_ports: number,
         max_usb_10_gbps: number,
         max_usb_20_gbps: number | null,
-        max_usb_5_gbps: number,
+        max_usb_5_gbps: number | null,
+        max_usb_2_gen: number | null,
         memory_oc: number | null,
         pci_generation: number,
         usb_4_guaranteed: number | null
@@ -33,7 +34,8 @@ export async function scrapeAmdMobaChipsets(url: string) {
             max_sata_ports: 3,
             max_usb_10_gbps: 2,
             max_usb_20_gbps: null,
-            max_usb_5_gbps: 1,
+            max_usb_5_gbps: null,
+            max_usb_2_gen: 1,
             memory_oc: null,
             pci_generation: 6,
             usb_4_guaranteed: null
@@ -45,6 +47,7 @@ export async function scrapeAmdMobaChipsets(url: string) {
             max_usb_10_gbps: 7,
             max_usb_20_gbps: 8,
             max_usb_5_gbps: 6,
+            max_usb_2_gen: null,
             memory_oc: 5,
             pci_generation: 1,
             usb_4_guaranteed: 10
@@ -116,6 +119,7 @@ export async function scrapeAmdMobaChipsets(url: string) {
             max_usb_10_gbps: getNumber(indexes.max_usb_10_gbps),
             max_usb_20_gbps: getNumber(indexes.max_usb_20_gbps),
             max_usb_5_gbps: getNumber(indexes.max_usb_5_gbps),
+            max_usb_2_gen: getNumber(indexes.max_usb_2_gen),
             memory_oc: getBoolean(indexes.memory_oc),
             usb_4_guaranteed: indexes.usb_4_guaranteed === null ? null : getBoolean(indexes.usb_4_guaranteed),
             pci_generation: new Prisma.Decimal(customFormatters['pci_generation'](indexes.pci_generation)),
@@ -130,6 +134,7 @@ export async function scrapeAmdMobaChipsets(url: string) {
 
 export async function scrapeIntelMobaChipsets(url: string) {
     //this function scans the list of intel chipsets and updates database with the ones missing
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const [browser, page] = await getPuppeteerInstance(url, '.table')
     const brand = await upsertBrand('Intel')
     const map =  chipsetUntypedMap as unknown as MobaChipsetlSerializationMap
@@ -148,7 +153,7 @@ export async function scrapeIntelMobaChipsets(url: string) {
 
     const knownChipsets = await prisma.mobaChipset.findMany({
         select: { name: true },
-        where: { brand: { name: "AMD" } }
+        where: { brand: { name: "Intel" } }
     })
 
     const unknownChipsets = chipsets.filter((chipset) => {
@@ -158,7 +163,10 @@ export async function scrapeIntelMobaChipsets(url: string) {
         return true
     })
 
+    const data: MobaChipsetSpecs[] = []
+
     for (const chipset of unknownChipsets) {
+        console.log(`New Intel chipset found (${chipset.name})`)
         const res = await page.goto(chipset.url)
         try {
             await page.waitForSelector('.tech-section-row', { timeout: 5000 })
@@ -172,18 +180,57 @@ export async function scrapeIntelMobaChipsets(url: string) {
         }
 
         const rows = await page.$$('.tech-section-row')
-        const serialized: Partial<Omit<MobaChipsetSpecs, 'name'>> = {}
-        for(const row of rows) {
-            await row.evaluate((row) => {
-                const label = row.querySelector('div tech-label')?.textContent
+        const serialized: Partial<MobaChipsetSpecs> = {
+            name: chipset.name,
+            max_usb_5_gbps: 0,
+            max_usb_10_gbps: 0,
+            max_usb_20_gbps: 0,
+            cpu_oc: false,
+            memory_oc: false,
+            usb_4_guaranteed: null,
+            brand_id: brand.id
+        }
 
-                if (label && map.Intel[label]) {
-                    serialized[map.Intel[label][0]] = 'test' as any
+        for (const row of rows) {
+            const label = await row.$eval('div.tech-label', (label) => label.textContent?.trim())
+            const specValue = (await row.$eval('div.tech-data', (value) => value.textContent)) ?? 'unknown'
+            
+            if (!label) continue
+            
+            if (map.Intel[label]) {
+                const [specLabel, serializationType] = map.Intel[label]
+
+                if (serializationType !== 'custom')
+                    serialized[specLabel] = genericSerialize(specValue, serializationType)
+                else if (label == "USB Configuration") {
+                    if (specValue.includes('3.2')) {
+                        serialized['max_usb_5_gbps'] = extractUsbNumbers(specValue, '5', 'speed')
+                        serialized['max_usb_10_gbps'] = extractUsbNumbers(specValue, '10', 'speed')
+                        serialized['max_usb_20_gbps'] = extractUsbNumbers(specValue, '20', 'speed')
+                    } else {
+                        serialized['max_usb_5_gbps'] = extractUsbNumbers(specValue, '3.0', 'version')
+                    }
+                    serialized['max_usb_2_gen'] = extractUsbNumbers(specValue, '2.0', 'version')
+                } else {
+                    serialized[specLabel] = mobaChipsetCustomSerializer['intel'][specLabel]!(specValue)
                 }
-            })
-        }        
+            }   
+        }
+        
+        data.push(serialized as MobaChipsetSpecs) 
+        await sleep(2000)
     }
 
     await browser.close()
-    return unknownChipsets
+
+    return await prisma.mobaChipset.createManyAndReturn({
+        data: data
+    })
+}
+
+export function extractUsbNumbers(string:string, value: string, type: 'speed' | 'version'): number {
+    //pass value and type of usb to extract (e.g. 20, speed) for 20 gbps and this will extract the n umber of usb ports from the string
+    const regex = new RegExp(type === 'speed' ? `Up to (\\d+) USB [^-]*?${value}Gb/s` : `(\\d+) USB ${value} Ports`, 'm')
+    const match = string.match(regex)
+    return match ? parseInt(match[1]): 0
 }
