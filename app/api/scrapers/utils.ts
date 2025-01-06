@@ -55,7 +55,8 @@ export async function scrapeAndSavePart(url: string) {
 
     const productTitleMapping: Record<string, keyof PrismaModelMap> = {
         'video card': 'gpu',
-        'cpu': 'cpu'
+        'cpu': 'cpu',
+        'motherboard': 'moba'
     }
 
     const productKey = productTitleMapping[product_type]
@@ -117,6 +118,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             return await saveCpu(serialized as unknown as PrismaModelMap['cpu'])
         case 'gpu':
             return await saveGpu(serialized as unknown as PrismaModelMap['gpu'])
+        case 'moba':
+            return await saveMoba(serialized as unknown as PrismaModelMap['moba'])
         default:
             break;
     }
@@ -186,7 +189,12 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
                 }
             },
             part_number: specs.part_number,
-            chipset: specs.chipset,
+            chipset: {
+                connectOrCreate: { 
+                    where: { name: specs.chipset_id },
+                    create: { name: specs.chipset_id }
+                 }
+            },
             memory_gb: specs.memory_gb,
             memory_type: specs.memory_type,
             core_clock_mhz: specs.core_clock_mhz,
@@ -204,6 +212,53 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
             hdmi_outputs: specs.hdmi_outputs,
             displayport_outputs: specs.displayport_outputs
 
+        },
+        include: { product: true }
+    })
+}
+async function saveMoba(specs: PrismaModelMap['moba']) {
+    return await prisma.moba.create({
+        data: {
+            product: {
+                create: {
+                    name: specs.product_name,
+                    brand: {
+                        connectOrCreate: {
+                            where: { name: specs.brand },
+                            create: { name: specs.brand }
+                        }
+                    },
+                    type: 'MOBA',
+                    url: specs.url
+                }
+            },
+            part_number: specs.part_number,
+            socket: {
+                connectOrCreate: {
+                    where: { name: specs.socket },
+                    create: { name: specs.socket }
+                }
+            },
+            moba_form_factor: {
+                connectOrCreate: {
+                    where: { name: specs.moba_form_factor_id },
+                    create: { name: specs.moba_form_factor_id }
+                }
+            },
+            chipset: {
+                connect: { 
+                    name: specs.chipset_id,
+                 }
+            },
+            memory_max: specs.memory_max,
+            memory_speeds: {
+                connectOrCreate: specs.memory_speed.map((speed) => ({
+                    where: { 
+                        ddr_speed: { ddr: speed.ddr, speed: speed.speed } 
+                    },
+                    create: { ddr: speed.ddr, speed: speed.speed },
+                }))
+            }
         },
         include: { product: true }
     })

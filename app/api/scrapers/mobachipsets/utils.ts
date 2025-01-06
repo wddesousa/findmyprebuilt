@@ -1,4 +1,5 @@
 import { upsertBrand, getPuppeteerInstance } from "../utils"
+import { sleep } from "@/app/utils"
 import { MobaChipsetSpecs, MobaChipsetlSerializationMap } from '../types'
 import { genericSerialize, mobaChipsetCustomSerializer, serializeNumber } from "../serializers"
 import prisma from '@/app/db'
@@ -134,7 +135,6 @@ export async function scrapeAmdMobaChipsets(url: string) {
 
 export async function scrapeIntelMobaChipsets(url: string) {
     //this function scans the list of intel chipsets and updates database with the ones missing
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const [browser, page] = await getPuppeteerInstance(url, '.table')
     const brand = await upsertBrand('Intel')
     const map =  chipsetUntypedMap as unknown as MobaChipsetlSerializationMap

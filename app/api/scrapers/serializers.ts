@@ -72,6 +72,6 @@ export const mobaChipsetCustomSerializer: Record<string, Partial<Record<keyof Om
 	intel: {
 		usb_4_guaranteed: (value) =>  value.includes('4.0') ? false : null,
 		pci_generation: (value) => Math.max(...value.trim().split(',').map(Number)),
-		cpu_oc: (value) => true
+		cpu_oc: (value) => value.includes('IA')
 	}
 }
