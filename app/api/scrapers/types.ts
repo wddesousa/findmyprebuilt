@@ -1,4 +1,4 @@
-import { Product, Cpu, Moba, Gpu, Case, Memory, Brand, MobaChipset, MemorySpeed } from '@prisma/client'; // Adjust based on your models
+import { Product, Cpu, Moba, Gpu, Case, Memory, Brand, MobaChipset, MemorySpeed, MobaM2Slots } from '@prisma/client'; // Adjust based on your models
 
 export type Part = Record<string, any>
 
@@ -11,7 +11,7 @@ type ProductSpecs = Omit<{
 export type PrismaModelMap = {
     cpu: ProductSpecs & Cpu
     gpu: ProductSpecs & Gpu
-    moba: ProductSpecs & Moba & { memory_speed: Omit<MemorySpeed[], 'id'> }
+    moba: ProductSpecs & Moba & { memory_speed: Omit<MemorySpeed[], 'id'> } & { m_2_slots: Omit<MobaM2Slots[], 'id'> }
   };
 
 export type MappedSerialization<T> = [keyof T, boolean | 'custom']

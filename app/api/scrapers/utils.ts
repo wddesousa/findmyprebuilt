@@ -6,6 +6,7 @@ import prisma from '@/app/db'
 import { UniversalSerializationMap, PrismaModelMap, MobaChipsetSpecs } from './types'
 import { genericSerialize, customSerializers, serializeNumber } from './serializers'
 import { Page, Browser } from 'puppeteer'
+import { spec } from 'node:test/reporters'
 
 const LAUNCH_CONFIG = {
     headless: true,
@@ -213,7 +214,7 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
             displayport_outputs: specs.displayport_outputs
 
         },
-        include: { product: true }
+        include: { product: true, chipset: true }
     })
 }
 async function saveMoba(specs: PrismaModelMap['moba']) {
@@ -247,7 +248,7 @@ async function saveMoba(specs: PrismaModelMap['moba']) {
             },
             chipset: {
                 connect: { 
-                    name: specs.chipset_id,
+                    name: specs.chipset_id.replace(/Intel|AMD/g, "").trim(),
                  }
             },
             memory_max: specs.memory_max,
@@ -258,9 +259,51 @@ async function saveMoba(specs: PrismaModelMap['moba']) {
                     },
                     create: { ddr: speed.ddr, speed: speed.speed },
                 }))
-            }
+            },
+            memory_slots: specs.memory_slots,
+            color: specs.color,
+            pcie_x16_slots: specs.pcie_x16_slots,
+            pcie_x8_slots: specs.pcie_x8_slots,
+            pcie_x_slots: specs.pcie_x_slots,
+            pcie_x1_slots: specs.pcie_x1_slots,
+            pci_slots: specs.pci_slots,
+            m_2_slots: {
+                create: specs.m_2_slots.map((m2Slot) => ({
+                    mobaM2Slot: {
+                        connectOrCreate: {
+                            where: { 
+                                key_type_size: { key_type: m2Slot.key_type, size: m2Slot.size } 
+                            },
+                            create: { key_type: m2Slot.key_type, size: m2Slot.size },
+                        }
+                    }
+                }))
+            },
+            mini_pcie_slots: specs.mini_pcie_slots,
+            half_mini_pcie_slots: specs.half_mini_pcie_slots,
+            mini_pcie_msata_slots: specs.mini_pcie_msata_slots,
+            msata_slots: specs.msata_slots,
+            sata_6_0_gbs: specs.sata_6_0_gbs,
+            onboard_ethernet: specs.onboard_ethernet,
+            onboard_video: specs.onboard_video,
+            usb_2_0_headers: specs.usb_2_0_headers,
+            usb_2_0_headers_single_port: specs.usb_2_0_headers_single_port,
+            usb_3_2_gen_1_headers: specs.usb_3_2_gen_1_headers,
+            usb_3_2_gen_2_headers: specs.usb_3_2_gen_2_headers,
+            usb_3_2_gen_2x2_headers: specs.usb_3_2_gen_2x2_headers,
+            supports_ecc: specs.supports_ecc,
+            wireless_networking: specs.wireless_networking,
+            raid_support: specs.raid_support,
+            uses_back_connect_connectors: specs.uses_back_connect_connectors
         },
-        include: { product: true }
+        include: { 
+            product: true,
+            chipset: true,
+            m_2_slots: true,
+            memory_speeds: true,
+            moba_form_factor: true,
+            socket: true,
+        }
     })
 }
 

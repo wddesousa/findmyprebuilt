@@ -247,7 +247,6 @@ model Moba {
   memory_max                   Int
   memory_speeds  MemorySpeed[]
   memory_slots                 Int
-  speed                 String
   color                        String
   pcie_x16_slots               Int
   pcie_x8_slots                Int
@@ -303,7 +302,7 @@ model MobaM2Slots {
 
 model MobaM2SlotsOnMobas {
   id    String @id @default(cuid())
-  moba Moba  @relation(fields: [moba_id], references: [product_id])
+  moba Moba  @relation(fields: [moba_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   moba_id String 
   mobaM2Slot MobaM2Slots @relation(fields: [mobaM2Slots_id], references: [id])
   mobaM2Slots_id String 
@@ -313,6 +312,7 @@ enum M2Key {
   M
   B
   BM
+  E
 }
 
 // use at pcpartpicker 

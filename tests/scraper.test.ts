@@ -3,6 +3,8 @@ import { scrapeAndSavePart } from '@/app/api/scrapers/utils'
 import { PrismaClient } from '@prisma/client'
 import { extractUsbNumbers } from '@/app/api/scrapers/mobachipsets/utils'
 import { mobaChipsetCustomSerializer } from '@/app/api/scrapers/serializers'
+import path from 'path'
+import { PrismaModelMap } from '@/app/api/scrapers/types'
 
 const prisma = new PrismaClient()
 
@@ -26,16 +28,24 @@ test('correcly extract pci generation', () => {
   expect(mobaChipsetCustomSerializer['intel']['pci_generation']!('\n                                                        \n                                                            \n                                                            \n                                                                3.0\n                                                            \n                                                        \n                                                    ')).toBe(3)
 })
 describe('parts specs scraper', async () => {
+  const getFile = (filename: string) => `file://${path.join(__dirname, `./data/${filename}`)}`
+
     try {
         await prisma.product.deleteMany({ where: {
             name: {
-              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor']
+              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor', 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard']
             }
         } })
-    } catch {}
+    } catch (error: any) {
+      if (error.code !== 'P2025') {
+        console.error(error)
+        process.exit(error.code)
+      }
+    }
 
     test('cpu', async () => {
-        const cpu = await scrapeAndSavePart('https://pcpartpicker.com/product/3hyH99/amd-ryzen-7-7800x3d-42-ghz-8-core-processor-100-100000910wof')
+      const file = getFile("cpu.html")
+      const cpu = await scrapeAndSavePart(file)
 
     expect(cpu).toMatchObject({
         part_number: '100-100000910WOF',
@@ -60,7 +70,7 @@ describe('parts specs scraper', async () => {
         product: {
           name: 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor',
           type: 'CPU',
-          url: 'https://pcpartpicker.com/product/3hyH99/amd-ryzen-7-7800x3d-42-ghz-8-core-processor-100-100000910wof'
+          url: file
         },
         socket: {
           name: 'AM5',
@@ -69,12 +79,14 @@ describe('parts specs scraper', async () => {
     })
 
     test('gpu', async () => {
-
-        const gpu = await scrapeAndSavePart('https://pcpartpicker.com/product/pD8bt6/msi-geforce-rtx-3060-ventus-2x-12g-geforce-rtx-3060-12gb-12-gb-video-card-rtx3060ventus2x12goc')
+        const file = getFile("gpu.html")
+        const gpu = await scrapeAndSavePart(file)
         expect(gpu).toMatchObject({
            boost_clock_mhz: 1777,
            case_expansion_slot_width: 2,
-           chipset: "GeForce RTX 3060 12GB",
+           chipset: {
+            name: "GeForce RTX 3060 12GB",
+           },
            color: "Black",
            cooling: 2,
            core_clock_mhz: 1320,
@@ -96,16 +108,75 @@ describe('parts specs scraper', async () => {
            product: {
              name: "GeForce RTX 3060 Ventus 2X 12G",
              type: "GPU",
-             url: "https://pcpartpicker.com/product/pD8bt6/msi-geforce-rtx-3060-ventus-2x-12g-geforce-rtx-3060-12gb-12-gb-video-card-rtx3060ventus2x12goc",
+             url: file,
            },
            tdp_w: 170,
            total_slot_width: 2,
         })
     })
     
-    // test('moba', async () => {
-    //   const moba = await scrapeAndSavePart('https://pcpartpicker.com/product/pLtLrH/gigabyte-x870e-aorus-elite-wifi7-atx-am5-motherboard-x870e-aorus-elite-wifi7')
-    //   expect(moba).toMatchObject({product_name: 'test'})
-    // })
+    test('moba', async () => {
+      const file = getFile("moba.html")
+      const moba = await scrapeAndSavePart(file) as unknown as PrismaModelMap['moba']
+      expect(moba).toMatchObject(
+        {
+          part_number: [ 'Z890 Steel Legend WiFi', '90-MXBPF0-A0UAYZ' ],
+          memory_max: 256,
+          memory_slots: 4,
+          color: 'Silver',
+          pcie_x16_slots: 2,
+          pcie_x8_slots: 0,
+          pcie_x_slots: 1,
+          pcie_x1_slots: 0,
+          pci_slots: 0,
+          mini_pcie_slots: 0,
+          half_mini_pcie_slots: 0,
+          mini_pcie_msata_slots: 0,
+          msata_slots: 0,
+          sata_6_0_gbs: 4,
+          onboard_ethernet: '1 x 2.5 Gb/s (Realtek Dragon RTL8125BG)',
+          onboard_video: 'Depends on CPU',
+          usb_2_0_headers: 2,
+          usb_2_0_headers_single_port: 0,
+          usb_3_2_gen_1_headers: 2,
+          usb_3_2_gen_2_headers: 0,
+          usb_3_2_gen_2x2_headers: 1,
+          supports_ecc: false,
+          wireless_networking: 'Wi-Fi 7',
+          raid_support: true,
+          uses_back_connect_connectors: false,
+          product: {
+            name: 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard',
+            type: 'MOBA',
+            url: file,
+            asin: null
+          },
+          chipset: {      
+            name: 'Z890',
+          },
+          memory_speeds: [
+            { ddr: 'DDR5', speed: 4400 },
+            { ddr: 'DDR5', speed: 4800 },
+            { ddr: 'DDR5', speed: 5200 },
+            { ddr: 'DDR5', speed: 5600 },
+            { ddr: 'DDR5', speed: 6000 },
+            { ddr: 'DDR5', speed: 6200 },
+            { ddr: 'DDR5', speed: 6400 },
+            { ddr: 'DDR5', speed: 6600 },
+            { ddr: 'DDR5', speed: 6800 },
+            { ddr: 'DDR5', speed: 7000 },
+            { ddr: 'DDR5', speed: 7200 },
+            { ddr: 'DDR5', speed: 7600 },
+            { ddr: 'DDR5', speed: 7800 },
+            { ddr: 'DDR5', speed: 8000 },
+            { ddr: 'DDR5', speed: 8200 },
+            { ddr: 'DDR5', speed: 8400 }
+          ],
+          moba_form_factor: { name: 'ATX' },
+          socket: { name: 'LGA1851' }
+        }
+      )
+      expect(moba['m_2_slots']).toHaveLength(5)
+    })
 
 })
