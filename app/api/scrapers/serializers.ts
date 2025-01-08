@@ -32,6 +32,15 @@ const splitSpec = (value: string) => {
 	return value.split("\n").filter(l => l.trim() !== "").map(l => l.trim())
 }
 
+const getMemorySpeed = (value: string): MemorySpeed => (
+	{
+		id: '',
+		ddr: value.split('-')[0].trim() as DoubleDataRate,
+		speed: parseFloat(value.split('-')[1].trim())
+	}
+)
+
+
 export const customSerializers: Partial<{
 	[K in keyof PrismaModelMap]: Partial<Record<keyof PrismaModelMap[K], (value: string) => any>>
 }> = {
@@ -71,14 +80,7 @@ export const customSerializers: Partial<{
 	},
 	'moba': {
 		part_number: splitSpec,
-		memory_speed: (value): MemorySpeed[] => {
-			const memories = splitSpec(value)
-			return memories.map((memory) => ({
-				id: '',
-				ddr: memory.split('-')[0].trim() as DoubleDataRate,
-				speed: parseFloat(memory.split('-')[1].trim())
-			}))
-		},
+		memory_speed: (value): MemorySpeed[] => splitSpec(value).map(getMemorySpeed),
 		m_2_slots: (value): MobaM2Slots[] => {
 			const slots = splitSpec(value)
 			return slots.map((slot) => ({
@@ -88,6 +90,10 @@ export const customSerializers: Partial<{
 			}))
 		}
 	},
+	'memory': {
+		part_number: splitSpec,
+		memory_speed: getMemorySpeed,
+	}
 }
 
 export const mobaChipsetCustomSerializer: Record<string, Partial<Record<keyof Omit<MobaChipsetSpecs, 'name'>, (value: string) => any>>> = {

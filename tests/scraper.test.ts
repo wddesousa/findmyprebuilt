@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest'
 import { scrapeAndSavePart } from '@/app/api/scrapers/utils'
-import { PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { extractUsbNumbers } from '@/app/api/scrapers/mobachipsets/utils'
 import { mobaChipsetCustomSerializer } from '@/app/api/scrapers/serializers'
 import path from 'path'
@@ -33,7 +33,7 @@ describe('parts specs scraper', async () => {
     try {
         await prisma.product.deleteMany({ where: {
             name: {
-              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor', 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard']
+              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor', 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard', 'Corsair Vengeance LPX 16 GB (2 x 8 GB) DDR4-3200 CL16 Memory']
             }
         } })
     } catch (error: any) {
@@ -179,4 +179,27 @@ describe('parts specs scraper', async () => {
       expect(moba['m_2_slots']).toHaveLength(5)
     })
 
+    test('memory', async () => {
+      const file = getFile("memory.html")
+      const memory = await scrapeAndSavePart(file) as unknown as PrismaModelMap['memory']
+      expect(memory).toMatchObject({
+        part_number: [ 'CMK16GX4M2B3200C16' ],
+        form_factor: '288-pin DIMM (DDR4)',
+        modules: '2 x 8GB',
+        color: 'Black / Yellow',
+        first_word_latency: 10,
+        cas_latency: 16,
+        voltage: new Prisma.Decimal(1.35),
+        timing: '16-18-18-36',
+        ecc_registered: 'Non-ECC / Unbuffered',
+        heat_spreader: true,
+        product: {
+          name: 'Corsair Vengeance LPX 16 GB (2 x 8 GB) DDR4-3200 CL16 Memory',
+          type: 'MEMORY',
+          url:  file,
+          asin: null
+        },
+        memory_speed: { ddr: 'DDR4', speed: 3200 }
+      })
+    })
 })

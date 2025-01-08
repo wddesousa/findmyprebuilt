@@ -12,6 +12,7 @@ export type PrismaModelMap = {
     cpu: ProductSpecs & Cpu
     gpu: ProductSpecs & Gpu
     moba: ProductSpecs & Moba & { memory_speed: Omit<MemorySpeed[], 'id'> } & { m_2_slots: Omit<MobaM2Slots[], 'id'> }
+    memory: ProductSpecs & Memory & { memory_speed: Omit<MemorySpeed, 'id'> }
   };
 
 export type MappedSerialization<T> = [keyof T, boolean | 'custom']

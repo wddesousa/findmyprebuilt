@@ -4,6 +4,9 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// use at pcpartpicker 
+//var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,8 +18,8 @@ datasource db {
 
 model Product {
   product_id          String               @id @default(cuid())
-  name        String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
-  type        ProductType
+  name                String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  type                ProductType
   brand               Brand                @relation(fields: [brand_id], references: [id])
   brand_id            String
   created_at          DateTime             @default(now())
@@ -35,9 +38,9 @@ model Product {
 }
 
 model Brand {
-  id          String        @id @default(cuid())
-  name       String        @unique
-  products    Product[]
+  id           String        @id @default(cuid())
+  name         String        @unique
+  products     Product[]
   moba_chipset MobaChipset[]
 }
 
@@ -55,8 +58,8 @@ enum ProductType {
 
 model BasePrebuilt {
   //here's the main, base prebuilt that can have multiple variations in the prebuiltattributes table
-  id    String               @id @default(cuid())
-  name  String               @unique //this is what will be shown on the page title
+  id                  String               @id @default(cuid())
+  name                String               @unique //this is what will be shown on the page title
   warranty_months     Int //warranty in months
   os                  String
   prebuilt_attributes PrebuiltAttributes[]
@@ -69,9 +72,9 @@ model PrebuiltAttributes {
   prebuilt_id            String
   total_memory           Int
   memory_slots_used      Int
-  memory_slots Int
-  memory_speed  MemorySpeed @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  memory_speed_id String
+  memory_slots           Int
+  memory_speed           MemorySpeed  @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  memory_speed_id        String
   main_storage_gb        Int
   main_storage_type      StorageType
   seconday_storage_gb    Int?
@@ -81,12 +84,14 @@ model PrebuiltAttributes {
   bottom_fans            Float?
   bottom_fans_mm         Float?
   moba_chipset           MobaChipset? @relation(fields: [moba_chipset_id], references: [id])
-  moba_chipset_id        String? //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket
+  moba_chipset_id        String? //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket same with gpu chipset
+  gpu_chipset            GpuChipset?  @relation(fields: [gpu_chipset_id], references: [id])
+  gpu_chipset_id         String? //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket same with gpu chipset
   cpu_variation          Cpu          @relation(fields: [cpu_id], references: [product_id])
   cpu_id                 String
   moba_variation         Moba?        @relation(fields: [moba_id], references: [product_id])
   moba_id                String?
-  gpu_variation          Gpu          @relation(fields: [gpu_id], references: [product_id])
+  gpu_variation          Gpu?         @relation(fields: [gpu_id], references: [product_id])
   gpu_id                 String
   case                   Case         @relation(fields: [case_id], references: [product_id])
   case_id                String
@@ -122,28 +127,37 @@ model Case {
 }
 
 model FormFactor {
-  id          String @id @default(cuid())
-  name String @unique
-  cases       Case[]
-  mobas       Moba[]
+  id    String @id @default(cuid())
+  name  String @unique
+  cases Case[]
+  mobas Moba[]
 }
 
 model Memory {
-  product      Product    @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id   String     @id
-  total_memory Int
-  memory_slots Int
-  memory_speed  MemorySpeed @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  memory_speed_id String
+  product            Product     @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id         String      @id
+  part_number        String[]
+  form_factor        String
+  modules            String
+  color              String
+  first_word_latency Int
+  cas_latency        Int
+  voltage            Decimal     @db.Decimal(3, 2)
+  timing             String
+  ecc_registered     String
+  heat_spreader      Boolean
+  memory_speed       MemorySpeed @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  memory_speed_id    String
 }
 
 model MemorySpeed {
-  id          String @id @default(cuid())
-  ddr  DoubleDataRate
-  speed Int
-  memories Memory[]
+  id        String               @id @default(cuid())
+  ddr       DoubleDataRate
+  speed     Int
+  memories  Memory[]
   prebuilts PrebuiltAttributes[]
-  mobas Moba[]
+  mobas     Moba[]
+
   @@unique([ddr, speed])
 }
 
@@ -170,7 +184,7 @@ model Price {
 
 model Store {
   id               String  @id @default(cuid())
-  name       String
+  name             String
   store_region_iso String
   prices           Price[]
 }
@@ -179,7 +193,7 @@ model Gpu {
   product                    Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                 String               @id
   part_number                String[]
-  chipset                    GpuChipset @relation(fields: [chipset_id], references: [id])
+  chipset                    GpuChipset           @relation(fields: [chipset_id], references: [id])
   chipset_id                 String
   memory_gb                  Int
   memory_type                String
@@ -201,9 +215,10 @@ model Gpu {
 }
 
 model GpuChipset {
-  id    String @id @default(cuid())
-  name String @unique
-  gpus Gpu[]
+  id                 String               @id @default(cuid())
+  name               String               @unique
+  gpus               Gpu[]
+  prebuilt_attributes PrebuiltAttributes[]
 }
 
 model Cpu {
@@ -213,8 +228,8 @@ model Cpu {
   series                           String
   microarchitecture                String
   core_family                      String
-  socket Socket @relation(fields: [socket_id], references: [id])
-  socket_id                String
+  socket                           Socket               @relation(fields: [socket_id], references: [id])
+  socket_id                        String
   core_count                       Int
   thread_count                     Int
   performance_core_clock_ghz       Float
@@ -238,14 +253,14 @@ model Moba {
   product                      Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                   String               @id
   part_number                  String[]
-  socket Socket @relation(fields: [socket_id], references: [id])
-  socket_id                String
+  socket                       Socket               @relation(fields: [socket_id], references: [id])
+  socket_id                    String
   moba_form_factor             FormFactor           @relation(fields: [moba_form_factor_id], references: [id])
   moba_form_factor_id          String
   chipset                      MobaChipset          @relation(fields: [chipset_id], references: [id])
   chipset_id                   String
   memory_max                   Int
-  memory_speeds  MemorySpeed[]
+  memory_speeds                MemorySpeed[]
   memory_slots                 Int
   color                        String
   pcie_x16_slots               Int
@@ -275,7 +290,7 @@ model Moba {
 
 model MobaChipset {
   id                  String               @id @default(cuid())
-  name             String               @unique
+  name                String               @unique
   pci_generation      Decimal              @db.Decimal(2, 1)
   cpu_oc              Boolean
   memory_oc           Boolean
@@ -292,20 +307,20 @@ model MobaChipset {
 }
 
 model MobaM2Slots {
-  id    String @id @default(cuid())
+  id       String               @id @default(cuid())
   key_type M2Key
-  size String //like "2280" or "2240/2280/..."
-  mobas MobaM2SlotsOnMobas[]
+  size     String //like "2280" or "2240/2280/..."
+  mobas    MobaM2SlotsOnMobas[]
 
   @@unique([key_type, size])
 }
 
 model MobaM2SlotsOnMobas {
-  id    String @id @default(cuid())
-  moba Moba  @relation(fields: [moba_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  moba_id String 
-  mobaM2Slot MobaM2Slots @relation(fields: [mobaM2Slots_id], references: [id])
-  mobaM2Slots_id String 
+  id             String      @id @default(cuid())
+  moba           Moba        @relation(fields: [moba_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  moba_id        String
+  mobaM2Slot     MobaM2Slots @relation(fields: [mobaM2Slots_id], references: [id])
+  mobaM2Slots_id String
 }
 
 enum M2Key {
@@ -315,11 +330,9 @@ enum M2Key {
   E
 }
 
-// use at pcpartpicker 
-//var string;document.querySelectorAll('.sidebar-content .group.group--spec .group__title').forEach(e => string += e.innerText.toLowerCase().replaceAll(' ', '_').replaceAll('.', '_').replaceAll('-', '_').replaceAll('/', '_') + "\n"); console.log(string); 
 model Socket {
   id    String @id @default(cuid())
-  name String @unique
+  name  String @unique
   mobas Moba[]
-  cpus Cpu[]
+  cpus  Cpu[]
 }

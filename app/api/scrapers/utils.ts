@@ -57,7 +57,8 @@ export async function scrapeAndSavePart(url: string) {
     const productTitleMapping: Record<string, keyof PrismaModelMap> = {
         'video card': 'gpu',
         'cpu': 'cpu',
-        'motherboard': 'moba'
+        'motherboard': 'moba',
+        'memory': "memory"
     }
 
     const productKey = productTitleMapping[product_type]
@@ -121,6 +122,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             return await saveGpu(serialized as unknown as PrismaModelMap['gpu'])
         case 'moba':
             return await saveMoba(serialized as unknown as PrismaModelMap['moba'])
+        case 'memory':
+            return await saveMemory(serialized as unknown as PrismaModelMap['memory'])
         default:
             break;
     }
@@ -303,6 +306,48 @@ async function saveMoba(specs: PrismaModelMap['moba']) {
             memory_speeds: true,
             moba_form_factor: true,
             socket: true,
+        }
+    })
+}
+
+async function saveMemory(specs: PrismaModelMap['memory']) {
+    return await prisma.memory.create({
+        data: {
+            product: {
+                create: {
+                    name: specs.product_name,
+                    brand: {
+                        connectOrCreate: {
+                            where: { name: specs.brand },
+                            create: { name: specs.brand }
+                        }
+                    },
+                    type: 'MEMORY',
+                    url: specs.url
+                }
+            },
+            part_number: specs.part_number,
+            memory_speed: {
+                connectOrCreate: {
+                    where: { 
+                        ddr_speed: { ddr:specs.memory_speed.ddr, speed:specs.memory_speed.speed } 
+                    },
+                    create: { ddr:specs.memory_speed.ddr, speed:specs.memory_speed.speed },
+                }
+            },
+        form_factor: specs.form_factor,
+        modules: specs.modules,
+        color: specs.color,
+        first_word_latency: specs.first_word_latency,
+        cas_latency: specs.cas_latency,
+        voltage: specs.voltage,
+        timing: specs.timing,
+        ecc_registered: specs.ecc_registered,
+        heat_spreader: specs.heat_spreader,
+        },
+        include: { 
+            product: true,
+            memory_speed: true
         }
     })
 }

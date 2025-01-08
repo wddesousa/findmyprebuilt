@@ -77,5 +77,20 @@
         "Wireless Networking": ["wireless_networking", false],
         "RAID Support": ["raid_support", false],
         "Uses Back-Connect Connectors": ["uses_back_connect_connectors", false]
+      },
+      "memory": {
+        "Manufacturer": ["brand", false],
+        "Part #": ["part_number", "custom"],
+        "Speed": ["memory_speed", "custom"],
+        "Form Factor": ["form_factor", false],
+        "Modules": ["modules", false],
+        "Price / GB": ["ignored", true],
+        "Color": ["color", false],
+        "First Word Latency": ["first_word_latency", true],
+        "CAS Latency": ["cas_latency", true],
+        "Voltage": ["voltage", true],
+        "Timing": ["timing", false],
+        "ECC / Registered": ["ecc_registered", false],
+        "Heat Spreader": ["heat_spreader", false]
       }
 }
