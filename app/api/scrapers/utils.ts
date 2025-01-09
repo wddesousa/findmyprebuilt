@@ -58,7 +58,8 @@ export async function scrapeAndSavePart(url: string) {
         'video card': 'gpu',
         'cpu': 'cpu',
         'motherboard': 'moba',
-        'memory': "memory"
+        'memory': "memory",
+        'storage': "storage",
     }
 
     const productKey = productTitleMapping[product_type]
@@ -78,7 +79,11 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 ) {
     const serialized: Partial<PrismaModelMap[T]> = {}
     const map = untypedMap as unknown as UniversalSerializationMap
-    const specs = await page.$$('.xs-hide .group--spec')
+    const mainSpecDiv = await page.$(".block.xs-hide.md-block.specs")
+    
+    if (!mainSpecDiv) throw Error('Main spec div not found')
+    
+    const specs = await mainSpecDiv.$$('.xs-hide .group--spec')
     serialized.url = page.url()
 
     serialized.product_name = await page.$eval('.pageTitle', (l) =>
@@ -105,6 +110,7 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             // serialized[snakeSpecName] = null
             throw new Error(`Spec '${specName}' cannot be undefined or empty`)
         } else if (mappedSpecSerializationType === 'custom') {
+            console.log(snakeSpecName)
             serialized[snakeSpecName] =
                 customSerializers[productType]![snakeSpecName]!(specValue)
         } else {
@@ -124,6 +130,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             return await saveMoba(serialized as unknown as PrismaModelMap['moba'])
         case 'memory':
             return await saveMemory(serialized as unknown as PrismaModelMap['memory'])
+        case 'storage':
+            return await saveStorage(serialized as unknown as PrismaModelMap['storage'])
         default:
             break;
     }
@@ -348,6 +356,40 @@ async function saveMemory(specs: PrismaModelMap['memory']) {
         include: { 
             product: true,
             memory_speed: true
+        }
+    })
+}
+async function saveStorage(specs: PrismaModelMap['storage']) {
+    return await prisma.storage.create({
+        data: {
+            product: {
+                create: {
+                    name: specs.product_name,
+                    brand: {
+                        connectOrCreate: {
+                            where: { name: specs.brand },
+                            create: { name: specs.brand }
+                        }
+                    },
+                    type: 'STORAGE',
+                    url: specs.url
+                }
+            },
+            part_number: specs.part_number,
+            storage_type: {
+                connectOrCreate: {
+                    where: { name: specs.storage_type_id },
+                    create: { name: specs.storage_type_id },
+                }
+            },
+        form_factor: specs.form_factor,
+        capacity_gb: specs.capacity_gb,
+        interface: specs.interface,
+        nvme: specs.nvme
+        },
+        include: { 
+            product: true,
+            storage_type: true
         }
     })
 }

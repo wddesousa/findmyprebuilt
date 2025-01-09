@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest"
+    "test": "vitest --bail=1"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

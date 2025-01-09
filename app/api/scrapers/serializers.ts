@@ -44,28 +44,20 @@ const getMemorySpeed = (value: string): MemorySpeed => (
 export const customSerializers: Partial<{
 	[K in keyof PrismaModelMap]: Partial<Record<keyof PrismaModelMap[K], (value: string) => any>>
 }> = {
-	// 'hdd': {
-	// 	capacity: (value) => {
-	// 		const [n, unit] = value.split(' ')
+	'storage': {
+		capacity_gb: (value) => {
+			const [n, unit] = value.split(' ')
+			
+			if (!n || !unit) return null
 
-	// 		if (!n || !unit) return null
+			const parsedN = parseFloat(n)
 
-	// 		const parsedN = parseFloat(n)
+			if (unit === 'GB') return parsedN
 
-	// 		if (unit === 'GB') return parsedN
-
-	// 		return parsedN * 1000
-	// 	},
-	// 	type: (value) => {
-	// 		if (value === 'SSD') return value
-	// 		return serializeNumber(value)
-	// 	},
-	// 	form_factor: (value) => {
-	// 		if (value.includes('"')) return serializeNumber(value)
-
-	// 		return value
-	// 	},
-	// },
+			return parsedN * 1000
+		},
+		part_number: splitSpec,
+	},
 	// 'psu': {
 	// 	efficiency: (value) => {
 	// 		const [, rating] = value.split(' ')
@@ -94,6 +86,7 @@ export const customSerializers: Partial<{
 		part_number: splitSpec,
 		memory_speed: getMemorySpeed,
 	}
+	
 }
 
 export const mobaChipsetCustomSerializer: Record<string, Partial<Record<keyof Omit<MobaChipsetSpecs, 'name'>, (value: string) => any>>> = {

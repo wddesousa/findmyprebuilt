@@ -33,7 +33,7 @@ describe('parts specs scraper', async () => {
     try {
         await prisma.product.deleteMany({ where: {
             name: {
-              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor', 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard', 'Corsair Vengeance LPX 16 GB (2 x 8 GB) DDR4-3200 CL16 Memory']
+              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor', 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard', 'Corsair Vengeance LPX 16 GB (2 x 8 GB) DDR4-3200 CL16 Memory', 'Kingston KC3000 1.024 TB M.2-2280 PCIe 4.0 X4 NVME Solid State Drive', 'Seagate IronWolf Pro 24 TB 3.5" 7200 RPM Internal Hard Drive']
             }
         } })
     } catch (error: any) {
@@ -42,6 +42,44 @@ describe('parts specs scraper', async () => {
         process.exit(error.code)
       }
     }
+
+    test('storage', async () => {
+      const tests: Record<string, Record<string, any>> = {
+        storage_hdd: {
+          part_number: [ 'ST24000NT002' ],
+          capacity_gb: 24000,
+          form_factor: '3.5"',
+          interface: 'SATA 6.0 Gb/s',
+          nvme: false,
+          product: {
+            name: 'Seagate IronWolf Pro 24 TB 3.5" 7200 RPM Internal Hard Drive',
+            type: 'STORAGE',
+            asin: null
+          },
+          storage_type: { name: '7200 RPM' }
+        },
+        storage_ssd: {
+          part_number: [ 'SKC3000S/1024G' ],
+          capacity_gb: 1024,
+          form_factor: 'M.2-2280',
+          interface: 'M.2 PCIe 4.0 X4',
+          nvme: true,
+          product: {
+            name: 'Kingston KC3000 1.024 TB M.2-2280 PCIe 4.0 X4 NVME Solid State Drive',
+            type: 'STORAGE',
+            asin: null
+          },
+          storage_type: { name: 'SSD' }
+        }
+      }
+      const promises = Object.keys(tests).map(async (file) => {
+
+        const storage = await scrapeAndSavePart(getFile(`${file}.html`)) as unknown as PrismaModelMap['storage']
+        // console.log(storage)
+        expect(storage).toMatchObject(tests[file])  
+      })
+      await Promise.all(promises)
+    })
 
     test('cpu', async () => {
       const file = getFile("cpu.html")

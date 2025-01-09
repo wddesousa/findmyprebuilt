@@ -92,5 +92,16 @@
         "Timing": ["timing", false],
         "ECC / Registered": ["ecc_registered", false],
         "Heat Spreader": ["heat_spreader", false]
+      },
+      "storage": {
+        "Manufacturer": ["brand", false],
+        "Part #": ["part_number", "custom"],
+        "Capacity": ["capacity_gb", "custom"],
+        "Price / GB": ["ignored", true],
+        "Type": ["storage_type_id", false],
+        "Cache": ["cache_mb", true],
+        "Form Factor": ["form_factor", false],
+        "Interface": ["interface", false],
+        "NVME": ["nvme", false]
       }
 }
