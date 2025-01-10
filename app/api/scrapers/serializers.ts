@@ -1,5 +1,7 @@
 import { DoubleDataRate, M2Key, MemorySpeed, MobaM2Slots } from "@prisma/client"
 import { MobaChipsetSpecs, PrismaModelMap } from "./types"
+import { Page } from "puppeteer"
+import { getSpecName, getSpecValue, getTitle } from "./utils"
 
 const SERIALIZED_VALUES: Record<string, any> = {
 	none: null,
@@ -40,6 +42,18 @@ const getMemorySpeed = (value: string): MemorySpeed => (
 	}
 )
 
+// const nameSeparator = (page: Page, specName: string) => {
+// 	const separator = page.$()
+// }
+
+//this returns the spec that is added to the actual product name so we know where the real product name ends
+export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page) => Promise<string>)> = {
+	cpu: "Performance Core Clock",
+	gpu: "Chipset",
+	moba: "Form Factor",
+	memory: async (page) => (await getTitle(page)).match(/\(\d x \d+ GB|MB/g)![0],
+	storage: "Form Factor",
+}
 
 export const customSerializers: Partial<{
 	[K in keyof PrismaModelMap]: Partial<Record<keyof PrismaModelMap[K], (value: string) => any>>

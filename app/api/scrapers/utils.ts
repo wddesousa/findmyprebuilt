@@ -4,8 +4,8 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import untypedMap from './serialization-map.json'
 import prisma from '@/app/db'
 import { UniversalSerializationMap, PrismaModelMap, MobaChipsetSpecs } from './types'
-import { genericSerialize, customSerializers, serializeNumber } from './serializers'
-import { Page, Browser } from 'puppeteer'
+import { genericSerialize, customSerializers, serializeNumber, nameSeparators } from './serializers'
+import { Page, Browser, ElementHandle } from 'puppeteer'
 import { spec } from 'node:test/reporters'
 
 const LAUNCH_CONFIG = {
@@ -73,6 +73,28 @@ export async function scrapeAndSavePart(url: string) {
 
 }
 
+export async function getSpecName(spec: ElementHandle<Element>) {
+    return spec.$eval('.group__title', (l) =>
+            (l as HTMLHeadingElement).innerText.trim()
+        )
+}
+
+export async function getSpecValue(spec: ElementHandle<Element>) {
+    const value = await spec.evaluate(
+        (s) => s.childNodes[3]?.textContent?.trim()
+    )
+    if (value == null || value.trim() === '') {
+        throw new Error(`Spec cannot be undefined or empty`)
+    }
+    return value
+}
+
+export async function getTitle(page: Page) {
+    return page.$eval('.pageTitle', (l) =>
+    (l as HTMLHeadingElement).innerText.trim()
+    )
+}
+
 async function serializeProduct<T extends keyof PrismaModelMap>(
     productType: T,
     page: Page
@@ -86,14 +108,14 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
     const specs = await mainSpecDiv.$$('.xs-hide .group--spec')
     serialized.url = page.url()
 
-    serialized.product_name = await page.$eval('.pageTitle', (l) =>
-        (l as HTMLHeadingElement).innerText.trim()
-    )
+    const title = await getTitle(page)
+
+    const separator = nameSeparators[productType]
+    
+    if (typeof separator !== 'string') serialized.product_name = title.split(await separator(page))[0]
 
     for (const spec of specs) {
-        const specName = await spec.$eval('.group__title', (l) =>
-            (l as HTMLHeadingElement).innerText.trim()
-        )
+        const specName = await getSpecName(spec)        
         const mapped = map[productType][specName]
 
         if (typeof mapped === 'undefined')
@@ -101,15 +123,12 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 
         const [snakeSpecName, mappedSpecSerializationType] = mapped
 
-        //TODO
-        const specValue = await spec.evaluate(
-            (s) => s.childNodes[3]?.textContent?.trim()
-        )
+        const specValue = await getSpecValue(spec)
+        if (specName === separator) serialized.product_name = title.split(specValue)[0]
+
         //
-        if (specValue == null || specValue.trim() === '') {
-            // serialized[snakeSpecName] = null
-            throw new Error(`Spec '${specName}' cannot be undefined or empty`)
-        } else if (mappedSpecSerializationType === 'custom') {
+        
+        if (mappedSpecSerializationType === 'custom') {
             console.log(snakeSpecName)
             serialized[snakeSpecName] =
                 customSerializers[productType]![snakeSpecName]!(specValue)
@@ -121,6 +140,9 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
         }
 
     }
+
+    serialized.product_name = serialized.product_name?.split(serialized.brand as string)[1].trim()
+    
     switch (productType) {
         case 'cpu':
             return await saveCpu(serialized as unknown as PrismaModelMap['cpu'])
@@ -180,7 +202,7 @@ async function saveCpu(specs: PrismaModelMap['cpu']) {
             simultaneous_multithreading: specs.simultaneous_multithreading,
 
         },
-        include: { product: true, socket: true }
+        include: { product: { include: { brand: true } }, socket: true }
     })
 }
 
@@ -225,7 +247,7 @@ async function saveGpu(specs: PrismaModelMap['gpu']) {
             displayport_outputs: specs.displayport_outputs
 
         },
-        include: { product: true, chipset: true }
+        include: { product: { include: { brand: true } }, chipset: true }
     })
 }
 async function saveMoba(specs: PrismaModelMap['moba']) {
@@ -308,7 +330,7 @@ async function saveMoba(specs: PrismaModelMap['moba']) {
             uses_back_connect_connectors: specs.uses_back_connect_connectors
         },
         include: { 
-            product: true,
+            product: { include: { brand: true } },
             chipset: true,
             m_2_slots: true,
             memory_speeds: true,
@@ -354,7 +376,7 @@ async function saveMemory(specs: PrismaModelMap['memory']) {
         heat_spreader: specs.heat_spreader,
         },
         include: { 
-            product: true,
+            product: { include: { brand: true } },
             memory_speed: true
         }
     })
@@ -388,7 +410,7 @@ async function saveStorage(specs: PrismaModelMap['storage']) {
         nvme: specs.nvme
         },
         include: { 
-            product: true,
+            product: { include: { brand: true } },
             storage_type: true
         }
     })

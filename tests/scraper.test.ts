@@ -7,6 +7,7 @@ import path from 'path'
 import { PrismaModelMap } from '@/app/api/scrapers/types'
 
 const prisma = new PrismaClient()
+const DATA_FOLDER = path.join(__dirname, './data')
 
 test('correctly extracts usb number', () => {
   var string = '\n                                                        \n                                                            \n                                                            \n                                                                10 USB 3.2 Ports- Up to 4 USB 3.2 Gen 2x2 (20Gb/s) Ports- Up to 10 USB 3.2 Gen 2x1 (10Gb/s) Ports- Up to 2 USB 3.2 Gen 1x1 (5Gb/s) Ports14 USB 2.0 Ports\n                                                            \n                                                        \n                                                    '
@@ -28,12 +29,12 @@ test('correcly extract pci generation', () => {
   expect(mobaChipsetCustomSerializer['intel']['pci_generation']!('\n                                                        \n                                                            \n                                                            \n                                                                3.0\n                                                            \n                                                        \n                                                    ')).toBe(3)
 })
 describe('parts specs scraper', async () => {
-  const getFile = (filename: string) => `file://${path.join(__dirname, `./data/${filename}`)}`
+  const getFile = (filename: string) => `file://${DATA_FOLDER}/${filename}`
 
     try {
         await prisma.product.deleteMany({ where: {
-            name: {
-              in: ['GeForce RTX 3060 Ventus 2X 12G', 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor', 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard', 'Corsair Vengeance LPX 16 GB (2 x 8 GB) DDR4-3200 CL16 Memory', 'Kingston KC3000 1.024 TB M.2-2280 PCIe 4.0 X4 NVME Solid State Drive', 'Seagate IronWolf Pro 24 TB 3.5" 7200 RPM Internal Hard Drive']
+            url: {
+              startsWith: 'file://'
             }
         } })
     } catch (error: any) {
@@ -52,9 +53,10 @@ describe('parts specs scraper', async () => {
           interface: 'SATA 6.0 Gb/s',
           nvme: false,
           product: {
-            name: 'Seagate IronWolf Pro 24 TB 3.5" 7200 RPM Internal Hard Drive',
+            name: 'IronWolf Pro 24 TB',
             type: 'STORAGE',
-            asin: null
+            asin: null,
+            brand: { name: 'Seagate' }
           },
           storage_type: { name: '7200 RPM' }
         },
@@ -65,9 +67,10 @@ describe('parts specs scraper', async () => {
           interface: 'M.2 PCIe 4.0 X4',
           nvme: true,
           product: {
-            name: 'Kingston KC3000 1.024 TB M.2-2280 PCIe 4.0 X4 NVME Solid State Drive',
+            name: 'KC3000 1.024 TB',
             type: 'STORAGE',
-            asin: null
+            asin: null,
+            brand: { name: 'Kingston' }
           },
           storage_type: { name: 'SSD' }
         }
@@ -106,9 +109,10 @@ describe('parts specs scraper', async () => {
         includes_cpu_cooler: false,
         simultaneous_multithreading: true,
         product: {
-          name: 'AMD Ryzen 7 7800X3D 4.2 GHz 8-Core Processor',
+          name: 'Ryzen 7 7800X3D',
           type: 'CPU',
-          url: file
+          url: file,
+          brand: { name: 'AMD' }
         },
         socket: {
           name: 'AM5',
@@ -147,6 +151,7 @@ describe('parts specs scraper', async () => {
              name: "GeForce RTX 3060 Ventus 2X 12G",
              type: "GPU",
              url: file,
+             brand: { name: 'MSI' }
            },
            tdp_w: 170,
            total_slot_width: 2,
@@ -184,10 +189,11 @@ describe('parts specs scraper', async () => {
           raid_support: true,
           uses_back_connect_connectors: false,
           product: {
-            name: 'ASRock Z890 Steel Legend WiFi ATX LGA1851 Motherboard',
+            name: 'Z890 Steel Legend WiFi',
             type: 'MOBA',
             url: file,
-            asin: null
+            asin: null,
+            brand: { name: 'ASRock' }
           },
           chipset: {      
             name: 'Z890',
@@ -232,10 +238,11 @@ describe('parts specs scraper', async () => {
         ecc_registered: 'Non-ECC / Unbuffered',
         heat_spreader: true,
         product: {
-          name: 'Corsair Vengeance LPX 16 GB (2 x 8 GB) DDR4-3200 CL16 Memory',
+          name: 'Vengeance LPX 16 GB',
           type: 'MEMORY',
           url:  file,
-          asin: null
+          asin: null,
+          brand: { name: 'Corsair' }
         },
         memory_speed: { ddr: 'DDR4', speed: 3200 }
       })
