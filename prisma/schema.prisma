@@ -35,6 +35,7 @@ model Product {
   mobas               Moba[]
   storages            Storage[]
   coolers             Cooler[]
+  psus                Psu[]
 
   @@unique([name, brand_id])
 }
@@ -54,8 +55,9 @@ enum ProductType {
   PREBUILT
   MEMORY
   STORAGE
-  FAN
   COOLER
+  PSU
+  FAN
 }
 
 model BasePrebuilt {
@@ -351,6 +353,28 @@ model Cooler {
   cpu_sockets              Socket[]
   water_cooled_radiador_mm Int?
   fanless                  Boolean
+}
+
+model Psu {
+  product                          Product  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id                       String   @id
+  part_number                      String[]
+  type                             String
+  efficiency_rating                String
+  wattage_w                        Int
+  length_mm                        Int
+  modular                          String
+  color                            String
+  fanless                          Boolean
+  atx_4_pin_connectors             Int
+  eps_8_pin_connectors             Int
+  pcie_12_4_pin_12vhpwr_connectors Int
+  pcie_12_pin_connectors           Int
+  pcie_8_pin_connectors            Int
+  pcie_6_2_pin_connectors          Int
+  pcie_6_pin_connectors            Int
+  sata_connectors                  Int
+  molex_4_pin_connectors           Int
 }
 
 enum M2Key {

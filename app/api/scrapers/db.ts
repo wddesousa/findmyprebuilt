@@ -260,6 +260,46 @@ export async function saveStorage(specs: PrismaModelMap['storage']) {
     })
 }
 
+export async function savePsu(specs: PrismaModelMap['psu']) {
+    return prisma.psu.create({
+        data: {
+            product: {
+                create: {
+                    name: specs.product_name,
+                    brand: {
+                        connectOrCreate: {
+                            where: { name: specs.brand },
+                            create: { name: specs.brand }
+                        }
+                    },
+                    type: 'PSU',
+                    url: specs.url
+                }
+            },
+            part_number: specs.part_number,
+            color: specs.color,
+            fanless: specs.fanless,
+            atx_4_pin_connectors: specs.atx_4_pin_connectors,
+            efficiency_rating: specs.efficiency_rating,
+            eps_8_pin_connectors: specs.eps_8_pin_connectors,
+            length_mm: specs.length_mm,
+            modular: specs.modular,
+            type: specs.type,
+            wattage_w: specs.wattage_w,
+            pcie_12_4_pin_12vhpwr_connectors: specs.pcie_12_4_pin_12vhpwr_connectors,
+            pcie_12_pin_connectors: specs.pcie_12_pin_connectors,
+            pcie_8_pin_connectors: specs.pcie_8_pin_connectors,
+            pcie_6_2_pin_connectors: specs.pcie_6_2_pin_connectors,
+            pcie_6_pin_connectors: specs.pcie_6_pin_connectors,
+            sata_connectors: specs.sata_connectors,
+            molex_4_pin_connectors: specs.molex_4_pin_connectors
+        },
+        include: { 
+            product: { include: { brand: true } },
+        }
+    })
+}
+
 export async function saveCooler(specs: PrismaModelMap['cooler']) {
     return prisma.cooler.create({
         data: {

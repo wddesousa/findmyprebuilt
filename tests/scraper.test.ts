@@ -44,6 +44,44 @@ describe('parts specs scraper', async () => {
       }
     }
 
+
+    test('psu', async () => {
+      const file = getFile("psu.html")
+      const psu = await scrapeAndSavePart(file)
+      console.log(psu)
+      expect(psu).toMatchObject({
+        part_number: [
+          'CP-9020262-NA',
+          'CP-9020262-UK',
+          'CP-9020262-EU',
+          'CP-9020262-AU'
+        ],
+        type: 'ATX',
+        efficiency_rating: '80+ Gold',
+        wattage_w: 750,
+        length_mm: 140,
+        modular: 'Full',
+        color: 'Black',
+        fanless: false,
+        atx_4_pin_connectors: 0,
+        eps_8_pin_connectors: 2,
+        pcie_12_4_pin_12vhpwr_connectors: 1,
+        pcie_12_pin_connectors: 0,
+        pcie_8_pin_connectors: 0,
+        pcie_6_2_pin_connectors: 3,
+        pcie_6_pin_connectors: 0,
+        sata_connectors: 7,
+        molex_4_pin_connectors: 4,
+        product: {
+          name: 'RM750e (2023)',
+          type: 'PSU',
+          url: file,
+          asin: null,
+          brand: { name: 'Corsair' }
+        }
+      })
+  })
+
     test('cooler', async () => {
       const tests: Record<string, Record<string, any>> = {
         cooler: {
@@ -102,7 +140,7 @@ describe('parts specs scraper', async () => {
       const promises = Object.keys(tests).map(async (file) => {
 
         const cooler = await scrapeAndSavePart(getFile(`${file}.html`)) as unknown as PrismaModelMap['cooler']
-        console.log(cooler)
+        // console.log(cooler)
         expect(cooler).toMatchObject(tests[file])  
       })
       await Promise.all(promises)
@@ -151,7 +189,6 @@ describe('parts specs scraper', async () => {
     test('cpu', async () => {
       const file = getFile("cpu.html")
       const cpu = await scrapeAndSavePart(file)
-
     expect(cpu).toMatchObject({
         part_number: '100-100000910WOF',
         series: 'AMD Ryzen 7',

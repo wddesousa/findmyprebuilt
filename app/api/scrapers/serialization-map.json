@@ -115,5 +115,26 @@
         "CPU Socket": ["cpu_sockets", "custom"],
         "Water Cooled": ["water_cooled_radiador_mm", true],
         "Fanless": ["fanless", false]
+      },
+      "psu": {
+        "Manufacturer": ["brand", false],
+        "Model": ["product_name", false],
+        "Part #": ["part_number", "custom"],
+        "Type": ["type", false],
+        "Efficiency Rating": ["efficiency_rating", false],
+        "Wattage": ["wattage_w", true],
+        "Length": ["length_mm", true],
+        "Modular": ["modular", false],
+        "Color": ["color", false],
+        "Fanless": ["fanless", false],
+        "ATX 4-Pin Connectors": ["atx_4_pin_connectors", true],
+        "EPS 8-Pin Connectors": ["eps_8_pin_connectors", true],
+        "PCIe 12+4-Pin 12VHPWR Connectors": ["pcie_12_4_pin_12vhpwr_connectors", true],
+        "PCIe 12-Pin Connectors": ["pcie_12_pin_connectors", true],
+        "PCIe 8-Pin Connectors": ["pcie_8_pin_connectors", true],
+        "PCIe 6+2-Pin Connectors": ["pcie_6_2_pin_connectors", true],
+        "PCIe 6-Pin Connectors": ["pcie_6_pin_connectors", true],
+        "SATA Connectors": ["sata_connectors", true],
+        "Molex 4-Pin Connectors": ["molex_4_pin_connectors", true]
       }
 }

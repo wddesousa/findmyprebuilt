@@ -66,7 +66,8 @@ export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page)
 		if (coolerMatch) return coolerMatch.index		
 		
 		return title.length
-	}	
+	},
+	psu: "Wattage"
 }
 	
 export const customSerializers: Partial<{
@@ -117,6 +118,9 @@ export const customSerializers: Partial<{
 	'cooler': {
 		part_number: splitSpec,
 		cpu_sockets: (value): Socket[] => splitSpec(value).map((spec) => ({id: '', name: spec}))
+	},
+	'psu': {
+		part_number: splitSpec
 	}
 	
 }
