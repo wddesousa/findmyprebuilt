@@ -34,6 +34,7 @@ model Product {
   cpus                Cpu[]
   mobas               Moba[]
   storages            Storage[]
+  coolers             Cooler[]
 
   @@unique([name, brand_id])
 }
@@ -54,7 +55,7 @@ enum ProductType {
   MEMORY
   STORAGE
   FAN
-  HEATSINK
+  COOLER
 }
 
 model BasePrebuilt {
@@ -109,15 +110,15 @@ model StorageType {
 }
 
 model Storage {
-  product     Product     @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id  String      @id
-  part_number String[]
-  capacity_gb Int
-  storage_type        StorageType @relation(fields: [storage_type_id], references: [id])
-  storage_type_id     String
-  form_factor String
-  interface   String
-  nvme        Boolean
+  product         Product     @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id      String      @id
+  part_number     String[]
+  capacity_gb     Int
+  storage_type    StorageType @relation(fields: [storage_type_id], references: [id])
+  storage_type_id String
+  form_factor     String
+  interface       String
+  nvme            Boolean
 }
 
 model Case {
@@ -340,6 +341,18 @@ model MobaM2SlotsOnMobas {
   mobaM2Slots_id String
 }
 
+model Cooler {
+  product                  Product  @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id               String   @id
+  part_number              String[]
+  fan_rpm                  String
+  color                    String
+  height_mm                Int?
+  cpu_sockets              Socket[]
+  water_cooled_radiador_mm Int?
+  fanless                  Boolean
+}
+
 enum M2Key {
   M
   B
@@ -348,8 +361,9 @@ enum M2Key {
 }
 
 model Socket {
-  id    String @id @default(nanoid())
-  name  String @unique
-  mobas Moba[]
-  cpus  Cpu[]
+  id      String   @id @default(nanoid())
+  name    String   @unique
+  mobas   Moba[]
+  cpus    Cpu[]
+  coolers Cooler[]
 }

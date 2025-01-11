@@ -103,5 +103,17 @@
         "Form Factor": ["form_factor", false],
         "Interface": ["interface", false],
         "NVME": ["nvme", false]
+      },
+      "cooler": {
+        "Manufacturer": ["brand", false],
+        "Model": ["product_name", false],
+        "Part #": ["part_number", "custom"],
+        "Fan RPM": ["fan_rpm", false],
+        "Noise Level": ["noise_level", true],
+        "Color": ["color", false],
+        "Height": ["height_mm", true],
+        "CPU Socket": ["cpu_sockets", "custom"],
+        "Water Cooled": ["water_cooled_radiador_mm", true],
+        "Fanless": ["fanless", false]
       }
 }

@@ -44,6 +44,70 @@ describe('parts specs scraper', async () => {
       }
     }
 
+    test('cooler', async () => {
+      const tests: Record<string, Record<string, any>> = {
+        cooler: {
+          part_number: [ 'ACFRE00124A' ],
+          fan_rpm: '200 - 2000 RPM',
+          color: 'Black',
+          height_mm: 159,
+          water_cooled_radiador_mm: null,
+          fanless: false,
+          product: {
+            name: 'Freezer 36 A-RGB',
+            type: 'COOLER',
+            url: getFile('cooler.html'),
+            asin: null,
+            brand: { name: 'ARCTIC' }
+          },
+          cpu_sockets: [
+            { name: 'LGA1851' },
+            { name: 'AM5' },
+            { name: 'AM4' },
+            { name: 'LGA1700' }
+          ]
+        },
+        liquid_cooler: {
+          part_number: [ 'CW-9060073-WW' ],
+          fan_rpm: '550 - 2100 RPM',
+          color: 'White',
+          height_mm: null,
+          water_cooled_radiador_mm: 360,
+          fanless: false,
+          product: {
+            name: 'iCUE H150i ELITE CAPELLIX XT',
+            type: 'COOLER',
+            url: getFile('liquid_cooler.html'),
+            asin: null,
+            brand: { name: 'Corsair' }
+          },
+          cpu_sockets: [
+            { name: 'LGA1851' },
+            { name: 'AM5' },
+            { name: 'AM4' },
+            { name: 'LGA1700' },
+            { name: 'sTR4' },
+            { name: 'sTRX4' },
+            { name: 'LGA1150' },
+            { name: 'LGA1151' },
+            { name: 'LGA1155' },
+            { name: 'LGA1156' },
+            { name: 'LGA1200' },
+            { name: 'LGA2011' },
+            { name: 'LGA2011-3' },
+            { name: 'LGA2066' }
+          ]
+        }
+      }
+      const promises = Object.keys(tests).map(async (file) => {
+
+        const cooler = await scrapeAndSavePart(getFile(`${file}.html`)) as unknown as PrismaModelMap['cooler']
+        console.log(cooler)
+        expect(cooler).toMatchObject(tests[file])  
+      })
+      await Promise.all(promises)
+    })
+    
     test('storage', async () => {
       const tests: Record<string, Record<string, any>> = {
         storage_hdd: {

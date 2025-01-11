@@ -1,7 +1,8 @@
-import { DoubleDataRate, M2Key, MemorySpeed, MobaM2Slots } from "@prisma/client"
+import { DoubleDataRate, M2Key, MemorySpeed, MobaM2Slots, Socket } from "@prisma/client"
 import { MobaChipsetSpecs, PrismaModelMap } from "./types"
 import { Page } from "puppeteer"
 import { getSpecName, getSpecValue, getTitle } from "./utils"
+import { split } from "postcss/lib/list"
 
 const SERIALIZED_VALUES: Record<string, any> = {
 	none: null,
@@ -42,19 +43,32 @@ const getMemorySpeed = (value: string): MemorySpeed => (
 	}
 )
 
-// const nameSeparator = (page: Page, specName: string) => {
-// 	const separator = page.$()
-// }
-
-//this returns the spec that is added to the actual product name so we know where the real product name ends
-export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page) => Promise<string>)> = {
+//this returns the spec that is added to the actual product name so we know where the real product name ends. For some product we need a function that returns the index of where to cut off the title to get the real product name
+export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page) => Promise<number>)> = {
 	cpu: "Performance Core Clock",
 	gpu: "Chipset",
 	moba: "Form Factor",
-	memory: async (page) => (await getTitle(page)).match(/\(\d x \d+ GB|MB/g)![0],
+	memory: async (page) => {
+		const title = await getTitle(page)
+		return /\(\d x \d+ GB|MB/g.exec(title)?.index ?? title.length
+	},
 	storage: "Form Factor",
+	cooler: async (page) => {
+		//used as a backup in case Model spec is missing
+		const title = await getTitle(page)
+		const match = /\d+\.?\d* CFM/g.exec(title)
+		if (match) return match.index
+		
+		const liquidMatch = /Liquid CPU Cooler$/g.exec(title)
+		if (liquidMatch) return liquidMatch.index
+		
+		const coolerMatch = /CPU Cooler$/g.exec(title)	
+		if (coolerMatch) return coolerMatch.index		
+		
+		return title.length
+	}	
 }
-
+	
 export const customSerializers: Partial<{
 	[K in keyof PrismaModelMap]: Partial<Record<keyof PrismaModelMap[K], (value: string) => any>>
 }> = {
@@ -99,6 +113,10 @@ export const customSerializers: Partial<{
 	'memory': {
 		part_number: splitSpec,
 		memory_speed: getMemorySpeed,
+	},
+	'cooler': {
+		part_number: splitSpec,
+		cpu_sockets: (value): Socket[] => splitSpec(value).map((spec) => ({id: '', name: spec}))
 	}
 	
 }
