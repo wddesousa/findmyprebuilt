@@ -378,6 +378,42 @@ export async function saveCooler(specs: PrismaModelMap['cooler']) {
     })
 }
 
+export async function saveCaseFan(specs: PrismaModelMap['caseFan']) {
+    return prisma.caseFan.create({
+        data: {
+            product: {
+                create: {
+                    name: specs.product_name,
+                    brand: {
+                        connectOrCreate: {
+                            where: { name: specs.brand },
+                            create: { name: specs.brand }
+                        }
+                    },
+                    type: 'CASEFAN',
+                    url: specs.url
+                }
+            },
+            part_number: specs.part_number,
+            cpu_sockets: {
+                connectOrCreate: specs.cpu_sockets.map((socket) => ({
+                    where: { name: socket.name },
+                    create: { name: socket.name }
+                }))
+            },
+            color: specs.color,
+            fan_rpm: specs.fan_rpm,
+            fanless: specs.fanless,
+            height_mm: specs.height_mm,
+            water_cooled_radiador_mm: specs.water_cooled_radiador_mm
+        },
+        include: { 
+            product: { include: { brand: true } },
+            cpu_sockets: true
+        }
+    })
+}
+
 export async function upsertBrand(brand: string) {
     return prisma.brand.upsert({
         where: { name: brand },

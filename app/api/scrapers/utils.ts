@@ -6,7 +6,7 @@ import { UniversalSerializationMap, PrismaModelMap, MobaChipsetSpecs } from './t
 import { genericSerialize, customSerializers, serializeNumber, nameSeparators, serializeArray } from './serializers'
 import { Page, Browser, ElementHandle } from 'puppeteer'
 import { spec } from 'node:test/reporters'
-import { saveCase, savePsu, saveCpu, saveGpu, saveMemory, saveMoba, saveStorage, saveCooler } from './db'
+import { saveCaseFan, saveCase, savePsu, saveCpu, saveGpu, saveMemory, saveMoba, saveStorage, saveCooler } from './db'
 
 const LAUNCH_CONFIG = {
     headless: true,
@@ -62,7 +62,8 @@ export async function scrapeAndSavePart(url: string) {
         'storage': "storage",
         'cpu cooler': 'cooler',
         'power supply': 'psu',
-        'case': 'case'
+        'case': 'case',
+        'case fan': 'caseFan'
     }
 
     const productKey = productTitleMapping[product_type]
@@ -164,6 +165,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             return await savePsu(serialized as unknown as PrismaModelMap['psu'])
         case 'case':
             return await saveCase(serialized as unknown as PrismaModelMap['case'])
+        case 'caseFan':
+            return await saveCaseFan(serialized as unknown as PrismaModelMap['caseFan'])
         default:
             break;
     }

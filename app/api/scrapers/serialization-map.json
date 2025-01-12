@@ -152,5 +152,8 @@
         "Expansion Slots": ["expansion_slots", false],
         "Dimensions": ["dimensions", "array"],
         "Volume": ["volume_ml", "custom"]
+      },
+      "caseFan": {
+        ''
       }
 }

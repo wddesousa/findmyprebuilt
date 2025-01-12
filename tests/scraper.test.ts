@@ -45,6 +45,15 @@ describe('parts specs scraper', async () => {
     }
 
 
+    test('caseFan', async () => {
+      const file = getFile("caseFan.html")
+      const caseFan = await scrapeAndSavePart(file)
+      console.log(caseFan)
+      expect(caseFan).toMatchObject({
+        name: 'test'
+      })
+  })
+
     test('case', async () => {
       const file = getFile("case.html")
       const pc_case = await scrapeAndSavePart(file)

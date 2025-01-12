@@ -44,6 +44,8 @@ const getMemorySpeed = (value: string): MemorySpeed => (
 )
 
 //this returns the spec that is added to the actual product name so we know where the real product name ends. For some product we need a function that returns the index of where to cut off the title to get the real product name
+const CFM_REGEX = /\d+\.?\d* CFM/g
+
 export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page) => Promise<number>)> = {
 	cpu: "Performance Core Clock",
 	gpu: "Chipset",
@@ -56,7 +58,7 @@ export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page)
 	cooler: async (page) => {
 		//used as a backup in case Model spec is missing
 		const title = await getTitle(page)
-		const match = /\d+\.?\d* CFM/g.exec(title)
+		const match = CFM_REGEX.exec(title)
 		if (match) return match.index
 		
 		const liquidMatch = /Liquid CPU Cooler$/g.exec(title)
@@ -68,7 +70,17 @@ export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page)
 		return title.length
 	},
 	psu: "Wattage",
-	case: "Type"
+	case: "Type",
+	caseFan: async (page) => {
+		const title = await getTitle(page)
+		const match = CFM_REGEX.exec(title)
+		if (match) return match.index
+
+		const mmMatch = /\d+mm/g.exec(title)
+		if (mmMatch) return mmMatch.index
+
+		return title.length
+	}
 }
 	
 export const customSerializers: Partial<{
