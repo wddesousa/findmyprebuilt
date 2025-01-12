@@ -99,8 +99,12 @@ model PrebuiltAttributes {
   moba_id                   String?
   gpu_variation             Gpu?         @relation(fields: [gpu_id], references: [product_id])
   gpu_id                    String
-  case                      Case         @relation(fields: [case_id], references: [product_id])
+  case                      Case?         @relation(fields: [case_id], references: [product_id])
   case_id                   String
+  psu                       Psu?         @relation(fields: [psu_id], references: [product_id])
+  psu_id                    String
+  cooler                    Cooler?         @relation(fields: [cooler_id], references: [product_id])
+  cooler_id                 String
 }
 
 model StorageType {
@@ -126,24 +130,20 @@ model Storage {
 model Case {
   product                      Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                   String               @id
-  case_height                  Float
-  case_width                   Float
-  case_depth                   Float
-  variations                   PrebuiltAttributes[]
-  part_n                       String
-  case_type                    String
+  prebuilts                   PrebuiltAttributes[]
+  part_number                  String[]
+  type                         String
   color                        String
-  power_supply                 String?
+  power_supply                 Boolean
   side_panel                   String
   power_supply_shroud          Boolean
-  usb_32_gen_1_type_a          Int
-  usb_32_gen_2_type_c          Int
-  usb_2                        Int
+  front_panel_usb              String[]
   moba_form_factors            FormFactor[]
   maximum_video_card_length_mm Int
   drive_bays                   String[]
   expansion_slots              String
   volume_ml                    Int
+  dimensions                   String[]
 }
 
 model FormFactor {
@@ -231,7 +231,7 @@ model Gpu {
   external_power             String
   hdmi_outputs               Int
   displayport_outputs        Int
-  prices                     PrebuiltAttributes[]
+  prebuilts                  PrebuiltAttributes[]
 }
 
 model GpuChipset {
@@ -244,7 +244,7 @@ model GpuChipset {
 model Cpu {
   product                          Product              @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
   product_id                       String               @id
-  part_number                      String
+  part_number                      String[]
   series                           String
   microarchitecture                String
   core_family                      String
@@ -265,7 +265,7 @@ model Cpu {
   lithography_nm                   Int
   includes_cpu_cooler              Boolean
   simultaneous_multithreading      Boolean
-  prices                           PrebuiltAttributes[]
+  prebuilts                           PrebuiltAttributes[]
 }
 
 model Moba {
@@ -305,7 +305,7 @@ model Moba {
   wireless_networking          String
   raid_support                 Boolean
   uses_back_connect_connectors Boolean
-  prices                       PrebuiltAttributes[]
+  prebuilts                       PrebuiltAttributes[]
 }
 
 model MobaChipset {
@@ -353,6 +353,7 @@ model Cooler {
   cpu_sockets              Socket[]
   water_cooled_radiador_mm Int?
   fanless                  Boolean
+  prebuilts                PrebuiltAttributes[]
 }
 
 model Psu {
@@ -375,6 +376,7 @@ model Psu {
   pcie_6_pin_connectors            Int
   sata_connectors                  Int
   molex_4_pin_connectors           Int
+  prebuilts                        PrebuiltAttributes[]
 }
 
 enum M2Key {

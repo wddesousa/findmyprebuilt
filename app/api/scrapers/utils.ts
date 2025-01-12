@@ -3,10 +3,10 @@ import { connect } from 'puppeteer-real-browser'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import untypedMap from './serialization-map.json'
 import { UniversalSerializationMap, PrismaModelMap, MobaChipsetSpecs } from './types'
-import { genericSerialize, customSerializers, serializeNumber, nameSeparators } from './serializers'
+import { genericSerialize, customSerializers, serializeNumber, nameSeparators, serializeArray } from './serializers'
 import { Page, Browser, ElementHandle } from 'puppeteer'
 import { spec } from 'node:test/reporters'
-import { savePsu, saveCpu, saveGpu, saveMemory, saveMoba, saveStorage, saveCooler } from './db'
+import { saveCase, savePsu, saveCpu, saveGpu, saveMemory, saveMoba, saveStorage, saveCooler } from './db'
 
 const LAUNCH_CONFIG = {
     headless: true,
@@ -61,7 +61,8 @@ export async function scrapeAndSavePart(url: string) {
         'memory': "memory",
         'storage': "storage",
         'cpu cooler': 'cooler',
-        'power supply': 'psu'
+        'power supply': 'psu',
+        'case': 'case'
     }
 
     const productKey = productTitleMapping[product_type]
@@ -134,6 +135,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             console.log(snakeSpecName)
             serialized[snakeSpecName] =
                 customSerializers[productType]![snakeSpecName]!(specValue)
+        } else if (mappedSpecSerializationType === 'array') {
+            serialized[snakeSpecName] = serializeArray(specValue)
         } else {
             serialized[snakeSpecName] = genericSerialize(
                 specValue,
@@ -159,6 +162,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
             return await saveCooler(serialized as unknown as PrismaModelMap['cooler'])
         case 'psu':
             return await savePsu(serialized as unknown as PrismaModelMap['psu'])
+        case 'case':
+            return await saveCase(serialized as unknown as PrismaModelMap['case'])
         default:
             break;
     }

@@ -1,7 +1,7 @@
 {
     "cpu": {
         "Manufacturer": ["brand", false],
-        "Part #": ["part_number", false],
+        "Part #": ["part_number", "array"],
         "Series": ["series", false],
         "Microarchitecture": ["microarchitecture", false],
         "Core Family": ["core_family", false],
@@ -25,7 +25,7 @@
     "gpu": {
         "Manufacturer": ["brand", false],
         "Model": ["product_name", false],
-        "Part #": ["part_number", "custom"],
+        "Part #": ["part_number", "array"],
         "Chipset": ["chipset_id", false],
         "Memory": ["memory_gb", true],
         "Memory Type": ["memory_type", false],
@@ -46,7 +46,7 @@
     },
     "moba": {
         "Manufacturer": ["brand", false],
-        "Part #": ["part_number", "custom"],
+        "Part #": ["part_number", "array"],
         "Socket / CPU": ["socket", false],
         "Form Factor": ["moba_form_factor_id", false],
         "Chipset": ["chipset_id", false],
@@ -80,7 +80,7 @@
       },
       "memory": {
         "Manufacturer": ["brand", false],
-        "Part #": ["part_number", "custom"],
+        "Part #": ["part_number", "array"],
         "Speed": ["memory_speed", "custom"],
         "Form Factor": ["form_factor", false],
         "Modules": ["modules", false],
@@ -95,7 +95,7 @@
       },
       "storage": {
         "Manufacturer": ["brand", false],
-        "Part #": ["part_number", "custom"],
+        "Part #": ["part_number", "array"],
         "Capacity": ["capacity_gb", "custom"],
         "Price / GB": ["ignored", true],
         "Type": ["storage_type_id", false],
@@ -107,7 +107,7 @@
       "cooler": {
         "Manufacturer": ["brand", false],
         "Model": ["product_name", false],
-        "Part #": ["part_number", "custom"],
+        "Part #": ["part_number", "array"],
         "Fan RPM": ["fan_rpm", false],
         "Noise Level": ["noise_level", true],
         "Color": ["color", false],
@@ -119,7 +119,7 @@
       "psu": {
         "Manufacturer": ["brand", false],
         "Model": ["product_name", false],
-        "Part #": ["part_number", "custom"],
+        "Part #": ["part_number", "array"],
         "Type": ["type", false],
         "Efficiency Rating": ["efficiency_rating", false],
         "Wattage": ["wattage_w", true],
@@ -136,5 +136,21 @@
         "PCIe 6-Pin Connectors": ["pcie_6_pin_connectors", true],
         "SATA Connectors": ["sata_connectors", true],
         "Molex 4-Pin Connectors": ["molex_4_pin_connectors", true]
+      },
+      "case": {
+        "Manufacturer": ["brand", false],
+        "Part #": ["part_number", "array"],
+        "Type": ["type", false],
+        "Color": ["color", false],
+        "Power Supply": ["power_supply", false],
+        "Side Panel": ["side_panel", false],
+        "Power Supply Shroud": ["power_supply_shroud", false],
+        "Front Panel USB": ["front_panel_usb", "array"],
+        "Motherboard Form Factor": ["moba_form_factors", "array"],
+        "Maximum Video Card Length": ["maximum_video_card_length_mm", "custom"],
+        "Drive Bays": ["drive_bays", "array"],
+        "Expansion Slots": ["expansion_slots", false],
+        "Dimensions": ["dimensions", "array"],
+        "Volume": ["volume_ml", "custom"]
       }
 }

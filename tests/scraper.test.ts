@@ -45,6 +45,38 @@ describe('parts specs scraper', async () => {
     }
 
 
+    test('case', async () => {
+      const file = getFile("case.html")
+      const pc_case = await scrapeAndSavePart(file)
+      console.log(pc_case)
+      expect(pc_case).toMatchObject({
+        part_number: [ 'CC-H61FB-01' ],
+        type: 'ATX Mid Tower',
+        color: 'Black',
+        power_supply: false,
+        side_panel: 'Tempered Glass',
+        power_supply_shroud: true,
+        front_panel_usb: [ 'USB 3.2 Gen 2 Type-C', 'USB 3.2 Gen 1 Type-A' ],
+        maximum_video_card_length_mm: 365,
+        drive_bays: [ '2 x Internal 2.5"', '1 x Internal 3.5"' ],
+        expansion_slots: '7 x Full-Height',
+        volume_ml: 51811,
+        dimensions: [ '415 mm x 287 mm x 435 mm', '16.339" x 11.299" x 17.126"' ],
+        product: {
+          name: 'H6 Flow',
+          type: 'CASE',
+          url: file,
+          asin: null,
+          brand: { name: 'NZXT' }
+        },
+        moba_form_factors: [
+          { name: 'ATX' },
+          { name: 'Micro ATX' },
+          { name: 'Mini ITX' }
+        ]
+      })
+  })
+
     test('psu', async () => {
       const file = getFile("psu.html")
       const psu = await scrapeAndSavePart(file)
@@ -190,7 +222,7 @@ describe('parts specs scraper', async () => {
       const file = getFile("cpu.html")
       const cpu = await scrapeAndSavePart(file)
     expect(cpu).toMatchObject({
-        part_number: '100-100000910WOF',
+        part_number: ['100-100000910WOF'],
         series: 'AMD Ryzen 7',
         microarchitecture: 'Zen 4',
         core_family: 'Raphael',

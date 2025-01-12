@@ -5,9 +5,9 @@ import { getSpecName, getSpecValue, getTitle } from "./utils"
 import { split } from "postcss/lib/list"
 
 const SERIALIZED_VALUES: Record<string, any> = {
-	none: null,
+	none: false,
 	yes: true,
-	no: false,
+	no: false
 }
 
 const DECIMAL_REGEX = /\d*\.?\d*/g
@@ -31,7 +31,7 @@ export const serializeNumber = (value: string) => {
 	return parseFloat(matches[0]!)
 }
 
-const splitSpec = (value: string) => {
+export const serializeArray = (value: string): any => {
 	return value.split("\n").filter(l => l.trim() !== "").map(l => l.trim())
 }
 
@@ -67,7 +67,8 @@ export const nameSeparators: Record<keyof PrismaModelMap, string | ((page: Page)
 		
 		return title.length
 	},
-	psu: "Wattage"
+	psu: "Wattage",
+	case: "Type"
 }
 	
 export const customSerializers: Partial<{
@@ -85,26 +86,21 @@ export const customSerializers: Partial<{
 
 			return parsedN * 1000
 		},
-		part_number: splitSpec,
 	},
-	// 'psu': {
-	// 	efficiency: (value) => {
-	// 		const [, rating] = value.split(' ')
+	'psu': {
+		efficiency_rating: (value: string) => {
+			const [, rating] = value.split(' ')
 
-	// 		if (typeof rating === 'undefined') return 'plus'
+			if (typeof rating === 'undefined') return 'plus'
 
-	// 		return rating.toLowerCase()
-	// 	},
-	// },
-	'gpu': {
-		part_number: splitSpec,
+			return rating.toLowerCase()
+		},
 	},
 	'moba': {
-		part_number: splitSpec,
-		memory_speed: (value): MemorySpeed[] => splitSpec(value).map(getMemorySpeed),
+		memory_speed: (value): MemorySpeed[] => serializeArray(value).map(getMemorySpeed),
 		m_2_slots: (value): MobaM2Slots[] => {
-			const slots = splitSpec(value)
-			return slots.map((slot) => ({
+			const slots = serializeArray(value)
+			return slots.map((slot: string) => ({
 				id: '',
 				size: slot.split(' ')[0].trim(),
 				key_type: slot.split(' ')[1].replace("-key", "").trim() as M2Key
@@ -112,15 +108,18 @@ export const customSerializers: Partial<{
 		}
 	},
 	'memory': {
-		part_number: splitSpec,
 		memory_speed: getMemorySpeed,
 	},
 	'cooler': {
-		part_number: splitSpec,
-		cpu_sockets: (value): Socket[] => splitSpec(value).map((spec) => ({id: '', name: spec}))
+		cpu_sockets: (value): Socket[] => serializeArray(value).map((spec: string) => ({id: '', name: spec}))
 	},
-	'psu': {
-		part_number: splitSpec
+	'case': {
+		maximum_video_card_length_mm: (value) => serializeNumber(value.split('mm')[0]),
+		volume_ml: (value) => {
+			const volume = serializeNumber(serializeArray(value)[0])
+			if (!volume) throw Error('Volume not found for case')
+			return volume * 1000
+		},
 	}
 	
 }

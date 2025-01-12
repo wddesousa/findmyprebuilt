@@ -1,7 +1,7 @@
 import { spec } from 'node:test/reporters'
 import { PrismaModelMap } from './types'
 import prisma from '@/app/db'
-
+import { Prisma } from '@prisma/client'
 
 export async function saveCpu(specs: PrismaModelMap['cpu']) {
     return prisma.cpu.create({
@@ -296,6 +296,48 @@ export async function savePsu(specs: PrismaModelMap['psu']) {
         },
         include: { 
             product: { include: { brand: true } },
+        }
+    })
+}
+
+export async function saveCase(specs: PrismaModelMap['case']) {
+    return prisma.case.create({
+        data: {
+            product: {
+                create: {
+                    name: specs.product_name,
+                    brand: {
+                        connectOrCreate: {
+                            where: { name: specs.brand },
+                            create: { name: specs.brand }
+                        }
+                    },
+                    type: 'CASE',
+                    url: specs.url
+                }
+            },
+            part_number: specs.part_number,
+            type: specs.type,
+            color: specs.color,
+            power_supply: specs.power_supply,
+            side_panel: specs.side_panel,
+            power_supply_shroud: specs.power_supply_shroud,
+            front_panel_usb: specs.front_panel_usb,
+            moba_form_factors: {
+                connectOrCreate: specs.moba_form_factors.map((form) => ({
+                    where: { name: form },
+                    create: { name: form }
+                }))
+            },
+            maximum_video_card_length_mm: specs.maximum_video_card_length_mm,
+            drive_bays: specs.drive_bays,
+            expansion_slots: specs.expansion_slots,
+            volume_ml: specs.volume_ml,
+            dimensions: specs.dimensions
+        },
+        include: { 
+            product: { include: { brand: true } },
+            moba_form_factors: true
         }
     })
 }
