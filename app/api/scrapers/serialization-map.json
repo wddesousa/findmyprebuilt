@@ -154,6 +154,17 @@
         "Volume": ["volume_ml", "custom"]
       },
       "caseFan": {
-        ''
+        "Manufacturer": ["brand", false],
+        "Part #": ["part_number", "array"],
+        "Size": ["size_mm", true],
+        "Color": ["color", false],
+        "Quantity": ["quantity", false],
+        "Airflow": ["airflow", false],
+        "Noise Level": ["noise_level", false],
+        "PWM": ["pwm", false],
+        "LED": ["led", false],
+        "Connector": ["connector", false],
+        "Controller": ["controller", false],
+        "Static Pressure": ["static_pressure_mmh2o", true]
       }
 }
