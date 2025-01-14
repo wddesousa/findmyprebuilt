@@ -4,10 +4,10 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import { extractUsbNumbers } from '@/app/api/scrapers/mobachipsets/utils'
 import { mobaChipsetCustomSerializer } from '@/app/api/scrapers/serializers'
 import path from 'path'
+import { pathToFileURL } from 'url'
 import { PrismaModelMap } from '@/app/api/scrapers/types'
 
 const prisma = new PrismaClient()
-const DATA_FOLDER = path.join(__dirname, './data')
 
 test('correctly extracts usb number', () => {
   var string = '\n                                                        \n                                                            \n                                                            \n                                                                10 USB 3.2 Ports- Up to 4 USB 3.2 Gen 2x2 (20Gb/s) Ports- Up to 10 USB 3.2 Gen 2x1 (10Gb/s) Ports- Up to 2 USB 3.2 Gen 1x1 (5Gb/s) Ports14 USB 2.0 Ports\n                                                            \n                                                        \n                                                    '
@@ -29,7 +29,7 @@ test('correcly extract pci generation', () => {
   expect(mobaChipsetCustomSerializer['intel']['pci_generation']!('\n                                                        \n                                                            \n                                                            \n                                                                3.0\n                                                            \n                                                        \n                                                    ')).toBe(3)
 })
 describe('parts specs scraper', async () => {
-  const getFile = (filename: string) => `file://${DATA_FOLDER}/${filename}`
+  const getFile = (filename: string) => pathToFileURL(path.join(__dirname, './data', filename)).href
 
     try {
         await prisma.product.deleteMany({ where: {
@@ -45,19 +45,36 @@ describe('parts specs scraper', async () => {
     }
 
 
+
     test('caseFan', async () => {
-      const file = getFile("caseFan.html")
+      const file = getFile("case_fan.html")
+      console.log(file)
       const caseFan = await scrapeAndSavePart(file)
-      console.log(caseFan)
       expect(caseFan).toMatchObject({
-        name: 'test'
+        part_number: [ 'UF-SLIN120-3B', '12SLIN3B' ],
+        size_mm: 120,
+        color: 'Black',
+        quantity: '3-Pack',
+        airflow: '0 - 61.3 CFM',
+        noise_level: '0 - 29 dB',
+        pwm: true,
+        led: 'Addressable RGB',
+        connector: '4-pin PWM + 3-pin 5V Addressable RGB',
+        controller: '5V Addressable RGB',
+        static_pressure_mmh2o: new Prisma.Decimal(2.66),
+        product: {
+          name: 'Uni Fan SL-Infinity',
+          type: 'CASEFAN',
+          asin: null,
+          url: file,
+          brand: { name: 'Lian Li' }
+        }
       })
   })
 
     test('case', async () => {
       const file = getFile("case.html")
       const pc_case = await scrapeAndSavePart(file)
-      console.log(pc_case)
       expect(pc_case).toMatchObject({
         part_number: [ 'CC-H61FB-01' ],
         type: 'ATX Mid Tower',
@@ -89,7 +106,6 @@ describe('parts specs scraper', async () => {
     test('psu', async () => {
       const file = getFile("psu.html")
       const psu = await scrapeAndSavePart(file)
-      console.log(psu)
       expect(psu).toMatchObject({
         part_number: [
           'CP-9020262-NA',
@@ -140,10 +156,10 @@ describe('parts specs scraper', async () => {
             brand: { name: 'ARCTIC' }
           },
           cpu_sockets: [
-            { name: 'LGA1851' },
-            { name: 'AM5' },
             { name: 'AM4' },
-            { name: 'LGA1700' }
+            { name: 'AM5' },
+            { name: 'LGA1700' },
+            { name: 'LGA1851' }
           ]
         },
         liquid_cooler: {
@@ -161,27 +177,27 @@ describe('parts specs scraper', async () => {
             brand: { name: 'Corsair' }
           },
           cpu_sockets: [
-            { name: 'LGA1851' },
-            { name: 'AM5' },
             { name: 'AM4' },
-            { name: 'LGA1700' },
-            { name: 'sTR4' },
-            { name: 'sTRX4' },
+            { name: 'AM5' },
             { name: 'LGA1150' },
             { name: 'LGA1151' },
             { name: 'LGA1155' },
             { name: 'LGA1156' },
             { name: 'LGA1200' },
+            { name: 'LGA1700' },
+            { name: 'LGA1851' },
             { name: 'LGA2011' },
             { name: 'LGA2011-3' },
-            { name: 'LGA2066' }
+            { name: 'LGA2066' },
+            { name: 'sTR4' },
+            { name: 'sTRX4' }
           ]
         }
       }
       const promises = Object.keys(tests).map(async (file) => {
 
         const cooler = await scrapeAndSavePart(getFile(`${file}.html`)) as unknown as PrismaModelMap['cooler']
-        // console.log(cooler)
+        console.log(cooler)
         expect(cooler).toMatchObject(tests[file])  
       })
       await Promise.all(promises)

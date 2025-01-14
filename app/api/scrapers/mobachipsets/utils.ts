@@ -1,4 +1,5 @@
-import { upsertBrand, getPuppeteerInstance } from "../utils"
+import { upsertBrand } from "../db"
+import { getPuppeteerInstance } from "../utils"
 import { sleep } from "@/app/utils"
 import { MobaChipsetSpecs, MobaChipsetlSerializationMap } from '../types'
 import { genericSerialize, mobaChipsetCustomSerializer, serializeNumber } from "../serializers"
@@ -200,7 +201,7 @@ export async function scrapeIntelMobaChipsets(url: string) {
             if (map.Intel[label]) {
                 const [specLabel, serializationType] = map.Intel[label]
 
-                if (serializationType !== 'custom')
+                if (typeof serializationType === 'boolean')
                     serialized[specLabel] = genericSerialize(specValue, serializationType)
                 else if (label == "USB Configuration") {
                     if (specValue.includes('3.2')) {

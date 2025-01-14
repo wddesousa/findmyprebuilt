@@ -377,7 +377,7 @@ export async function saveCooler(specs: PrismaModelMap["cooler"]) {
     },
     include: {
       product: { include: { brand: true } },
-      cpu_sockets: true,
+      cpu_sockets: { orderBy: { name: "asc" } }
     },
   });
 }

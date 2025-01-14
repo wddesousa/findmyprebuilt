@@ -8,6 +8,8 @@ import { Page, Browser, ElementHandle } from 'puppeteer'
 import { spec } from 'node:test/reporters'
 import { saveCaseFan, saveCase, savePsu, saveCpu, saveGpu, saveMemory, saveMoba, saveStorage, saveCooler } from './db'
 
+process.env.DEBUG = 'puppeteer:*';
+
 const LAUNCH_CONFIG = {
     headless: true,
     defaultViewport: null,
@@ -33,6 +35,17 @@ export async function getPuppeteerInstance(url: string, waitForSelector: string)
     // })
     const browser = await puppeteer.launch(LAUNCH_CONFIG)
     const page = await browser.newPage()
+
+    await page.setRequestInterception(true);
+    page.on('request', (request) => {
+      // Block all external resources
+      if (!["document", "xhr", "fetch"].includes(request.resourceType())) {
+        request.abort();
+      } else {
+        request.continue();
+      }
+    });
+    
     const res = await page.goto(url)
 
     try {
