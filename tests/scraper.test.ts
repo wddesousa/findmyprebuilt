@@ -1,14 +1,28 @@
 import { describe, expect, test } from "vitest";
 import { scrapeAndSavePart } from "@/app/api/scrapers/utils";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrapers/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrapers/serializers";
 import path from "path";
 import { pathToFileURL } from "url";
-import { PrismaModelMap } from "@/app/api/scrapers/types";
-import { psuResult, airCoolerResult, caseFanResult, caseResult, cpuResult, gpuResult, hddStorageResult, liquidCoolerResult, memoryResult, mobaResult, ssdStorageResult } from "./results";
+import {
+  psuResult,
+  airCoolerResult,
+  caseFanResult,
+  caseResult,
+  cpuResult,
+  gpuResult,
+  hddStorageResult,
+  liquidCoolerResult,
+  memoryResult,
+  mobaResult,
+  ssdStorageResult,
+} from "./results";
+import { nzxt } from "@/app/api/scrapers/prebuilts/utils";
 
 const prisma = new PrismaClient();
+const getFile = (filename: string) =>
+  pathToFileURL(path.join(__dirname, "./data", filename)).href;
 
 test("correctly extracts usb number", () => {
   var string =
@@ -37,10 +51,26 @@ test("correcly extract pci generation", () => {
     )
   ).toBe(3);
 });
-describe("parts specs scraper", async () => {
-  const getFile = (filename: string) =>
-    pathToFileURL(path.join(__dirname, "./data", filename)).href;
 
+
+describe("prebuilt scraper", async () => {
+
+  test("prebuilt", async () => {
+    // const file = getFile("prebuilt.html");
+    const nxzt = await nzxt("https://nzxt.com/product/player-three");
+    expect(nxzt).toMatchObject({
+      part_number: ["GL10CS-NR762"],
+      product: {
+        name: "ROG Strix GL10CS-NR762",
+        type: "PREBUILT",
+        brand: { name: "Asus" },
+      },
+    });
+  });
+}, 20000)
+
+describe("parts specs scraper", async () => {
+  
   try {
     await prisma.product.deleteMany({
       where: {
@@ -57,20 +87,21 @@ describe("parts specs scraper", async () => {
   }
 
   test.each([
-    [ "case_fan", caseFanResult ],
-    [ "case", caseResult ],
-    [ "psu", psuResult    ],
-    [ "cooler" , airCoolerResult],
-    [ "liquid_cooler", liquidCoolerResult ],
-    [ "storage_hdd", hddStorageResult ],
-    [ "storage_ssd", ssdStorageResult ],
-    [ "cpu", cpuResult ],
-    [ "gpu", gpuResult ],
-    [ "moba", mobaResult ],
-    [ "memory", memoryResult ],
-    ])("%s", async (fileName, expected) => {
+    ["case_fan", caseFanResult],
+    ["case", caseResult],
+    ["psu", psuResult],
+    ["cooler", airCoolerResult],
+    ["liquid_cooler", liquidCoolerResult],
+    ["storage_hdd", hddStorageResult],
+    ["storage_ssd", ssdStorageResult],
+    ["cpu", cpuResult],
+    ["gpu", gpuResult],
+    ["moba", mobaResult],
+    ["memory", memoryResult],
+  ])("%s", async (fileName, expected) => {
     const file = getFile(`${fileName}.html`);
     const part = await scrapeAndSavePart(file);
     expect(part).toMatchObject(expected);
   });
 });
+
