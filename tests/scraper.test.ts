@@ -57,7 +57,7 @@ describe("prebuilt scraper", async () => {
 
   test("prebuilt", async () => {
     // const file = getFile("prebuilt.html");
-    const nxzt = await nzxt("https://nzxt.com/product/player-three");
+    const nxzt = await nzxt("https://nzxt.com/product/player-one");
     expect(nxzt).toMatchObject({
       part_number: ["GL10CS-NR762"],
       product: {

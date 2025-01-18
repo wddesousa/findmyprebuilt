@@ -74,7 +74,8 @@ model Prebuilt {
   rear_fan_mm              Float?
   os                        String
   wireless                  Boolean
-  psu_tw                    Int
+  psu_w                     Int
+  psu_rating                String
   customizable              Boolean
   warranty_months           Int //warranty in months
   moba_chipset              MobaChipset  @relation(fields: [moba_chipset_id], references: [id])
