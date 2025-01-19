@@ -18,7 +18,7 @@ import {
   mobaResult,
   ssdStorageResult,
 } from "./results";
-import { nzxt } from "@/app/api/scrapers/prebuilts/utils";
+import { scrapeNzxt } from "@/app/api/scrapers/prebuilts/utils";
 
 const prisma = new PrismaClient();
 const getFile = (filename: string) =>
@@ -57,7 +57,7 @@ describe("prebuilt scraper", async () => {
 
   test("prebuilt", async () => {
     // const file = getFile("prebuilt.html");
-    const nxzt = await nzxt("https://nzxt.com/product/player-one");
+    const nxzt = await scrapeNzxt("https://nzxt.com/product/player-one");
     expect(nxzt).toMatchObject({
       part_number: ["GL10CS-NR762"],
       product: {

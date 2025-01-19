@@ -1,7 +1,7 @@
 import { upsertBrand } from "../db"
 import { getPuppeteerInstance } from "../utils"
 import { sleep } from "@/app/utils"
-import { MobaChipsetSpecs, MobaChipsetlSerializationMap } from '../types'
+import { MobaChipsetSpecs, MobaChipsetlSerializationMap, mobaAmdChipsetIndexes } from '../types'
 import { genericSerialize, mobaChipsetCustomSerializer, serializeNumber } from "../serializers"
 import prisma from '@/app/db'
 import { Prisma } from '@prisma/client'
@@ -17,18 +17,7 @@ export async function scrapeAmdMobaChipsets(url: string) {
     // })
 
     const [browser, page] = await getPuppeteerInstance(url, '.table-responsive')
-    type mobaAmdChipsetIndexes = {
-        chipset: number,
-        cpu_oc: number,
-        max_sata_ports: number,
-        max_usb_10_gbps: number,
-        max_usb_20_gbps: number | null,
-        max_usb_5_gbps: number | null,
-        max_usb_2_gen: number | null,
-        memory_oc: number | null,
-        pci_generation: number,
-        usb_4_guaranteed: number | null
-    }
+
     const specIndexes: Record<string, mobaAmdChipsetIndexes> = {
         am4: {
             chipset: 0,

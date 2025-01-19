@@ -1,10 +1,13 @@
 import { getPuppeteerInstance } from "@/app/api/scrapers/utils";
 import prisma from "@/app/db";
-import { scraperResults, nzxtSpecs } from "./types";
+import { scraperResults } from "./types/general";
+import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs } from "./types/nzxt";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrapers/serializers";
+import { get } from "http";
+  
 
-export async function nzxt(url: string): scraperResults {
+export async function scrapeNzxt(url: string): scraperResults {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 
@@ -15,19 +18,38 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
     return JSON.parse(el.textContent);
   })
 
-  const specs = pageInfo.props.pageProps.data.techTable as nzxtSpecs[]
-  console.log(specs)
+  const specs = pageInfo.props.pageProps.data.techTable as SpecValues[]
   
-  const psuSpecs = specs.find(spec => spec.specCategory === 'Power')?.specValues as {Model: string; Wattage: string} ?? {}
+
+  const keySpecs = getNzxtSpecs(specs, 'Key Specs')
+  const softwareSpecs = getNzxtSpecs(specs, 'Software')
+  const processorSpecs = getNzxtSpecs(specs, 'Processor')
+  const graphicsSpecs = getNzxtSpecs(specs, 'Graphics')
+  const memorySpecs = getNzxtSpecs(specs, 'Memory')
+  const storageSpecs = getNzxtSpecs(specs, 'Storage')
+  const mobaSpecs = getNzxtSpecs(specs, 'Motherboard')
+  const cpuSpecs = getNzxtSpecs(specs, 'CPU Cooler')
+  const psuSpecs = getNzxtSpecs(specs, 'Power')
+  const caseSpecs = getNzxtSpecs(specs, 'Case')
+  const warrantySpecs = getNzxtSpecs(specs, 'Warranty')
   
   return {
     prebuilt: {
-      psu_tw: serializeNumber(psuSpecs.Wattage),
-    }
+      psu_tw: psuSpecs ? serializeNumber(psuSpecs.Wattage) : null,
+    },
     psu: {
       raw: JSON.stringify(psuSpecs),
       part: 
   }
-  await browser.close();
 }
-  
+  await browser.close();
+
+}
+
+// Helper function to get specs with type safety
+function getNzxtSpecs<T extends SpecCategory>(
+  specs: NZXTSpecs,
+  category: T
+): CategorySpecMap[T] | null {
+  return specs.find(spec => spec.specCategory === category)?.specValues as CategorySpecMap[T] ?? null;
+}
