@@ -227,3 +227,4 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
       break;
   }
 }
+

@@ -8,6 +8,8 @@ export type SpecCategory =
   | "Storage"
   | "Motherboard"
   | "CPU Cooler"
+  | "Cooler Fan"
+  | "Case Fan - Front"
   | "Power"
   | "Case"
   | "Warranty";
@@ -58,10 +60,11 @@ interface MotherboardValues {
   "Wi-Fi": string;
 }
 
-interface CPUCoolerValues {
+export interface CPUCoolerValues {
   Model: string;
   "Cooling type": string;
   Dimensions: string;
+  "Radiator material"?: string;
   "Coldplate material": string;
   "Heatsink material": string;
   "Fan specs": string;
@@ -86,6 +89,15 @@ interface WarrantyValues {
   "Manufacturer's Warranty - Labor": string;
 }
 
+export interface CPUFanValues {
+  Model: string;
+  Speed: string;
+  Airflow: string;
+  "Static Pressure": string;
+  Noise: string;
+  Dimension: string;
+}
+
 // Map each category to its corresponding spec values
 export type CategorySpecMap = {
   "Key Specs": KeySpecsValues;
@@ -96,10 +108,12 @@ export type CategorySpecMap = {
   Storage: StorageValues;
   Motherboard: MotherboardValues;
   "CPU Cooler": CPUCoolerValues;
+  "Cooler Fan"?: CPUFanValues;
+  "Case Fan - Front"?: CPUFanValues;
   Power: PowerValues;
   Case: CaseValues;
   Warranty: WarrantyValues;
-}
+};
 
 // Base type for all spec values
 export interface SpecValues {
@@ -109,6 +123,3 @@ export interface SpecValues {
 
 // Type for the entire specs array
 export type NZXTSpecs = SpecValues[];
-
-
-

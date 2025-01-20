@@ -1,7 +1,7 @@
 import { getPuppeteerInstance } from "@/app/api/scrapers/utils";
 import prisma from "@/app/db";
-import { scraperResults } from "./types/general";
-import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs } from "./types/nzxt";
+import { scraperResults } from "../types";
+import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs, CPUFanValues, CPUCoolerValues } from "./types";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrapers/serializers";
 import { get } from "http";
@@ -28,19 +28,25 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   const memorySpecs = getNzxtSpecs(specs, 'Memory')
   const storageSpecs = getNzxtSpecs(specs, 'Storage')
   const mobaSpecs = getNzxtSpecs(specs, 'Motherboard')
-  const cpuSpecs = getNzxtSpecs(specs, 'CPU Cooler')
+  const cpuCoolerSpecs = getNzxtSpecs(specs, 'CPU Cooler')
   const psuSpecs = getNzxtSpecs(specs, 'Power')
   const caseSpecs = getNzxtSpecs(specs, 'Case')
   const warrantySpecs = getNzxtSpecs(specs, 'Warranty')
+  const rearFanSpecs = getNzxtSpecs(specs, 'Cooler Fan')
+  const frontFanSpecs = getNzxtSpecs(specs, 'Case Fan - Front')
   
   return {
     prebuilt: {
-      psu_tw: psuSpecs ? serializeNumber(psuSpecs.Wattage) : null,
+      psu_w: psuSpecs ? serializeNumber(psuSpecs.Wattage) : null,
+      customizable: true,
+      front_fan_mm: getFanSize(frontFanSpecs),
+      rear_fan_mm: getFanSize(rearFanSpecs),
+      cpu_cooler_mm: getFanSize(cpuCoolerSpecs),
+      cpu_cooler_type: cpuCoolerSpecs?.["Cooling type"].toLowerCase().includes('air') ? 'AIR' : 'LIQUID',
     },
-    psu: {
-      raw: JSON.stringify(psuSpecs),
-      part: 
-  }
+    prebuiltParts: {
+      psu: JSON.stringify(psuSpecs)
+    }
 }
   await browser.close();
 
@@ -52,4 +58,24 @@ function getNzxtSpecs<T extends SpecCategory>(
   category: T
 ): CategorySpecMap[T] | null {
   return specs.find(spec => spec.specCategory === category)?.specValues as CategorySpecMap[T] ?? null;
+}
+
+export function getFanSize(specs: CPUFanValues | CPUCoolerValues | null | undefined) {
+  if (!specs) return null;
+  
+  if ("Fan specs" in specs) {
+    const match = specs["Fan specs"].match(/(\d) x (\w+\d+\w*)/);
+
+    if (match) {
+      const number = match[1] && serializeNumber(match[1])
+      const size = match[2] && serializeNumber(match[2])
+      if (number && size) 
+        return number * size;
+    }
+  }
+
+  if ("Dimension" in specs) {
+    const size = specs.Dimension.split('x')[0];
+    return serializeNumber(size);
+  }
 }

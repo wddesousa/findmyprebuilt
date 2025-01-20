@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrapers/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrapers/serializers";
 import path from "path";
+import { getFanSize } from "@/app/api/scrapers/prebuilts/nzxt/utils";
 import { pathToFileURL } from "url";
 import {
   psuResult,
@@ -18,7 +19,8 @@ import {
   mobaResult,
   ssdStorageResult,
 } from "./results";
-import { scrapeNzxt } from "@/app/api/scrapers/prebuilts/utils";
+import { scrapeNzxt } from "@/app/api/scrapers/prebuilts/nzxt/utils";
+import { CPUCoolerValues } from "@/app/api/scrapers/prebuilts/nzxt/types";
 
 const prisma = new PrismaClient();
 const getFile = (filename: string) =>
@@ -52,8 +54,38 @@ test("correcly extract pci generation", () => {
   ).toBe(3);
 });
 
-
 describe("prebuilt scraper", async () => {
+  test("nzxtFanSizeExtractor", async () => {
+    const air = {
+      Model: "NZXT T120 RGB",
+      "Cooling type": "Air Cooler ",
+      Dimensions: "120 x 66 x 159 mm",
+      "Coldplate material": "Copper",
+      "Heatsink material": "Aluminum",
+      "Fan specs": "1 x 120mm RGB Fan",
+      RGB: "Yes",
+    };
+    const liquid = {
+      Model: "Kraken 280 RGB",
+      "Cooling Type": "AIO Liquid Cooler",
+      Dimensions: "143 x 315 x 30mm",
+      "Radiator Material": "Aluminum",
+      "Block Material": "Copper and Plastic",
+      "Fan specs": "2 x F140 RGB Core Fans",
+      RGB: "Yes",
+    };
+    const fan = {
+      Model: "F120Q - 120mm Quiet Airflow Fans (Case Version) x1",
+      Speed: "500 - 1,200 ± 300 RPM",
+      Airflow: "27.77 - 64 CFM",
+      "Static Pressure": "0.45 - 1.08 mm - H₂O",
+      Noise: "16.7 - 22.5 dBA",
+      Dimension: "120 x 180 x 26 mm",
+    };
+    expect(getFanSize(air)).toBe(120);
+    expect(getFanSize(fan)).toBe(120);
+    expect(getFanSize(liquid as unknown as CPUCoolerValues)).toBe(280);
+  });
 
   test("prebuilt", async () => {
     // const file = getFile("prebuilt.html");
@@ -67,10 +99,9 @@ describe("prebuilt scraper", async () => {
       },
     });
   });
-}, 20000)
+}, 20000);
 
 describe("parts specs scraper", async () => {
-  
   try {
     await prisma.product.deleteMany({
       where: {
@@ -104,4 +135,3 @@ describe("parts specs scraper", async () => {
     expect(part).toMatchObject(expected);
   });
 });
-

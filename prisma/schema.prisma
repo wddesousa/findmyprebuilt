@@ -61,47 +61,61 @@ enum ProductType {
   CASEFAN
 }
 
+enum CpuCoolerType {
+  AIR
+  WATER
+}
+
 model Prebuilt {
-  product                   Product      @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id                String       @id
+  product                   Product        @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id                String         @id
   memory_modules            Int
   memory_module_gb          Int
-  memory_speed              MemorySpeed  @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  memory_speed              MemorySpeed    @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   memory_speed_id           String
   main_storage_gb           Int
+  case_moba_form_factors    FormFactor[]
   seconday_storage_gb       Int?
-  front_fan_mm             Float?
-  rear_fan_mm              Float?
+  front_fan_mm              Float?
+  rear_fan_mm               Float?
+  cpu_cooler_mm             Float?
+  cpu_cooler_type           CpuCoolerType
   os                        String
   wireless                  Boolean
   psu_w                     Int
   psu_rating                String
   customizable              Boolean
   warranty_months           Int //warranty in months
-  moba_chipset              MobaChipset  @relation(fields: [moba_chipset_id], references: [id])
+  moba_chipset              MobaChipset    @relation(fields: [moba_chipset_id], references: [id])
   moba_chipset_id           String //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket same with gpu chipset
-  gpu_chipset               GpuChipset?  @relation(fields: [gpu_chipset_id], references: [id])
-  gpu_chipset_id            String? //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket same with gpu chipset
-  cpu_variation             Cpu          @relation(fields: [cpu_id], references: [product_id])
-  cpu_id                    String
-  moba_variation            Moba?        @relation(fields: [moba_id], references: [product_id])
-  moba_id                   String?
-  gpu_variation             Gpu?         @relation(fields: [gpu_id], references: [product_id])
-  gpu_id                    String?
-  case                      Case?        @relation(fields: [case_id], references: [product_id])
-  case_id                   String?
-  psu                       Psu?         @relation(fields: [psu_id], references: [product_id])
-  psu_id                    String?
-  cooler                    Cooler?      @relation(fields: [cooler_id], references: [product_id])
-  cooler_id                 String?
-  main_storage_type         StorageType  @relation("Prebuilt_MainStorageType", fields: [main_storage_type_id], references: [id])
+  gpu_chipset               GpuChipset     @relation(fields: [gpu_chipset_id], references: [id])
+  gpu_chipset_id            String //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket same with gpu chipset
+  main_storage_type         StorageType    @relation("Prebuilt_MainStorageType", fields: [main_storage_type_id], references: [id])
   main_storage_type_id      String
-  secondary_storage_type    StorageType? @relation("Prebuilt_SecondaryStorageType", fields: [secondary_storage_type_id], references: [id])
+  secondary_storage_type    StorageType?   @relation("Prebuilt_SecondaryStorageType", fields: [secondary_storage_type_id], references: [id])
   secondary_storage_type_id String
-  front_fan                CaseFan?     @relation("Prebuilt_FrontFans", fields: [front_fan_id], references: [product_id])
-  front_fan_id             String
-  rear_fan                 CaseFan?     @relation("Prebuilt_BackFans", fields: [back_fan_id], references: [product_id])
-  back_fan_id              String
+  cpu_variation             Cpu            @relation(fields: [cpu_id], references: [product_id])
+  cpu_id                    String
+  parts                     PrebuiltParts?
+}
+
+model PrebuiltParts {
+  prebuilt       Prebuilt @relation(fields: [prebuilt_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  prebuilt_id    String   @id
+  moba_variation Moba?    @relation(fields: [moba_id], references: [product_id])
+  moba_id        String?
+  gpu_variation  Gpu?     @relation(fields: [gpu_id], references: [product_id])
+  gpu_id         String?
+  case           Case?    @relation(fields: [case_id], references: [product_id])
+  case_id        String?
+  psu            Psu?     @relation(fields: [psu_id], references: [product_id])
+  psu_id         String?
+  cooler         Cooler?  @relation(fields: [cooler_id], references: [product_id])
+  cooler_id      String?
+  front_fan      CaseFan? @relation("Prebuilt_FrontFans", fields: [front_fan_id], references: [product_id])
+  front_fan_id   String?
+  rear_fan       CaseFan? @relation("Prebuilt_BackFans", fields: [back_fan_id], references: [product_id])
+  back_fan_id    String?
 }
 
 model StorageType {
@@ -125,9 +139,9 @@ model Storage {
 }
 
 model Case {
-  product                      Product      @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id                   String       @id
-  prebuilts                    Prebuilt[]
+  product                      Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id                   String          @id
+  prebuilts                    PrebuiltParts[]
   part_number                  String[]
   type                         String
   color                        String
@@ -144,8 +158,8 @@ model Case {
 }
 
 model CaseFan {
-  product                Product    @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id             String     @id
+  product                Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id             String          @id
   part_number            String[]
   size_mm                Int
   color                  String
@@ -156,16 +170,17 @@ model CaseFan {
   led                    String
   connector              String
   controller             String
-  static_pressure_mmh2o  Decimal    @db.Decimal(3, 2)
-  front_fan_on_prebuilts Prebuilt[] @relation("Prebuilt_FrontFans")
-  back_fan_on_prebuilts  Prebuilt[] @relation("Prebuilt_BackFans")
+  static_pressure_mmh2o  Decimal         @db.Decimal(3, 2)
+  front_fan_on_prebuilts PrebuiltParts[] @relation("Prebuilt_FrontFans")
+  back_fan_on_prebuilts  PrebuiltParts[] @relation("Prebuilt_BackFans")
 }
 
 model FormFactor {
-  id    String @id @default(nanoid())
-  name  String @unique
-  cases Case[]
-  mobas Moba[]
+  id        String     @id @default(nanoid())
+  name      String     @unique
+  cases     Case[]
+  mobas     Moba[]
+  prebuilts Prebuilt[]
 }
 
 model Memory {
@@ -225,10 +240,10 @@ model Store {
 }
 
 model Gpu {
-  product                    Product    @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id                 String     @id
+  product                    Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id                 String          @id
   part_number                String[]
-  chipset                    GpuChipset @relation(fields: [chipset_id], references: [id])
+  chipset                    GpuChipset      @relation(fields: [chipset_id], references: [id])
   chipset_id                 String
   memory_gb                  Int
   memory_type                String
@@ -246,7 +261,7 @@ model Gpu {
   external_power             String
   hdmi_outputs               Int
   displayport_outputs        Int
-  prebuilts                  Prebuilt[]
+  prebuilts                  PrebuiltParts[]
 }
 
 model GpuChipset {
@@ -320,7 +335,7 @@ model Moba {
   wireless_networking          String
   raid_support                 Boolean
   uses_back_connect_connectors Boolean
-  prebuilts                    Prebuilt[]
+  prebuilts                    PrebuiltParts[]
 }
 
 model MobaChipset {
@@ -359,8 +374,8 @@ model MobaM2SlotsOnMobas {
 }
 
 model Cooler {
-  product                  Product    @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id               String     @id
+  product                  Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id               String          @id
   part_number              String[]
   fan_rpm                  String
   color                    String
@@ -368,12 +383,12 @@ model Cooler {
   cpu_sockets              Socket[]
   water_cooled_radiador_mm Int?
   fanless                  Boolean
-  prebuilts                Prebuilt[]
+  prebuilts                PrebuiltParts[]
 }
 
 model Psu {
-  product                          Product    @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id                       String     @id
+  product                          Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  product_id                       String          @id
   part_number                      String[]
   type                             String
   efficiency_rating                String
@@ -391,7 +406,7 @@ model Psu {
   pcie_6_pin_connectors            Int
   sata_connectors                  Int
   molex_4_pin_connectors           Int
-  prebuilts                        Prebuilt[]
+  prebuilts                        PrebuiltParts[]
 }
 
 enum M2Key {
