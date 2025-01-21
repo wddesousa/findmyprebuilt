@@ -1,5 +1,6 @@
-import { getPuppeteerInstance } from "@/app/api/scrapers/utils";
+import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks } from "@/app/api/scrapers/utils";
 import prisma from "@/app/db";
+import {getProduct} from "@/app/db";
 import { scraperResults } from "../types";
 import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs, CPUFanValues, CPUCoolerValues } from "./types";
 import { ScriptHTMLAttributes } from "react";
@@ -23,8 +24,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
   const keySpecs = getNzxtSpecs(specs, 'Key Specs')
   const softwareSpecs = getNzxtSpecs(specs, 'Software')
-  const processorSpecs = getNzxtSpecs(specs, 'Processor')
-  const graphicsSpecs = getNzxtSpecs(specs, 'Graphics')
+  const cpuSpecs = getNzxtSpecs(specs, 'Processor')
+  const gpuSpecs = getNzxtSpecs(specs, 'Graphics')
   const memorySpecs = getNzxtSpecs(specs, 'Memory')
   const storageSpecs = getNzxtSpecs(specs, 'Storage')
   const mobaSpecs = getNzxtSpecs(specs, 'Motherboard')
@@ -34,15 +35,19 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   const warrantySpecs = getNzxtSpecs(specs, 'Warranty')
   const rearFanSpecs = getNzxtSpecs(specs, 'Cooler Fan')
   const frontFanSpecs = getNzxtSpecs(specs, 'Case Fan - Front')
-  
+  const cpuBrand = cpuSpecs?.["Processor Brand"] && getCpuBrandName(cpuSpecs["Processor Brand"])
+  const gpuBrand = gpuSpecs?.["Model"] && cleanTrademarks(gpuSpecs["Model"])
+
   return {
     prebuilt: {
-      psu_w: psuSpecs ? serializeNumber(psuSpecs.Wattage) : null,
+      psu_w: psuSpecs && serializeNumber(psuSpecs.Wattage),
       customizable: true,
       front_fan_mm: getFanSize(frontFanSpecs),
       rear_fan_mm: getFanSize(rearFanSpecs),
       cpu_cooler_mm: getFanSize(cpuCoolerSpecs),
       cpu_cooler_type: cpuCoolerSpecs?.["Cooling type"].toLowerCase().includes('air') ? 'AIR' : 'LIQUID',
+      cpu_id: cpuSpecs && cpuBrand ? (await getProduct(cpuSpecs.Series, cpuBrand))?.id : null,
+      gpu_chipset_id: gpuSpecs && (await getProduct(gpuSpecs?.["Chipset Manufacturer"], gpuBrand))?.id,
     },
     prebuiltParts: {
       psu: JSON.stringify(psuSpecs)
@@ -51,6 +56,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   await browser.close();
 
 }
+
+
 
 // Helper function to get specs with type safety
 function getNzxtSpecs<T extends SpecCategory>(
@@ -78,4 +85,5 @@ export function getFanSize(specs: CPUFanValues | CPUCoolerValues | null | undefi
     const size = specs.Dimension.split('x')[0];
     return serializeNumber(size);
   }
+  return null
 }

@@ -27,6 +27,6 @@ type PartsMap = {
 }
 
 export type scraperResults = {
-  prebuilt: { [K in keyof Prebuilt]: Prebuilt[K] | null }
+  prebuilt: { [K in keyof Omit<Prebuilt, "product_id">]: Prebuilt[K] | null | undefined }
   prebuiltParts: { [K in keyof PartsMap]: string }
 };

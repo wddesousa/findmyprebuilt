@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "prisma generate",
+            "label": "prisma: format-generate-push",
             "type": "shell",
             "command": "npx prisma format; npx prisma generate; npx prisma db push",
             "group": "build",

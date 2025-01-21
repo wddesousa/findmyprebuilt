@@ -1,40 +1,18 @@
-import { PrismaClient } from '@prisma/client'
-import { scrapeAmdMobaChipsets } from '@/app/api/scrapers/utils'
+import { PrismaClient, Prisma } from '@prisma/client'
+import { scrapeAmdMobaChipsets, scrapeIntelMobaChipsets } from '@/app/api/scrapers/mobachipsets/utils'
 
 const prisma = new PrismaClient()
 async function main() {
-  //   const brands = await prisma.brand.createManyAndReturn(
-  //       {
-  //           data: [{brand: 'NVIDIA'}, {brand: 'Intel'}, {brand: 'AMD'}, {brand: 'NZXT'}]
-  //       }
-  //   )
-  //   const products = await prisma.product.createManyAndReturn(
-  //       {
-  //           data: [{ brand_id: brands[0].id, product_name: 'Geforce 7800', product_type: 'GPU' }]
-  //       }
-  //   )
-  //   const gpus = await prisma.gpu.createManyAndReturn({
-  //       data: [
-            
-  //       ]
-  //   })
+  if (!await prisma.mobaChipset.findFirst({where: {brand: {name: 'AMD'}}})) {
+    console.log("getting AMD chipsets")
+    await scrapeAmdMobaChipsets('https://www.amd.com/en/products/processors/chipsets/am4.html')
+    await scrapeAmdMobaChipsets('https://www.amd.com/en/products/processors/chipsets/am5.html')
+  }
 
-  // const player_one = await prisma.basePrebuilt.upsert({
-  //   where: { base_prebuilt_name: 'Player: One' },
-  //   update: {},
-  //   create: {
-  //     base_prebuilt_name: 'Player: One',
-  //     prebuilt_attributes: {
-  //       createMany: {
-  //           data: [{ moba_id: 'Check out Prisma with Next.js',}]
-  //       },
-  //       where: {  }
-  //     },
-  //   },
-  // })
-
-
-
+  if (!await prisma.mobaChipset.findFirst({where: {brand: {name: 'Intel'}}})) {
+    console.log("getting INTEL chipsets")
+    await scrapeIntelMobaChipsets('https://www.intel.com/content/www/us/en/products/details/chipsets/desktop-chipsets/products.html')
+  }
 }
 main()
   .then(async () => {

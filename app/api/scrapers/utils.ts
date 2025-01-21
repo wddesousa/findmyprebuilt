@@ -228,3 +228,12 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
   }
 }
 
+export function getCpuBrandName(string: string) {
+  if (string.toLowerCase().includes("intel")) return "Intel"; 
+  if (string.toLowerCase().includes("amd")) return "AMD"; 
+  return null
+}
+
+export function cleanTrademarks(string: string) {
+  return string.replaceAll(/(™|®)/g, "").trim();
+}
