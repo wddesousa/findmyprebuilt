@@ -83,7 +83,8 @@ model Prebuilt {
   os                        String
   wireless                  Boolean
   psu_w                     Int
-  psu_rating                String
+  psu_efficiency_rating     PsuRating      @relation(fields: [psu_efficiency_rating_id], references: [id])
+  psu_efficiency_rating_id  String
   customizable              Boolean
   warranty_months           Int //warranty in months
   moba_chipset              MobaChipset    @relation(fields: [moba_chipset_id], references: [id])
@@ -391,7 +392,8 @@ model Psu {
   product_id                       String          @id
   part_number                      String[]
   type                             String
-  efficiency_rating                String
+  efficiency_rating                PsuRating       @relation(fields: [efficiency_rating_id], references: [id])
+  efficiency_rating_id             String
   wattage_w                        Int
   length_mm                        Int
   modular                          String
@@ -407,6 +409,13 @@ model Psu {
   sata_connectors                  Int
   molex_4_pin_connectors           Int
   prebuilts                        PrebuiltParts[]
+}
+
+model PsuRating {
+  id        String     @id @default(nanoid())
+  name      String     @unique
+  psus      Psu[]
+  prebuilts Prebuilt[]
 }
 
 enum M2Key {

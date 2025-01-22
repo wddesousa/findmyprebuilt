@@ -1,14 +1,14 @@
-import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks } from "@/app/api/scrapers/utils";
+import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrapers/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
-import { scraperResults } from "../types";
+import { scraperRawResults } from "../types";
 import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs, CPUFanValues, CPUCoolerValues } from "./types";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrapers/serializers";
 import { get } from "http";
   
 
-export async function scrapeNzxt(url: string): scraperResults {
+export async function scrapeNzxt(url: string): scraperRawResults {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 
@@ -20,7 +20,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   })
 
   const specs = pageInfo.props.pageProps.data.techTable as SpecValues[]
-  
+  await browser.close();
+
 
   const keySpecs = getNzxtSpecs(specs, 'Key Specs')
   const softwareSpecs = getNzxtSpecs(specs, 'Software')
@@ -40,20 +41,32 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
   return {
     prebuilt: {
-      psu_w: psuSpecs && serializeNumber(psuSpecs.Wattage),
+      psu_w: psuSpecs?.Wattage,
+      psu_rating,
       customizable: true,
       front_fan_mm: getFanSize(frontFanSpecs),
       rear_fan_mm: getFanSize(rearFanSpecs),
       cpu_cooler_mm: getFanSize(cpuCoolerSpecs),
-      cpu_cooler_type: cpuCoolerSpecs?.["Cooling type"].toLowerCase().includes('air') ? 'AIR' : 'LIQUID',
-      cpu_id: cpuSpecs && cpuBrand ? (await getProduct(cpuSpecs.Series, cpuBrand))?.id : null,
-      gpu_chipset_id: gpuSpecs && (await getProduct(gpuSpecs?.["Chipset Manufacturer"], gpuBrand))?.id,
+      cpu_cooler_type: cpuCoolerSpecs["Cooling type"],
+      main_storage_gb,
+      main_storage_type,
+      seconday_storage_gb,
+      secondary_storage_type,
+      memory_module_gb,
+      memory_modules,
+      memory_speed_id,
+      moba_chipset_id,
+      os,
+      warranty_months,
+      wireless
     },
     prebuiltParts: {
-      psu: JSON.stringify(psuSpecs)
+      psu: JSON.stringify(psuSpecs?.Model),
+      cpu: JSON.stringify(cpuSpecs?.Series),
+      case: JSON.stringify(caseSpecs),
+      cpu_cooler: JSON.stringify(cpuCoolerSpecs),
     }
 }
-  await browser.close();
 
 }
 
@@ -71,19 +84,19 @@ export function getFanSize(specs: CPUFanValues | CPUCoolerValues | null | undefi
   if (!specs) return null;
   
   if ("Fan specs" in specs) {
-    const match = specs["Fan specs"].match(/(\d) x (\w+\d+\w*)/);
+    const match = specs["Fan specs"]?.match(/(\d) x (\w+\d+\w*)/);
 
     if (match) {
       const number = match[1] && serializeNumber(match[1])
       const size = match[2] && serializeNumber(match[2])
       if (number && size) 
-        return number * size;
+        return String(number * size);
     }
   }
 
   if ("Dimension" in specs) {
     const size = specs.Dimension.split('x')[0];
-    return serializeNumber(size);
+    return size.trim();
   }
   return null
 }

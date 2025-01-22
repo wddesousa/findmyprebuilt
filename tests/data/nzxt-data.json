@@ -3,9 +3,9 @@
         "specCategory": "Key Specs",
         "specValues": {
             "Operating System": "Windows 11 Home",
-            "CPU": "Intel® Core™ i5-12400F 6-Core 2.5GHz",
-            "GPU": "Intel® Arc™ A750 ",
-            "RAM": "16 GB (2 x 8GB) DDR5 5200 MHz (max speed)",
+            "CPU": "Intel® Core™ i5-13400F",
+            "GPU": "NVIDIA® GeForce RTX™ 3050",
+            "RAM": "16GB (2 x 8GB) DDR5 5200 MHz (max speed)",
             "Storage": "1TB NVMe M.2 SSD"
         }
     },
@@ -20,38 +20,44 @@
     {
         "specCategory": "Processor",
         "specValues": {
-            "Processor Brand": "Intel® Core™",
-            "Series": "i5-12400F",
-            "Processor Speed (Base)": "2.5GHz",
-            "Number of Cores": "6"
+            "Base AMD Processor": "AMD Ryzen™ 5 8400F",
+            "Base Intel Processor": "Intel® Core™ i5-13400F"
         }
     },
     {
         "specCategory": "Graphics",
         "specValues": {
-            "Chipset Manufacturer": "Intel®",
-            "Model": "Arc™ A750 ",
-            "Capacity": "8GB"
+            "Chipset Manufacturer": "NVIDIA® ",
+            "Base Graphics Model": "GeForce RTX™ 3050",
+            "Upgrade Graphics Model": "GeForce RTX™ 4060"
         }
     },
     {
         "specCategory": "Memory",
         "specValues": {
-            "Capacity": "16GB (2 x 8GB)",
-            "Speed": "5200MHz (max speed)",
-            "Interface": "DDR5"
+            "Base System Memory": "16 GB (2 × 8GB) DDR5 5200 MHz",
+            "Upgrade System Memory": "32GB (4 × 8GB) DDR5 5200 MHz",
+            "RGB": "No"
         }
     },
     {
         "specCategory": "Storage",
         "specValues": {
             "Model": "Product brand may vary",
-            "Capacity": "1TB",
-            "Form Factor": "NVMe M.2 SSD"
+            "Base Storage": "1TB NVMe M.2 SSD",
+            "Upgrade Storage": "2TB NVMe M.2 SSD"
         }
     },
     {
-        "specCategory": "Motherboard",
+        "specCategory": "Motherboard (AMD CPU)",
+        "specValues": {
+            "Model": "B650",
+            "Form Factor": "ATX",
+            "Wi-Fi": "Included"
+        }
+    },
+    {
+        "specCategory": "Motherboard (Intel CPU)",
         "specValues": {
             "Model": "B760 ",
             "Form Factor": "ATX",
@@ -61,21 +67,54 @@
     {
         "specCategory": "CPU Cooler",
         "specValues": {
-            "Model": "NZXT T120 RGB",
-            "Cooling type": "Air Cooler ",
+            "Model": "NZXT T120",
+            "Cooling type": "Air Cooler",
             "Dimensions": "120 x 66 x 159 mm",
             "Coldplate material": "Copper",
-            "Heatsink material": "Aluminum",
-            "Fan specs": "1 x 120mm RGB Fan",
-            "RGB": "Yes"
+            "Block material": "-",
+            "Display Panel Type": "-",
+            "Fan specs": "1 x F120P Static Pressure Fan",
+            "RGB": "No"
+        }
+    },
+    {
+        "specCategory": "Cooler Fan",
+        "specValues": {
+            "Model": "F120P Static Pressure Fan x1",
+            "Speed": "500-1,800 ± 300 RPM",
+            "Airflow": "21.67 - 78.02 CFM",
+            "Static Pressure": "0.75 - 2.7mm-H2O",
+            "Noise": "17.9 - 30.6dBA",
+            "Dimension": "120 x 120 x 26mm"
+        }
+    },
+    {
+        "specCategory": "Case Fan - Front",
+        "specValues": {
+            "Model": "F120Q - 120mm Quiet Airflow Fans (Case Version) x1",
+            "Speed": "500 - 1,200 ± 300 RPM",
+            "Airflow": "27.77 - 64 CFM",
+            "Static Pressure": "0.45 - 1.08 mm - H₂O",
+            "Noise": "16.7 - 22.5 dBA",
+            "Dimension": "120 x 120 x 26 mm"
+        }
+    },
+    {
+        "specCategory": "Case Fan - Rear",
+        "specValues": {
+            "Model": "F120Q - 120mm Quiet Airflow Fans (Case Version) x1",
+            "Speed": "500 - 1,200 ± 300 RPM",
+            "Airflow": "27.77 - 64 CFM",
+            "Static Pressure": "0.45 - 1.08 mm - H₂O",
+            "Noise": "16.7 - 22.5 dBA",
+            "Dimension": "120 x 120 x 26 mm"
         }
     },
     {
         "specCategory": "Power",
         "specValues": {
-            "Model": "SFX 650W Gold",
+            "Model": "650W Gold",
             "Wattage": "650 W",
-            "Form Factor": "SFX",
             "Rating": "80+ Gold"
         }
     },

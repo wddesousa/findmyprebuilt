@@ -16,59 +16,61 @@ export type SpecCategory =
 
 // Individual interfaces for each category's spec values
 interface KeySpecsValues {
-  "Operating System": string;
-  CPU: string;
-  GPU: string;
-  RAM: string;
-  Storage: string;
+  "Operating System"?: string;
+  CPU?: string;
+  GPU?: string;
+  RAM?: string;
+  Storage?: string;
 }
 
 interface SoftwareValues {
-  "Operating System": string;
-  "PC Monitoring & Customization": string;
-  "Xbox Gamepass": string;
+  "Operating System"?: string;
+  "PC Monitoring & Customization"?: string;
+  "Xbox Gamepass"?: string;
 }
 
 interface ProcessorValues {
-  "Processor Brand": string;
-  Series: string;
-  "Processor Speed (Base)": string;
-  "Number of Cores": string;
+  "Processor Brand"?: string;
+  Series?: string;
+  "Processor Speed (Base)"?: string;
+  "Number of Cores"?: string;
 }
 
 interface GraphicsValues {
-  "Chipset Manufacturer": string;
-  Model: string;
-  Capacity: string;
+  Model?: string;
+  Capacity?: string;
+  "Base Graphics Model"?: string;
+  "Chipset Manufacturer"?: string;
+  "Upgrade Graphics Model"?: string;
 }
 
 interface MemoryValues {
-  Capacity: string;
-  Speed: string;
-  Interface: string;
+  Capacity?: string;
+  Speed?: string;
+  Interface?: string;
 }
 
 interface StorageValues {
-  Model: string;
-  Capacity: string;
-  "Form Factor": string;
+  Model?: string;
+  Capacity?: string;
+  "Form Factor"?: string;
 }
 
 interface MotherboardValues {
-  Model: string;
-  "Form Factor": string;
-  "Wi-Fi": string;
+  Model?: string;
+  "Form Factor"?: string;
+  "Wi-Fi"?: string;
 }
 
 export interface CPUCoolerValues {
-  Model: string;
-  "Cooling type": string;
-  Dimensions: string;
+  Model?: string;
+  "Cooling type"?: string;
+  Dimensions?: string;
   "Radiator material"?: string;
-  "Coldplate material": string;
-  "Heatsink material": string;
-  "Fan specs": string;
-  RGB: string;
+  "Coldplate material"?: string;
+  "Heatsink material"?: string;
+  "Fan specs"?: string;
+  RGB?: string;
 }
 
 interface PowerValues {

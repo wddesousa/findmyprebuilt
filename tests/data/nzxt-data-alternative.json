@@ -1,0 +1,97 @@
+[
+    {
+        "specCategory": "Key Specs",
+        "specValues": {
+            "Operating System": "Windows 11 Home",
+            "CPU": "Intel® Core™ i5-12400F 6-Core 2.5GHz",
+            "GPU": "Intel® Arc™ A750 ",
+            "RAM": "16 GB (2 x 8GB) DDR5 5200 MHz (max speed)",
+            "Storage": "1TB NVMe M.2 SSD"
+        }
+    },
+    {
+        "specCategory": "Software",
+        "specValues": {
+            "Operating System": "Windows 11 Home",
+            "PC Monitoring & Customization": "CAM",
+            "Xbox Gamepass": "30 Day Free Trial"
+        }
+    },
+    {
+        "specCategory": "Processor",
+        "specValues": {
+            "Processor Brand": "Intel® Core™",
+            "Series": "i5-12400F",
+            "Processor Speed (Base)": "2.5GHz",
+            "Number of Cores": "6"
+        }
+    },
+    {
+        "specCategory": "Graphics",
+        "specValues": {
+            "Chipset Manufacturer": "Intel®",
+            "Model": "Arc™ A750 ",
+            "Capacity": "8GB"
+        }
+    },
+    {
+        "specCategory": "Memory",
+        "specValues": {
+            "Capacity": "16GB (2 x 8GB)",
+            "Speed": "5200MHz (max speed)",
+            "Interface": "DDR5"
+        }
+    },
+    {
+        "specCategory": "Storage",
+        "specValues": {
+            "Model": "Product brand may vary",
+            "Capacity": "1TB",
+            "Form Factor": "NVMe M.2 SSD"
+        }
+    },
+    {
+        "specCategory": "Motherboard",
+        "specValues": {
+            "Model": "B760 ",
+            "Form Factor": "ATX",
+            "Wi-Fi": "Included"
+        }
+    },
+    {
+        "specCategory": "CPU Cooler",
+        "specValues": {
+            "Model": "NZXT T120 RGB",
+            "Cooling type": "Air Cooler ",
+            "Dimensions": "120 x 66 x 159 mm",
+            "Coldplate material": "Copper",
+            "Heatsink material": "Aluminum",
+            "Fan specs": "1 x 120mm RGB Fan",
+            "RGB": "Yes"
+        }
+    },
+    {
+        "specCategory": "Power",
+        "specValues": {
+            "Model": "SFX 650W Gold",
+            "Wattage": "650 W",
+            "Form Factor": "SFX",
+            "Rating": "80+ Gold"
+        }
+    },
+    {
+        "specCategory": "Case",
+        "specValues": {
+            "Model": "NZXT H5 Flow",
+            "Motherboard Support": "Mini-ITX, MicroATX, ATX",
+            "Front I/O": "1x USB 3.2 Gen 1 Type-A / 1x USB 3.2 Gen 2 Type-C / 1x Headset Audio Jack"
+        }
+    },
+    {
+        "specCategory": "Warranty",
+        "specValues": {
+            "Manufacturer's Warranty - Parts": "2 years",
+            "Manufacturer's Warranty - Labor": "2 years"
+        }
+    }
+]

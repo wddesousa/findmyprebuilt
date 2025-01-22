@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer-extra";
 import { connect } from "puppeteer-real-browser";
+import prisma from "@/app/db"
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import untypedMap from "./serialization-map.json";
 import {
@@ -27,6 +28,7 @@ import {
   saveStorage,
   saveCooler,
 } from "./db";
+import { CpuCoolerType } from "@prisma/client";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -236,4 +238,24 @@ export function getCpuBrandName(string: string) {
 
 export function cleanTrademarks(string: string) {
   return string.replaceAll(/(™|®)/g, "").trim();
+}
+
+export async function getStorageTypeId(string:string) {
+  var type;
+  if (string.toLowerCase().match(/ssd|nvme/)) 
+    type = "SSD";
+  if (string.toLowerCase().match(/hdd|hard drive/)) {
+    type = serializeNumber(string) + " RPM"
+  }
+  return (await prisma.storageType.findUnique({where: {name: type}}))?.id
+}
+
+export async function getPsuRating(string: string) {
+
+}
+
+export function getCoolerType(string: string): CpuCoolerType | null {
+  if (string.toLowerCase().includes("air")) return "AIR"; 
+  if (string.toLowerCase().match(/aio|liquid/)) return "LIQUID"; 
+  return null
 }

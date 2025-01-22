@@ -24,9 +24,18 @@ type PartsMap = {
   front_fan: CaseFan;
   rear_fan: CaseFan;
   cpu_cooler: Cooler;
-}
+};
 
-export type scraperResults = {
-  prebuilt: { [K in keyof Omit<Prebuilt, "product_id">]: Prebuilt[K] | null | undefined }
-  prebuiltParts: { [K in keyof PartsMap]: string }
+export type scraperRawResults = {
+  // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
+  prebuilt: {
+    [K in keyof {
+      [P in keyof Prebuilt as P extends `${string}_id` ? never : P]: Prebuilt[P];
+    }]: string | null | undefined;
+  } & {
+    psu_efficiency_rating: string;
+    cpu_cooler_type: string;
+    case_moba_form_factors: string;
+  };
+  prebuiltParts: { [K in keyof PartsMap]: string };
 };
