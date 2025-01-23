@@ -230,9 +230,9 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
   }
 }
 
-export function getCpuBrandName(string: string) {
-  if (string.toLowerCase().includes("intel")) return "Intel"; 
-  if (string.toLowerCase().includes("amd")) return "AMD"; 
+export function getCpuBrandName(cpu: string) {
+  if (cpu.toLowerCase().includes("intel")) return "Intel"; 
+  if (cpu.toLowerCase().includes("amd")) return "AMD"; 
   return null
 }
 
@@ -240,12 +240,12 @@ export function cleanTrademarks(string: string) {
   return string.replaceAll(/(™|®)/g, "").trim();
 }
 
-export async function getStorageTypeId(string:string) {
+export async function getStorageTypeId(storage:string) {
   var type;
-  if (string.toLowerCase().match(/ssd|nvme/)) 
+  if (storage.toLowerCase().match(/ssd|nvme/)) 
     type = "SSD";
-  if (string.toLowerCase().match(/hdd|hard drive/)) {
-    type = serializeNumber(string) + " RPM"
+  if (storage.toLowerCase().match(/hdd|hard drive/)) {
+    type = serializeNumber(storage) + " RPM"
   }
   return (await prisma.storageType.findUnique({where: {name: type}}))?.id
 }
@@ -254,8 +254,43 @@ export async function getPsuRating(string: string) {
 
 }
 
-export function getCoolerType(string: string): CpuCoolerType | null {
-  if (string.toLowerCase().includes("air")) return "AIR"; 
-  if (string.toLowerCase().match(/aio|liquid/)) return "LIQUID"; 
+export function getCoolerType(cooler: string): CpuCoolerType | null {
+  if (cooler.toLowerCase().includes("air")) return "AIR"; 
+  if (cooler.toLowerCase().match(/aio|liquid/)) return "LIQUID"; 
+  return null
+}
+
+export function getMemoryDdr(memory: string) {
+  const match = memory.toUpperCase().match(/DDR\d/g)
+  if (match) {
+      return match[0]
+  }
+}
+
+export function getMemorySpeed(memory: string) {
+  const match = memory.toLowerCase().match(/\d+\s?mhz/g)
+  if (match) {
+      return serializeNumber(match[0])
+  }
+}
+
+export function getMemoryModules(memory: string) {
+  var match = memory.toLowerCase().match(/\d x \d+\s?gb/g)
+  if (match) {
+      const [number, size] = match[0].split('x').map(serializeNumber)
+      return {
+        number,
+        size
+      }
+  }
+
+  match = memory.toLowerCase().match(/\d+\s?gb x \d/g)
+  if (match) {
+    const [size, number] = match[0].split('x').map(serializeNumber)
+    return {
+      number,
+      size
+    }
+  }
   return null
 }

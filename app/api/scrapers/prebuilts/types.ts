@@ -26,16 +26,24 @@ type PartsMap = {
   cpu_cooler: Cooler;
 };
 
+type rawResult = string | null | undefined;
+
 export type scraperRawResults = {
   // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
   prebuilt: {
-    [K in keyof {
-      [P in keyof Prebuilt as P extends `${string}_id` ? never : P]: Prebuilt[P];
-    }]: string | null | undefined;
-  } & {
-    psu_efficiency_rating: string;
-    cpu_cooler_type: string;
-    case_moba_form_factors: string;
+    psu_w: rawResult | number;
+    psu_rating: rawResult;
+    customizable: boolean;
+    front_fan_mm: number | rawResult;
+    rear_fan_mm: number | rawResult;
+    cpu_cooler_mm: number | rawResult;
+    cpu_cooler_type: rawResult;
+    os: rawResult;
+    warranty_months: rawResult | number;
+    wireless: boolean | null | undefined;
   };
-  prebuiltParts: { [K in keyof PartsMap]: string };
+  prebuiltParts: { [K in keyof PartsMap]: rawResult };
+  specs: string; //save here the raw hmlt of specs to detect changes in the future
 };
+
+//TODO: scraperFinalResults from the complete Prebuilt object

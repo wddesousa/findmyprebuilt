@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { scrapeAndSavePart } from "@/app/api/scrapers/utils";
+import { getMemoryDdr, getMemoryModules, getMemorySpeed, scrapeAndSavePart } from "@/app/api/scrapers/utils";
 import { PrismaClient } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrapers/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrapers/serializers";
@@ -52,6 +52,22 @@ test("correcly extract pci generation", () => {
       "\n                                                        \n                                                            \n                                                            \n                                                                3.0\n                                                            \n                                                        \n                                                    "
     )
   ).toBe(3);
+});
+
+describe("correctly extracts memory modules, speed, and DDR type", () => {
+  const memoryModuleTests = [
+    { input: "16GB (2 x 8GB) DDR5 5200 MHz", expectedModules: { number: 2, size: 8 }, expectedSpeed: 5200, expectedDDR: "DDR5" },
+    { input: "16GB (2 x 8 GB) DDR5 5200 MHz", expectedModules: { number: 2, size: 8 }, expectedSpeed: 5200, expectedDDR: "DDR5" },
+    { input: "32GB [16GB x 2] DDR5-5600MHz RGB", expectedModules: { number: 2, size: 16 }, expectedSpeed: 5600, expectedDDR: "DDR5" },
+    { input: "32GB [16 GB x 2] DDR5-5600MHz RGB", expectedModules: { number: 2, size: 16 }, expectedSpeed: 5600, expectedDDR: "DDR5" },
+    { input: "32GB DDR5-5600MHz RGB RAM", expectedModules: null, expectedSpeed: 5600, expectedDDR: "DDR5" }
+  ];
+
+  test.each(memoryModuleTests)("$input", ({ input, expectedModules, expectedSpeed, expectedDDR }) => {
+    expect(getMemoryModules(input)).toEqual(expectedModules);
+    expect(getMemorySpeed(input)).toBe(expectedSpeed);
+    expect(getMemoryDdr(input)).toBe(expectedDDR);
+  });
 });
 
 describe("prebuilt scraper", async () => {

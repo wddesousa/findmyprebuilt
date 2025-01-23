@@ -6,6 +6,8 @@ export type SpecCategory =
   | "Graphics"
   | "Memory"
   | "Storage"
+  | "Primary Storage"
+  | "Storage"
   | "Motherboard"
   | "CPU Cooler"
   | "Cooler Fan"
@@ -46,6 +48,8 @@ interface GraphicsValues {
 
 interface MemoryValues {
   Capacity?: string;
+  "Base System Memory"?: string;
+  "Upgrade System Memory"?: string;
   Speed?: string;
   Interface?: string;
 }
@@ -54,6 +58,8 @@ interface StorageValues {
   Model?: string;
   Capacity?: string;
   "Form Factor"?: string;
+  "Base Storage"?: string;
+  "Upgrade Storage"?: string;
 }
 
 interface MotherboardValues {
@@ -108,6 +114,7 @@ export type CategorySpecMap = {
   Graphics: GraphicsValues;
   Memory: MemoryValues;
   Storage: StorageValues;
+  "Primary Storage": StorageValues;
   Motherboard: MotherboardValues;
   "CPU Cooler": CPUCoolerValues;
   "Cooler Fan"?: CPUFanValues;

@@ -8,7 +8,7 @@ import {serializeNumber} from "@/app/api/scrapers/serializers";
 import { get } from "http";
   
 
-export async function scrapeNzxt(url: string): scraperRawResults {
+export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 
@@ -28,7 +28,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   const cpuSpecs = getNzxtSpecs(specs, 'Processor')
   const gpuSpecs = getNzxtSpecs(specs, 'Graphics')
   const memorySpecs = getNzxtSpecs(specs, 'Memory')
-  const storageSpecs = getNzxtSpecs(specs, 'Storage')
+  const storageSpecs = getNzxtSpecs(specs, 'Storage') ?? getNzxtSpecs(specs, 'Primary Storage')
   const mobaSpecs = getNzxtSpecs(specs, 'Motherboard')
   const cpuCoolerSpecs = getNzxtSpecs(specs, 'CPU Cooler')
   const psuSpecs = getNzxtSpecs(specs, 'Power')
@@ -38,34 +38,36 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   const frontFanSpecs = getNzxtSpecs(specs, 'Case Fan - Front')
   const cpuBrand = cpuSpecs?.["Processor Brand"] && getCpuBrandName(cpuSpecs["Processor Brand"])
   const gpuBrand = gpuSpecs?.["Model"] && cleanTrademarks(gpuSpecs["Model"])
+  const memoryInfo = memorySpecs?.["Capacity"] ?? memorySpecs?.["Base System Memory"]
 
   return {
+
     prebuilt: {
       psu_w: psuSpecs?.Wattage,
-      psu_rating,
+      psu_rating: psuSpecs?.Rating,
       customizable: true,
       front_fan_mm: getFanSize(frontFanSpecs),
       rear_fan_mm: getFanSize(rearFanSpecs),
       cpu_cooler_mm: getFanSize(cpuCoolerSpecs),
-      cpu_cooler_type: cpuCoolerSpecs["Cooling type"],
-      main_storage_gb,
-      main_storage_type,
-      seconday_storage_gb,
-      secondary_storage_type,
-      memory_module_gb,
-      memory_modules,
-      memory_speed_id,
-      moba_chipset_id,
-      os,
-      warranty_months,
-      wireless
+      cpu_cooler_type: cpuCoolerSpecs?.["Cooling type"],
+      os: keySpecs?.["Operating System"],
+      warranty_months: warrantySpecs && warrantySpecs["Manufacturer's Warranty - Parts"] ? serializeNumber(warrantySpecs["Manufacturer's Warranty - Parts"]) as number * 12 : null,
+      wireless: undefined
     },
     prebuiltParts: {
-      psu: JSON.stringify(psuSpecs?.Model),
-      cpu: JSON.stringify(cpuSpecs?.Series),
-      case: JSON.stringify(caseSpecs),
-      cpu_cooler: JSON.stringify(cpuCoolerSpecs),
-    }
+      psu: psuSpecs?.Model,
+      cpu: keySpecs?.["CPU"],
+      case: caseSpecs?.Model,
+      cpu_cooler: cpuCoolerSpecs?.Model,
+      gpu: keySpecs?.["GPU"],
+      front_fan: frontFanSpecs?.Model,
+      rear_fan: rearFanSpecs?.Model,
+      main_storage: keySpecs?.["Storage"],
+      second_storage: undefined,
+      moba: mobaSpecs?.Model,
+      ram: keySpecs?.["RAM"]
+    },
+    specs: JSON.stringify(specs)
 }
 
 }
@@ -90,7 +92,7 @@ export function getFanSize(specs: CPUFanValues | CPUCoolerValues | null | undefi
       const number = match[1] && serializeNumber(match[1])
       const size = match[2] && serializeNumber(match[2])
       if (number && size) 
-        return String(number * size);
+        return number * size;
     }
   }
 
