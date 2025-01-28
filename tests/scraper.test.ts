@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrapers/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrapers/serializers";
 import path from "path";
-import { getFanSize } from "@/app/api/scrapers/prebuilts/nzxt/utils";
+import { getFanSize } from "@/app/api/scrapers/nzxt/utils";
 import { pathToFileURL } from "url";
 import {
   psuResult,
@@ -19,8 +19,8 @@ import {
   mobaResult,
   ssdStorageResult,
 } from "./results";
-import { scrapeNzxt } from "@/app/api/scrapers/prebuilts/nzxt/utils";
-import { CPUCoolerValues } from "@/app/api/scrapers/prebuilts/nzxt/types";
+import { scrapeNzxt } from "@/app/api/scrapers/nzxt/utils";
+import { CPUCoolerValues } from "@/app/api/scrapers/nzxt/types";
 
 const prisma = new PrismaClient();
 const getFile = (filename: string) =>

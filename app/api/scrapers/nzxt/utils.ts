@@ -1,7 +1,7 @@
 import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrapers/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
-import { scraperRawResults } from "../types";
+import { scraperRawResults } from "../../prebuilts/types";
 import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs, CPUFanValues, CPUCoolerValues } from "./types";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrapers/serializers";
@@ -20,6 +20,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   })
 
   const specs = pageInfo.props.pageProps.data.techTable as SpecValues[]
+  const images = pageInfo.props.pageProps.data.productImages as { url: string }[]
+ 
   await browser.close();
 
 
@@ -67,7 +69,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
       moba: mobaSpecs?.Model,
       ram: keySpecs?.["RAM"]
     },
-    specs: JSON.stringify(specs)
+    specsHtml: JSON.stringify(specs),
+    images: images.map((image) => image.url)
 }
 
 }
@@ -98,7 +101,7 @@ export function getFanSize(specs: CPUFanValues | CPUCoolerValues | null | undefi
 
   if ("Dimension" in specs) {
     const size = specs.Dimension.split('x')[0];
-    return size.trim();
+    return Number(size.trim());
   }
   return null
 }

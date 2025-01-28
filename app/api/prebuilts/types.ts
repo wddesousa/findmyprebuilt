@@ -43,7 +43,9 @@ export type scraperRawResults = {
     wireless: boolean | null | undefined;
   };
   prebuiltParts: { [K in keyof PartsMap]: rawResult };
-  specs: string; //save here the raw hmlt of specs to detect changes in the future
-};
+  specsHtml: string; //save here the raw hmlt of specs to detect changes in the future
+  images: string[]
+}
+;
 
 //TODO: scraperFinalResults from the complete Prebuilt object
