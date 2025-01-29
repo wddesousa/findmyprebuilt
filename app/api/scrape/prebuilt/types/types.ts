@@ -12,6 +12,9 @@ import {
   Psu,
 } from "@prisma/client";
 
+export type prebuiltBrands = 
+| "nzxt"
+
 type PartsMap = {
   cpu: Cpu;
   gpu: Gpu;

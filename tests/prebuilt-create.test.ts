@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { POST } from '@/app/api/prebuilts/new/submit/route';
 import { NextResponse } from 'next/server';
 
-describe('POST /api/my-route', () => {
+describe('Create new prebuilt', () => {
   it('handles a POST request and returns the correct response', async () => {
     // Create a mock request with a JSON body
     const request = new Request('http://localhost/api/my-route', {

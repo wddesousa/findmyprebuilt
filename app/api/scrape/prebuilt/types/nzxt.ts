@@ -1,5 +1,5 @@
 // All possible spec categories
-export type SpecCategory =
+export type NzxtSpecCategory =
   | "Key Specs"
   | "Software"
   | "Processor"
@@ -68,7 +68,7 @@ interface MotherboardValues {
   "Wi-Fi"?: string;
 }
 
-export interface CPUCoolerValues {
+interface CPUCoolerValues {
   Model?: string;
   "Cooling type"?: string;
   Dimensions?: string;
@@ -97,7 +97,7 @@ interface WarrantyValues {
   "Manufacturer's Warranty - Labor": string;
 }
 
-export interface CPUFanValues {
+interface CPUFanValues {
   Model: string;
   Speed: string;
   Airflow: string;
@@ -107,7 +107,7 @@ export interface CPUFanValues {
 }
 
 // Map each category to its corresponding spec values
-export type CategorySpecMap = {
+export type NzxtCategorySpecMap = {
   "Key Specs": KeySpecsValues;
   Software: SoftwareValues;
   Processor: ProcessorValues;
@@ -125,10 +125,10 @@ export type CategorySpecMap = {
 };
 
 // Base type for all spec values
-export interface SpecValues {
-  specCategory: SpecCategory;
-  specValues: CategorySpecMap[SpecCategory];
+export interface NzxtSpecValues {
+  specCategory: NzxtSpecCategory;
+  specValues: NzxtCategorySpecMap[NzxtSpecCategory];
 }
 
 // Type for the entire specs array
-export type NZXTSpecs = SpecValues[];
+export type NZXTSpecs = NzxtSpecValues[];

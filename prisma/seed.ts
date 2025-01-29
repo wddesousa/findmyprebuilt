@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client'
-import { scrapeAmdMobaChipsets, scrapeIntelMobaChipsets } from '@/app/api/scrapers/mobachipsets/utils'
+import { scrapeAmdMobaChipsets, scrapeIntelMobaChipsets } from '@/app/api/scrape/mobachipsets/utils'
 
 const prisma = new PrismaClient()
 async function main() {

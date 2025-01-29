@@ -1,10 +1,10 @@
-import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrapers/utils";
+import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrape/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
-import { scraperRawResults } from "../../prebuilts/types";
-import { SpecValues, SpecCategory, CategorySpecMap, NZXTSpecs, CPUFanValues, CPUCoolerValues } from "./types";
+import { scraperRawResults } from "./types/types";
+import { NzxtSpecValues, NzxtSpecCategory, NzxtCategorySpecMap, NZXTSpecs } from "./types/nzxt";
 import { ScriptHTMLAttributes } from "react";
-import {serializeNumber} from "@/app/api/scrapers/serializers";
+import {serializeNumber} from "@/app/api/scrape/serializers";
 import { get } from "http";
   
 
@@ -19,9 +19,9 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
     return JSON.parse(el.textContent);
   })
 
-  const specs = pageInfo.props.pageProps.data.techTable as SpecValues[]
+  const specs = pageInfo.props.pageProps.data.techTable as NzxtSpecValues[]
   const images = pageInfo.props.pageProps.data.productImages as { url: string }[]
- 
+ console.log(images)
   await browser.close();
 
 
@@ -78,14 +78,14 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 
 // Helper function to get specs with type safety
-function getNzxtSpecs<T extends SpecCategory>(
+function getNzxtSpecs<T extends NzxtSpecCategory>(
   specs: NZXTSpecs,
   category: T
-): CategorySpecMap[T] | null {
-  return specs.find(spec => spec.specCategory === category)?.specValues as CategorySpecMap[T] ?? null;
+): NzxtCategorySpecMap[T] | null {
+  return specs.find(spec => spec.specCategory === category)?.specValues as NzxtCategorySpecMap[T] ?? null;
 }
 
-export function getFanSize(specs: CPUFanValues | CPUCoolerValues | null | undefined) {
+export function getFanSize(specs: NzxtCategorySpecMap["Cooler Fan"] | NzxtCategorySpecMap["CPU Cooler"] | null | undefined) {
   if (!specs) return null;
   
   if ("Fan specs" in specs) {
