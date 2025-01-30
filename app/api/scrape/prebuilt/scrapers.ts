@@ -11,7 +11,6 @@ import { get } from "http";
 export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
-
   const title = await page.title();
   
   const pageInfo = await page.$eval('#__NEXT_DATA__', (el) => {
@@ -21,7 +20,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
   const specs = pageInfo.props.pageProps.data.techTable as NzxtSpecValues[]
   const images = pageInfo.props.pageProps.data.productImages as { url: string }[]
- console.log(images)
+
   await browser.close();
 
 
@@ -45,19 +44,17 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   return {
 
     prebuilt: {
-      psu_w: psuSpecs?.Wattage,
-      psu_rating: psuSpecs?.Rating,
       customizable: true,
       front_fan_mm: getFanSize(frontFanSpecs),
       rear_fan_mm: getFanSize(rearFanSpecs),
       cpu_cooler_mm: getFanSize(cpuCoolerSpecs),
       cpu_cooler_type: cpuCoolerSpecs?.["Cooling type"],
       os: keySpecs?.["Operating System"],
-      warranty_months: warrantySpecs && warrantySpecs["Manufacturer's Warranty - Parts"] ? serializeNumber(warrantySpecs["Manufacturer's Warranty - Parts"]) as number * 12 : null,
+      warranty_months: warrantySpecs && warrantySpecs["Manufacturer's Warranty - Parts"] ? String(serializeNumber(warrantySpecs["Manufacturer's Warranty - Parts"]) as number * 12) : null,
       wireless: undefined
     },
     prebuiltParts: {
-      psu: psuSpecs?.Model,
+      psu: `${psuSpecs?.Model} ${psuSpecs?.Rating} ${psuSpecs?.Wattage}`,
       cpu: keySpecs?.["CPU"],
       case: caseSpecs?.Model,
       cpu_cooler: cpuCoolerSpecs?.Model,
@@ -95,13 +92,13 @@ export function getFanSize(specs: NzxtCategorySpecMap["Cooler Fan"] | NzxtCatego
       const number = match[1] && serializeNumber(match[1])
       const size = match[2] && serializeNumber(match[2])
       if (number && size) 
-        return number * size;
+        return String(number * size);
     }
   }
 
   if ("Dimension" in specs) {
     const size = specs.Dimension.split('x')[0];
-    return Number(size.trim());
+    return size.trim();
   }
   return null
 }

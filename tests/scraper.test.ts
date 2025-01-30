@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getMemoryDdr, getMemoryModules, getMemorySpeed, scrapeAndSavePart } from "@/app/api/scrape/utils";
+import { getMemoryInfo, getPsuInfo, getStorageInfo, scrapeAndSavePart } from "@/app/api/scrape/utils";
 import { PrismaClient } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrape/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrape/serializers";
@@ -54,19 +54,50 @@ test("correcly extract pci generation", () => {
   ).toBe(3);
 });
 
+describe("correctly extracts psu info", () => {
+  const psuTests = [
+    { input: "650W Gold 80+ Gold 650 W", expectedWattage: 650, expectedRating: "80+ Gold" },
+  ]
+  test.each(psuTests)("$input", async ({ input, expectedWattage, expectedRating }) => {
+    expect(getPsuInfo(input)).toMatchObject({
+       wattage: expectedWattage,
+       rating: expectedRating
+      });
+  })
+})
+
+describe("correctly extracts storage info", () => {
+  const storageTests = [
+    { input: "1TB NVMe M.2 SSD", expectedSize: 1024, expectedType: "SSD" },
+    { input: "2 tb NVMe M.2 SSD", expectedSize: 2048, expectedType: "SSD" },
+    { input: "1TB NVMe M.2 SSD + 1TB NVMe M.2 SSD", expectedSize: 1024, expectedType: "SSD" },
+    { input: "800GB NVMe M.2 SSD", expectedSize: 800, expectedType: "SSD" },
+    { input: "Seagate Barracuda Compute 900 gB 3.5 7200 RPM Internal Hard Drive", expectedSize: 900, expectedType: "7200 RPM" }
+  ]
+
+  test.each(storageTests)("$input", async ({ input, expectedSize, expectedType }) => {
+    expect(await getStorageInfo(input)).toMatchObject({
+       type: {name: expectedType},
+       size: expectedSize
+      });
+  })
+});
+
 describe("correctly extracts memory modules, speed, and DDR type", () => {
   const memoryModuleTests = [
     { input: "16GB (2 x 8GB) DDR5 5200 MHz", expectedModules: { number: 2, size: 8 }, expectedSpeed: 5200, expectedDDR: "DDR5" },
     { input: "16GB (2 x 8 GB) DDR5 5200 MHz", expectedModules: { number: 2, size: 8 }, expectedSpeed: 5200, expectedDDR: "DDR5" },
     { input: "32GB [16GB x 2] DDR5-5600MHz RGB", expectedModules: { number: 2, size: 16 }, expectedSpeed: 5600, expectedDDR: "DDR5" },
     { input: "32GB [16 GB x 2] DDR5-5600MHz RGB", expectedModules: { number: 2, size: 16 }, expectedSpeed: 5600, expectedDDR: "DDR5" },
-    { input: "32GB DDR5-5600MHz RGB RAM", expectedModules: null, expectedSpeed: 5600, expectedDDR: "DDR5" }
+    { input: "32GB DDR5-5600MHz RGB RAM", expectedModules: {number: null, size: null}, expectedSpeed: 5600, expectedDDR: "DDR5" }
   ];
 
   test.each(memoryModuleTests)("$input", ({ input, expectedModules, expectedSpeed, expectedDDR }) => {
-    expect(getMemoryModules(input)).toEqual(expectedModules);
-    expect(getMemorySpeed(input)).toBe(expectedSpeed);
-    expect(getMemoryDdr(input)).toBe(expectedDDR);
+    expect(getMemoryInfo(input)).toMatchObject({
+      ddr: expectedDDR,
+      speed: expectedSpeed,
+      modules: { number: expectedModules.number, size: expectedModules?.size }
+     });
   });
 });
 
@@ -98,9 +129,9 @@ describe("prebuilt scraper", async () => {
       Noise: "16.7 - 22.5 dBA",
       Dimension: "120 x 180 x 26 mm",
     };
-    expect(getFanSize(air)).toBe(120);
-    expect(getFanSize(fan)).toBe(120);
-    expect(getFanSize(liquid as unknown as NzxtCategorySpecMap["CPU Cooler"])).toBe(280);
+    expect(getFanSize(air)).toBe("120");
+    expect(getFanSize(fan)).toBe("120");
+    expect(getFanSize(liquid as unknown as NzxtCategorySpecMap["CPU Cooler"])).toBe("280");
   });
 
   test("prebuilt", async () => {
@@ -109,19 +140,17 @@ describe("prebuilt scraper", async () => {
     //TODO: moba should be mobachipset or moba. Check first for moba model then use the chipset, throw error if none
     expect(nzxt).toMatchObject({
       prebuilt: {
-        psu_w: '650 W',
-        psu_rating: '80+ Gold',
         customizable: true,
-        front_fan_mm: 120,
-        rear_fan_mm: 120,
-        cpu_cooler_mm: 120,
+        front_fan_mm: "120",
+        rear_fan_mm: "120",
+        cpu_cooler_mm: "120",
         cpu_cooler_type: 'Air Cooler',
         os: 'Windows 11 Home',
-        warranty_months: 24,
+        warranty_months: "24",
         wireless: undefined
       },
       prebuiltParts: {
-        psu: '650W Gold',
+        psu: '650W Gold 80+ Gold 650 W',
         cpu: 'Intel® Core™ i5-13400F',
         case: 'NZXT H5 Flow',
         cpu_cooler: 'NZXT T120',

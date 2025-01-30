@@ -34,15 +34,13 @@ type rawResult = string | null | undefined;
 export type scraperRawResults = {
   // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
   prebuilt: {
-    psu_w: rawResult | number;
-    psu_rating: rawResult;
     customizable: boolean;
-    front_fan_mm: number | rawResult;
-    rear_fan_mm: number | rawResult;
-    cpu_cooler_mm: number | rawResult;
+    front_fan_mm:  rawResult;
+    rear_fan_mm:  rawResult;
+    cpu_cooler_mm:  rawResult;
     cpu_cooler_type: rawResult;
     os: rawResult;
-    warranty_months: rawResult | number;
+    warranty_months: rawResult ;
     wireless: boolean | null | undefined;
   };
   prebuiltParts: { [K in keyof PartsMap]: rawResult };

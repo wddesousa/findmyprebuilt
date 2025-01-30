@@ -240,18 +240,71 @@ export function cleanTrademarks(string: string) {
   return string.replaceAll(/(™|®)/g, "").trim();
 }
 
-export async function getStorageTypeId(storage:string) {
+export async function getStorageInfo(storage: string | null | undefined) {
+  if (!storage) return {type: null, size: null};
+  const type = await getStorageType(storage)
+  const size = getStorageSize(storage)
+  return {
+    type,
+    size
+  }
+}
+
+async function getStorageType(storage:any) {
   var type;
   if (storage.toLowerCase().match(/ssd|nvme/)) 
     type = "SSD";
   if (storage.toLowerCase().match(/hdd|hard drive/)) {
-    type = serializeNumber(storage) + " RPM"
+    const matchSpeed = storage.toLowerCase().match(/\d+\s?rpm/g)
+    if (matchSpeed)
+      type = serializeNumber(matchSpeed[0]) + " RPM"
   }
-  return (await prisma.storageType.findUnique({where: {name: type}}))?.id
+  return await prisma.storageType.findUnique({where: {name: type}})
 }
 
-export async function getPsuRating(string: string) {
+function getStorageSize(storage: any) {
+  if (!storage) return null;
+  var match = storage.toLowerCase().match(/\d+\s?gb/g)
+  if (match) {
+      return serializeNumber(match[0])
+  }
+  match = storage.toLowerCase().match(/\d+\s?tb/g)
+  if (match) {
+     const tbs = serializeNumber(match[0])
+      return tbs ? tbs * 1024 : null
+  }
+}
 
+
+export function getPsuInfo(psu: string | null | undefined): {rating: string | null, wattage: number | null} {
+  // there is 0 chance there's a prebuilt being sold with a PSU that is not 80+ rated so will assume that
+  if (!psu) return {rating: null, wattage: null};
+  
+  return {
+    rating: getPsuRating(psu),
+    wattage: getPsuWattage(psu)
+  }
+}
+
+function getPsuWattage(psu: string) {
+  const match = psu.toLowerCase().match(/\d+\s?w/g)
+  if (match) {
+    return serializeNumber(match[0])
+  }
+  return null
+}
+
+function getPsuRating(psu: string) {
+  let rating = "80+";
+  const match = psu.toLowerCase().match(/titanium|platinum|gold|silver|bronze/g);
+  if (match) {
+    rating += ' ' + capitalize(match[0]);
+  }
+  return rating
+}
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 export function getCoolerType(cooler: string): CpuCoolerType | null {
@@ -259,22 +312,37 @@ export function getCoolerType(cooler: string): CpuCoolerType | null {
   if (cooler.toLowerCase().match(/aio|liquid/)) return "LIQUID"; 
   return null
 }
+export function getMemoryInfo(memory: string | null | undefined) {
+  if (!memory) return {ddr: null, speed: null, modules: {number: null, size: null}};
+  
+  const ddr = getMemoryDdr(memory);
+  const speed = getMemorySpeed(memory);
+  const modules = getMemoryModules(memory);
+  
+  return {
+    ddr,
+    speed,
+    modules
+  };
+}
 
-export function getMemoryDdr(memory: string) {
+ function getMemoryDdr(memory: string) {
   const match = memory.toUpperCase().match(/DDR\d/g)
   if (match) {
       return match[0]
   }
+  return null
 }
 
-export function getMemorySpeed(memory: string) {
+function getMemorySpeed(memory: string) {
   const match = memory.toLowerCase().match(/\d+\s?mhz/g)
   if (match) {
       return serializeNumber(match[0])
   }
+  return null
 }
 
-export function getMemoryModules(memory: string) {
+ function getMemoryModules(memory: string) {
   var match = memory.toLowerCase().match(/\d x \d+\s?gb/g)
   if (match) {
       const [number, size] = match[0].split('x').map(serializeNumber)
@@ -292,5 +360,5 @@ export function getMemoryModules(memory: string) {
       size
     }
   }
-  return null
+  return {number: null, size: null}
 }
