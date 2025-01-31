@@ -9,10 +9,15 @@ async function main() {
     await scrapeAmdMobaChipsets('https://www.amd.com/en/products/processors/chipsets/am5.html')
   }
 
-  if (!await prisma.mobaChipset.findFirst({where: {brand: {name: 'Intel'}}})) {
-    console.log("getting INTEL chipsets")
-    await scrapeIntelMobaChipsets('https://www.intel.com/content/www/us/en/products/details/chipsets/desktop-chipsets/products.html')
-  }
+  await scrapeIntelMobaChipsets('https://www.intel.com/content/www/us/en/products/details/chipsets/desktop-chipsets/products.html')
+  
+    const mobaChipsets = await prisma.gpuChipset.upsert({where: {name: 'GeForce RTX 3050'}, create: {name: 'GeForce RTX 3050'}, update: {name: 'GeForce RTX 3050'}})
+    
+    try {
+      const speed = await prisma.memorySpeed.create({data: {speed: 5200, ddr: "DDR5"}})
+    } catch (e) {
+    }
+
 }
 main()
   .then(async () => {

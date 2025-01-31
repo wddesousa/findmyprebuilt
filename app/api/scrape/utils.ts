@@ -7,6 +7,8 @@ import {
   UniversalSerializationMap,
   PrismaModelMap,
   MobaChipsetSpecs,
+  scraperRawResults,
+  cleanedResults,
 } from "./types";
 import {
   genericSerialize,
@@ -28,7 +30,7 @@ import {
   saveStorage,
   saveCooler,
 } from "./db";
-import { CpuCoolerType } from "@prisma/client";
+import { CpuCoolerType, DoubleDataRate } from "@prisma/client";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -228,6 +230,46 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
     default:
       break;
   }
+}
+
+
+export async function cleanPrebuiltScrapeResults(scrapeResults: scraperRawResults): Promise<cleanedResults> {
+
+    const getNumber = (value: any)  => value ? serializeNumber(value) : null
+    const findIdByName = async (name: any, model: "psuRating" | "operativeSystem" | "gpuChipset" | "mobaChipset") => name ? (await (prisma[model] as any).findUnique({where: {name: name}}))?.id : null
+    const cleanGpuBrand = (gpu:string) => cleanTrademarks(gpu).replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
+
+    const memoryInfo = getMemoryInfo(scrapeResults.prebuiltParts.ram)
+    const mainStorageInfo = await getStorageInfo(scrapeResults.prebuiltParts.main_storage)
+    const secondaryStorageInfo = await getStorageInfo(scrapeResults.prebuiltParts.second_storage)
+    const psuInfo = getPsuInfo(scrapeResults.prebuiltParts.psu)
+
+    const processedResults = {
+      cpu_cooler_mm: getNumber(scrapeResults.prebuilt.cpu_cooler_mm),
+      cpu_cooler_type: scrapeResults.prebuilt.cpu_cooler_type ? getCoolerType(scrapeResults.prebuilt.cpu_cooler_type) : null,
+      customizable: scrapeResults.prebuilt.customizable,
+      front_fan_mm: getNumber(scrapeResults.prebuilt.front_fan_mm),
+      rear_fan_mm: getNumber(scrapeResults.prebuilt.rear_fan_mm),
+      os_id: await findIdByName(scrapeResults.prebuilt.os, 'operativeSystem'),
+      gpu_chipset_id: scrapeResults.prebuiltParts.gpu ? await findIdByName(cleanGpuBrand(scrapeResults.prebuiltParts.gpu), 'gpuChipset') : null,
+      moba_chipset_id: await findIdByName(scrapeResults.prebuiltParts.moba, 'mobaChipset'),
+      main_storage_gb: mainStorageInfo?.size,
+      seconday_storage_gb: secondaryStorageInfo?.size,
+      main_storage_type_id: mainStorageInfo?.type?.id,
+      secondary_storage_type_id: secondaryStorageInfo?.type?.id,
+      memory_modules: memoryInfo.modules.number,
+      memory_module_gb: memoryInfo.modules.size,
+      memory_speed_id: memoryInfo.ddr && memoryInfo.speed ? (await prisma.memorySpeed.findUnique({where: {ddr_speed: {ddr: memoryInfo.ddr as DoubleDataRate, speed: memoryInfo.speed}}}))?.id : null,
+      warranty_months: getNumber(scrapeResults.prebuilt.warranty_months),
+      wireless: scrapeResults.prebuilt.wireless,
+      psu_efficiency_rating_id: await findIdByName(psuInfo.rating, 'psuRating'),
+      psu_wattage: psuInfo.wattage
+  }
+
+  return {
+        rawResults: scrapeResults,
+        processedResults: processedResults
+    }
 }
 
 export function getCpuBrandName(cpu: string) {

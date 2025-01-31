@@ -99,6 +99,7 @@ model Prebuilt {
   cpu_variation             Cpu             @relation(fields: [cpu_id], references: [product_id])
   cpu_id                    String
   parts                     PrebuiltParts?
+  performance               Performance[]
 }
 
 model PrebuiltParts {
@@ -438,4 +439,28 @@ model Socket {
   mobas   Moba[]
   cpus    Cpu[]
   coolers Cooler[]
+}
+
+model Game {
+  id          String        @id @default(nanoid())
+  name        String        @unique
+  performance Performance[]
+}
+
+model Performance {
+  id          String     @id @default(nanoid())
+  resolution  Resolution
+  game        Game       @relation(fields: [game_id], references: [id])
+  game_id     String
+  prebuilt    Prebuilt   @relation(fields: [prebuilt_id], references: [product_id])
+  prebuilt_id String
+  fps         Int
+
+  @@unique([resolution, game_id, prebuilt_id])
+}
+
+enum Resolution {
+  R1080P
+  R1440P
+  R2160P
 }

@@ -19,17 +19,26 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   })
 
   const specs = pageInfo.props.pageProps.data.techTable as NzxtSpecValues[]
-  const images = pageInfo.props.pageProps.data.productImages as { url: string }[]
+  const images = pageInfo.props.pageProps.data.decoratedDefaultUpgradeProducts[0].images as { url: string }[]
+
+  const gameAcronymMap: Record<string, string> = {
+    lol: "League of Legends",
+    cod: "Call of Duty Modern Warfare",
+    fortnite: "Fortnite",
+    gtav: "Grand Theft Auto V",
+    starfield: "Starfield"
+  }
+
+  const gamePerformance = pageInfo.props.pageProps.data.decoratedDefaultUpgradeProducts[0].fps
+  const performance: scraperRawResults["performance"] = Object.keys(gameAcronymMap).reduce((acc, game) => ({
+    ...acc,
+    [gameAcronymMap[game]]: {"R1080P": Number(gamePerformance[game]["1080"]), "R1440P": Number(gamePerformance[game]["1440"]), "R2160P": Number(gamePerformance[game]["4k"].split('(')[0])}
+  }), {})
 
   await browser.close();
 
 
   const keySpecs = getNzxtSpecs(specs, 'Key Specs')
-  const softwareSpecs = getNzxtSpecs(specs, 'Software')
-  const cpuSpecs = getNzxtSpecs(specs, 'Processor')
-  const gpuSpecs = getNzxtSpecs(specs, 'Graphics')
-  const memorySpecs = getNzxtSpecs(specs, 'Memory')
-  const storageSpecs = getNzxtSpecs(specs, 'Storage') ?? getNzxtSpecs(specs, 'Primary Storage')
   const mobaSpecs = getNzxtSpecs(specs, 'Motherboard')
   const cpuCoolerSpecs = getNzxtSpecs(specs, 'CPU Cooler')
   const psuSpecs = getNzxtSpecs(specs, 'Power')
@@ -37,9 +46,6 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   const warrantySpecs = getNzxtSpecs(specs, 'Warranty')
   const rearFanSpecs = getNzxtSpecs(specs, 'Cooler Fan')
   const frontFanSpecs = getNzxtSpecs(specs, 'Case Fan - Front')
-  const cpuBrand = cpuSpecs?.["Processor Brand"] && getCpuBrandName(cpuSpecs["Processor Brand"])
-  const gpuBrand = gpuSpecs?.["Model"] && cleanTrademarks(gpuSpecs["Model"])
-  const memoryInfo = memorySpecs?.["Capacity"] ?? memorySpecs?.["Base System Memory"]
 
   return {
 
@@ -67,7 +73,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
       ram: keySpecs?.["RAM"]
     },
     specsHtml: JSON.stringify(specs),
-    images: images.map((image) => image.url)
+    images: images.map((image) => image.url),
+    performance: performance
 }
 
 }

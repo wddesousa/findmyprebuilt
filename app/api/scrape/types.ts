@@ -16,6 +16,7 @@ import {
   Cooler,
   FormFactor,
   CaseFan,
+  Prebuilt
 } from "@prisma/client"; // Adjust based on your models
 
 export type Part = Record<string, any>;
@@ -72,13 +73,47 @@ export type MobaChipsetlSerializationMap = {
   Intel: Record<string, MappedSerialization<Omit<MobaChipsetSpecs, "name">>>;
 };
 
-// type SerializationMap<T> = Record<
-// 	PartType,
-// 	Record<keyof T, MappedSerialization<T>>
-// >
+export type prebuiltBrands = 
+| "nzxt"
 
-// export type CpuSerializationmap = SerializationMap<Cpu>
-// export type MobaSerializationmap = SerializationMap<Moba>
-// export type GpuSerializationmap = SerializationMap<Gpu>
-// export type CaseSerializationmap = SerializationMap<Case>
-// export type MemorySerializationmap = SerializationMap<Memory>
+type PartsMap = {
+  cpu: Cpu;
+  gpu: Gpu;
+  ram: Memory;
+  main_storage: Storage;
+  second_storage?: Storage;
+  moba: Moba;
+  psu: Psu;
+  case: Case;
+  front_fan: CaseFan;
+  rear_fan: CaseFan;
+  cpu_cooler: Cooler;
+};
+
+type rawResult = string | null | undefined;
+
+type gamePerformance = Record<string, Record<"R1080P" | "R1440P" | "R2160P", number>>;
+
+export type scraperRawResults = {
+  // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
+  prebuilt: {
+    customizable: boolean;
+    front_fan_mm:  rawResult;
+    rear_fan_mm:  rawResult;
+    cpu_cooler_mm:  rawResult;
+    cpu_cooler_type: rawResult;
+    os: rawResult;
+    warranty_months: rawResult ;
+    wireless: boolean | null | undefined;
+  };
+  prebuiltParts: { [K in keyof PartsMap]: rawResult };
+  specsHtml: string; //save here the raw hmlt of specs to detect changes in the future
+  images: string[]
+  performance?: gamePerformance
+}
+;
+
+export type cleanedResults = {
+  rawResults: scraperRawResults
+  processedResults: {[K in keyof Omit<Prebuilt, "product_id" | "cpu_id">]: Prebuilt[K] | null | undefined}
+}
