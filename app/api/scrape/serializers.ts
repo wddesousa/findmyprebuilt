@@ -103,9 +103,9 @@ export const customSerializers: Partial<{
 		efficiency_rating: (value: string) => {
 			const [, rating] = value.split(' ')
 
-			if (typeof rating === 'undefined') return 'plus'
+			if (typeof rating === 'undefined') return null
 
-			return rating.toLowerCase()
+			return rating.toUpperCase()
 		},
 	},
 	'moba': {

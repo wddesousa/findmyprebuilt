@@ -18,6 +18,7 @@ import {
   CaseFan,
   Prebuilt
 } from "@prisma/client"; // Adjust based on your models
+import { Decimal } from "@prisma/client/runtime/library";
 
 export type Part = Record<string, any>;
 
@@ -97,6 +98,7 @@ type gamePerformance = Record<string, Record<"R1080P" | "R1440P" | "R2160P", num
 export type scraperRawResults = {
   // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
   prebuilt: {
+    base_price: string;
     customizable: boolean;
     front_fan_mm:  rawResult;
     rear_fan_mm:  rawResult;
@@ -115,5 +117,5 @@ export type scraperRawResults = {
 
 export type cleanedResults = {
   rawResults: scraperRawResults
-  processedResults: {[K in keyof Omit<Prebuilt, "product_id" | "cpu_id">]: Prebuilt[K] | null | undefined}
+  processedResults: {[K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]: Prebuilt[K] | null | undefined}
 }

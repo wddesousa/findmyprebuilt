@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, beforeEach } from "vitest";
 import {
   cleanPrebuiltScrapeResults,
   getMemoryInfo,
@@ -6,11 +6,11 @@ import {
   getStorageInfo,
   scrapeAndSavePart,
 } from "@/app/api/scrape/utils";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrape/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrape/serializers";
 import path from "path";
-import { getFanSize } from "@/app/api/scrape/prebuilt/scrapers";
+import { getFanSize, nzxtFindNew } from "@/app/api/scrape/prebuilt/scrapers";
 import { pathToFileURL } from "url";
 import {
   psuResult,
@@ -31,6 +31,13 @@ import { NzxtCategorySpecMap } from "@/app/api/scrape/prebuilt/types/nzxt";
 const prisma = new PrismaClient();
 const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "./data", filename)).href;
+
+describe("find new prebuilts", async () => {
+  test('nzxtFindNew', async () => {
+    const prebuilt = await nzxtFindNew(getFile('nzxt-product-list.html'))
+    expect(prebuilt).toBe(true)
+  })
+});
 
 test("correctly extracts usb number", () => {
   var string =
@@ -65,42 +72,42 @@ describe("correctly extracts psu info", () => {
     {
       input: "650W Gold 80+ Gold 650 W",
       expectedWattage: 650,
-      expectedRating: "80+ Gold",
+      expectedRating: "GOLD",
     },
     {
       input: "750 Watt - High Power - 80 PLUS Gold Certified",
       expectedWattage: 750,
-      expectedRating: "80+ Gold",
+      expectedRating: "GOLD",
     },
     {
       input: "750 Watt - High Power - 80 PLUS titanium Certified",
       expectedWattage: 750,
-      expectedRating: "80+ Titanium",
+      expectedRating: "TITANIUM",
     },
     {
       input: "750 Watt - High Power - 80 PLUS Bronze Certified",
       expectedWattage: 750,
-      expectedRating: "80+ Bronze",
+      expectedRating: "BRONZE",
     },
     {
       input: "750 Watt - High Power - 80 PLUS Platinum Certified",
       expectedWattage: 750,
-      expectedRating: "80+ Platinum",
+      expectedRating: "PLATINUM",
     },
     {
       input: "750 Watt - High Power - 80 PLUS SILVER Certified",
       expectedWattage: 750,
-      expectedRating: "80+ Silver",
+      expectedRating: "SILVER",
     },
     {
       input: "750 Watt - High Power - 80 PLUS Gold Certified",
       expectedWattage: 750,
-      expectedRating: "80+ Gold",
+      expectedRating: "GOLD",
     },
     {
       input: "MSI MAG A750GL PCIe 5",
       expectedWattage: null,
-      expectedRating: "80+",
+      expectedRating: null
     },
   ];
   test.each(psuTests)(
@@ -234,6 +241,7 @@ describe("prebuilt scraper", async () => {
     expect(nzxt).toMatchObject({
       prebuilt: {
         customizable: true,
+        base_price: "829",
         front_fan_mm: "120",
         rear_fan_mm: "120",
         cpu_cooler_mm: "120",
@@ -292,12 +300,13 @@ describe("prebuilt scraper", async () => {
 
     const cleanedResults = await cleanPrebuiltScrapeResults(nzxt);
     expect(cleanedResults.processedResults).toEqual({
+      base_price: new Prisma.Decimal(829),
       cpu_cooler_mm: 120,
       cpu_cooler_type: 'AIR',
       customizable: true,
       front_fan_mm: 120,
       rear_fan_mm: 120,
-      os_id: undefined,
+      os_id: expect.any(String),
       gpu_chipset_id: expect.any(String),
       moba_chipset_id: null,
       main_storage_gb: 1024,
@@ -309,7 +318,7 @@ describe("prebuilt scraper", async () => {
       memory_speed_id: expect.any(String),
       warranty_months: 24,
       wireless: undefined,
-      psu_efficiency_rating_id: undefined,
+      psu_efficiency_rating: "GOLD",
       psu_wattage: 650
     })
   });
@@ -345,7 +354,11 @@ describe("parts specs scraper", async () => {
     ["memory", memoryResult],
   ])("%s", async (fileName, expected) => {
     const file = getFile(`${fileName}.html`);
-    const part = await scrapeAndSavePart(file);
+    const part = await scrapeAndSavePart(file) as any;
+    if (fileName === "moba") {
+      part.memory_speeds = part.memory_speeds.sort((a: any, b: any) => a.speed - b.speed);
+    }
     expect(part).toMatchObject(expected);
   });
+
 });

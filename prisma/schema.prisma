@@ -69,6 +69,7 @@ enum CpuCoolerType {
 model Prebuilt {
   product                   Product         @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   product_id                String          @id
+  base_price                Decimal         @db.Decimal(7, 2)
   memory_modules            Int
   memory_module_gb          Int
   memory_speed              MemorySpeed     @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -84,10 +85,10 @@ model Prebuilt {
   os_id                     String
   wireless                  Boolean
   psu_wattage               Int
-  psu_efficiency_rating     PsuRating       @relation(fields: [psu_efficiency_rating_id], references: [id])
-  psu_efficiency_rating_id  String
+  psu_efficiency_rating     PsuRating?
   customizable              Boolean
   warranty_months           Int //warranty in months
+  specs_html                String
   moba_chipset              MobaChipset     @relation(fields: [moba_chipset_id], references: [id])
   moba_chipset_id           String //in case they don't specify the moba model, use this to find join with moba table and find cpus with the same socket same with gpu chipset
   gpu_chipset               GpuChipset      @relation(fields: [gpu_chipset_id], references: [id])
@@ -394,8 +395,7 @@ model Psu {
   product_id                       String          @id
   part_number                      String[]
   type                             String
-  efficiency_rating                PsuRating       @relation(fields: [efficiency_rating_id], references: [id])
-  efficiency_rating_id             String
+  efficiency_rating                PsuRating?
   wattage_w                        Int
   length_mm                        Int
   modular                          String
@@ -419,11 +419,12 @@ model OperativeSystem {
   prebuilts Prebuilt[]
 }
 
-model PsuRating {
-  id        String     @id @default(nanoid())
-  name      String     @unique
-  psus      Psu[]
-  prebuilts Prebuilt[]
+enum PsuRating {
+  TITANIUM
+  PLATINUM
+  GOLD
+  SILVER
+  BRONZE
 }
 
 enum M2Key {
@@ -463,4 +464,26 @@ enum Resolution {
   R1080P
   R1440P
   R2160P
+}
+
+model NewProductQueue {
+  id              String     @id @default(nanoid())
+  website_url     String     @unique
+  scraped_data    Json
+  last_scraped_at DateTime
+  type            TypeOfEdit
+  is_curated      Boolean
+}
+
+model NewProductdTracker {
+  id              String   @id @default(nanoid())
+  website_url     String   @unique
+  product_slugs   String //; separated list of slugs to product pages
+  last_scraped_at DateTime
+}
+
+enum TypeOfEdit {
+  ADD
+  REMOVE
+  UPDATE
 }

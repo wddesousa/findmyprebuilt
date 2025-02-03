@@ -30,7 +30,7 @@ import {
   saveStorage,
   saveCooler,
 } from "./db";
-import { CpuCoolerType, DoubleDataRate } from "@prisma/client";
+import { CpuCoolerType, DoubleDataRate, PsuRating, Prisma } from "@prisma/client";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -232,19 +232,35 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
   }
 }
 
+function removeTrademarks(scrapeResults: any): any {
+  const cleanedResults: any = {};
+
+  for (const key in scrapeResults.prebuiltParts) {
+    if (Object.prototype.hasOwnProperty.call(scrapeResults.prebuiltParts, key)) {
+      const value = scrapeResults.prebuiltParts[key];
+      cleanedResults[key] = value ? cleanTrademarks(value): value;
+    }
+  }
+
+  return cleanedResults;
+}
 
 export async function cleanPrebuiltScrapeResults(scrapeResults: scraperRawResults): Promise<cleanedResults> {
 
+    scrapeResults.prebuiltParts = removeTrademarks(scrapeResults);
+
     const getNumber = (value: any)  => value ? serializeNumber(value) : null
-    const findIdByName = async (name: any, model: "psuRating" | "operativeSystem" | "gpuChipset" | "mobaChipset") => name ? (await (prisma[model] as any).findUnique({where: {name: name}}))?.id : null
-    const cleanGpuBrand = (gpu:string) => cleanTrademarks(gpu).replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
+    const findIdByName = async (name: any, model:  "operativeSystem" | "gpuChipset" | "mobaChipset") => name ? (await (prisma[model] as any).findUnique({where: {name: name}}))?.id : null
+    const cleanGpuBrand = (gpu:string) => gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
 
     const memoryInfo = getMemoryInfo(scrapeResults.prebuiltParts.ram)
     const mainStorageInfo = await getStorageInfo(scrapeResults.prebuiltParts.main_storage)
     const secondaryStorageInfo = await getStorageInfo(scrapeResults.prebuiltParts.second_storage)
     const psuInfo = getPsuInfo(scrapeResults.prebuiltParts.psu)
+    const price = getNumber(scrapeResults.prebuilt.base_price)
 
     const processedResults = {
+      base_price: price ? new Prisma.Decimal(price.toFixed(2)) : null,
       cpu_cooler_mm: getNumber(scrapeResults.prebuilt.cpu_cooler_mm),
       cpu_cooler_type: scrapeResults.prebuilt.cpu_cooler_type ? getCoolerType(scrapeResults.prebuilt.cpu_cooler_type) : null,
       customizable: scrapeResults.prebuilt.customizable,
@@ -262,7 +278,7 @@ export async function cleanPrebuiltScrapeResults(scrapeResults: scraperRawResult
       memory_speed_id: memoryInfo.ddr && memoryInfo.speed ? (await prisma.memorySpeed.findUnique({where: {ddr_speed: {ddr: memoryInfo.ddr as DoubleDataRate, speed: memoryInfo.speed}}}))?.id : null,
       warranty_months: getNumber(scrapeResults.prebuilt.warranty_months),
       wireless: scrapeResults.prebuilt.wireless,
-      psu_efficiency_rating_id: await findIdByName(psuInfo.rating, 'psuRating'),
+      psu_efficiency_rating: psuInfo.rating,
       psu_wattage: psuInfo.wattage
   }
 
@@ -318,7 +334,7 @@ function getStorageSize(storage: any) {
 }
 
 
-export function getPsuInfo(psu: string | null | undefined): {rating: string | null, wattage: number | null} {
+export function getPsuInfo(psu: string | null | undefined): {rating: PsuRating | null, wattage: number | null} {
   // there is 0 chance there's a prebuilt being sold with a PSU that is not 80+ rated so will assume that
   if (!psu) return {rating: null, wattage: null};
   
@@ -336,17 +352,12 @@ function getPsuWattage(psu: string) {
   return null
 }
 
-function getPsuRating(psu: string) {
-  let rating = "80+";
-  const match = psu.toLowerCase().match(/titanium|platinum|gold|silver|bronze/g);
+function getPsuRating(psu: string): PsuRating| null {
+  const match = psu.toUpperCase().match(/TITANIUM|PLATINUM|GOLD|SILVER|BRONZE/g);
   if (match) {
-    rating += ' ' + capitalize(match[0]);
+    return match[0] as PsuRating
   }
-  return rating
-}
-
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return null
 }
 
 export function getCoolerType(cooler: string): CpuCoolerType | null {

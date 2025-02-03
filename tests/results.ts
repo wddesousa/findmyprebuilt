@@ -54,7 +54,7 @@ export const caseFanResult = {
       "CP-9020262-AU",
     ],
     type: "ATX",
-    efficiency_rating: "80+ Gold",
+    efficiency_rating: "GOLD",
     wattage_w: 750,
     length_mm: 140,
     modular: "Full",

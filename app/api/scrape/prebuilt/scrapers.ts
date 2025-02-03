@@ -1,12 +1,15 @@
 import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrape/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
-import { scraperRawResults } from "./types/types";
+import { scraperRawResults } from "../types";
 import { NzxtSpecValues, NzxtSpecCategory, NzxtCategorySpecMap, NZXTSpecs } from "./types/nzxt";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrape/serializers";
 import { get } from "http";
-  
+import * as cheerio from 'cheerio';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
 export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
@@ -19,7 +22,8 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   })
 
   const specs = pageInfo.props.pageProps.data.techTable as NzxtSpecValues[]
-  const images = pageInfo.props.pageProps.data.decoratedDefaultUpgradeProducts[0].images as { url: string }[]
+  const baseProductInfo = pageInfo.props.pageProps.data.decoratedDefaultUpgradeProducts[0]
+  const images = baseProductInfo.images as { url: string }[]
 
   const gameAcronymMap: Record<string, string> = {
     lol: "League of Legends",
@@ -29,7 +33,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
     starfield: "Starfield"
   }
 
-  const gamePerformance = pageInfo.props.pageProps.data.decoratedDefaultUpgradeProducts[0].fps
+  const gamePerformance = baseProductInfo.fps
   const performance: scraperRawResults["performance"] = Object.keys(gameAcronymMap).reduce((acc, game) => ({
     ...acc,
     [gameAcronymMap[game]]: {"R1080P": Number(gamePerformance[game]["1080"]), "R1440P": Number(gamePerformance[game]["1440"]), "R2160P": Number(gamePerformance[game]["4k"].split('(')[0])}
@@ -50,6 +54,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
   return {
 
     prebuilt: {
+      base_price: String(baseProductInfo.variant.price),
       customizable: true,
       front_fan_mm: getFanSize(frontFanSpecs),
       rear_fan_mm: getFanSize(rearFanSpecs),
@@ -79,7 +84,34 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 }
 
+export async function nzxtFindNew(url: string) {
+  try {
+    let response;
+    if (url.includes("file://")) {
+      const filePath = url.replace("file://", "");
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      response = { data: fileContent };
+    } else {
+      response = await axios.get(url);
+    }
 
+    const $ = cheerio.load(response.data);
+    const element = $('#__NEXT_DATA__');
+    
+    const jsonData = JSON.parse(element.text()); // Convert string to JSON object
+
+    const productGridCards = jsonData.props.pageProps.category.productGridCards
+    const firstKey = Object.keys(productGridCards)[0];
+    const products = productGridCards[firstKey].map((product: any) => product.slug);
+    return products;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+function getNewProducts(brand: string, products: string[]): boolean | string[]  {
+
+}
 
 // Helper function to get specs with type safety
 function getNzxtSpecs<T extends NzxtSpecCategory>(

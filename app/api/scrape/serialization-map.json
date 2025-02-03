@@ -121,7 +121,7 @@
         "Model": ["product_name", false],
         "Part #": ["part_number", "array"],
         "Type": ["type", false],
-        "Efficiency Rating": ["efficiency_rating", false],
+        "Efficiency Rating": ["efficiency_rating", "custom"],
         "Wattage": ["wattage_w", true],
         "Length": ["length_mm", true],
         "Modular": ["modular", false],
