@@ -10,7 +10,7 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import { extractUsbNumbers } from "@/app/api/scrape/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrape/serializers";
 import path from "path";
-import { getFanSize, nzxtFindNew } from "@/app/api/scrape/prebuilt/scrapers";
+import { getFanSize, nzxtFind } from "@/app/api/scrape/prebuilt/scrapers";
 import { pathToFileURL } from "url";
 import {
   psuResult,
@@ -33,8 +33,8 @@ const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "./data", filename)).href;
 
 describe("find new prebuilts", async () => {
-  test('nzxtFindNew', async () => {
-    const prebuilt = await nzxtFindNew(getFile('nzxt-product-list.html'))
+  test('nzxtFind', async () => {
+    const prebuilt = await nzxtFind(getFile('nzxt-product-list.html'), '1')
     expect(prebuilt).toBe(true)
   })
 });

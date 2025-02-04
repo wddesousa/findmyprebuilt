@@ -75,7 +75,7 @@ export type MobaChipsetlSerializationMap = {
 };
 
 export type prebuiltBrands = 
-| "nzxt"
+| "NZXT"
 
 type PartsMap = {
   cpu: Cpu;
@@ -112,6 +112,7 @@ export type scraperRawResults = {
   specsHtml: string; //save here the raw hmlt of specs to detect changes in the future
   images: string[]
   performance?: gamePerformance
+  url: string
 }
 ;
 
@@ -119,3 +120,5 @@ export type cleanedResults = {
   rawResults: scraperRawResults
   processedResults: {[K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]: Prebuilt[K] | null | undefined}
 }
+
+export type prebuiltTrackerResults = { new: string[]; removed: string[]; current: string[] }

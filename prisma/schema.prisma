@@ -42,10 +42,11 @@ model Product {
 }
 
 model Brand {
-  id           String        @id @default(nanoid())
-  name         String        @unique
-  products     Product[]
-  moba_chipset MobaChipset[]
+  id              String          @id @default(nanoid())
+  name            String          @unique
+  products        Product[]
+  moba_chipset    MobaChipset[]
+  product_tracker ProductTracker?
 }
 
 enum ProductType {
@@ -470,16 +471,17 @@ model NewProductQueue {
   id              String     @id @default(nanoid())
   website_url     String     @unique
   scraped_data    Json
-  last_scraped_at DateTime
+  last_scraped_at DateTime @default(now())
   type            TypeOfEdit
-  is_curated      Boolean
+  is_curated      Boolean @default(false)
 }
 
-model NewProductdTracker {
-  id              String   @id @default(nanoid())
-  website_url     String   @unique
-  product_slugs   String //; separated list of slugs to product pages
-  last_scraped_at DateTime
+model ProductTracker {
+  id                     String   @id @default(nanoid())
+  brand                  Brand    @relation(fields: [brand_id], references: [id])
+  brand_id               String   @unique
+  current_products_slugs String //; separated list of slugs to product pages
+  last_scraped_at        DateTime @default(now())
 }
 
 enum TypeOfEdit {

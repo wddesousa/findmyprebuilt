@@ -1,7 +1,7 @@
 import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrape/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
-import { scraperRawResults } from "../types";
+import { scraperRawResults , prebuiltTrackerResults} from "../types";
 import { NzxtSpecValues, NzxtSpecCategory, NzxtCategorySpecMap, NZXTSpecs } from "./types/nzxt";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrape/serializers";
@@ -79,13 +79,13 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
     },
     specsHtml: JSON.stringify(specs),
     images: images.map((image) => image.url),
-    performance: performance
+    performance: performance,
+    url: url
 }
 
 }
 
-export async function nzxtFindNew(url: string) {
-  try {
+export async function nzxtFind(url: string, brand_id: string) {
     let response;
     if (url.includes("file://")) {
       const filePath = url.replace("file://", "");
@@ -103,14 +103,30 @@ export async function nzxtFindNew(url: string) {
     const productGridCards = jsonData.props.pageProps.category.productGridCards
     const firstKey = Object.keys(productGridCards)[0];
     const products = productGridCards[firstKey].map((product: any) => product.slug);
-    return products;
-  } catch (error) {
-    console.error('Error:', error);
-  }
+
+    return findProductUpdates(brand_id, products);
+    
 }
 
-function getNewProducts(brand: string, products: string[]): boolean | string[]  {
+async function findProductUpdates(brand_id: string, slug_list: string[]): Promise<prebuiltTrackerResults> {
+  const savedProducts = await prisma.productTracker.findUnique({ where: { brand_id: brand_id } });
 
+  if (!savedProducts) return { new: slug_list, removed: [], current: [] };
+
+  const existingProducts = savedProducts.current_products_slugs.split(';')
+  const newProducts = slug_list.filter(slug => !existingProducts.includes(slug));
+  const removedProducts = existingProducts.filter(slug => !slug_list.includes(slug));
+  return { new: newProducts, removed: removedProducts, current: existingProducts };
+}
+
+async function saveSlugs(brand_id: string, slug_list: string[]) {
+  //save the sluglist as a string separated by ;
+  const slugs = slug_list.join(';');
+  return await prisma.productTracker.upsert({
+    where: { brand_id: brand_id },
+    update: { current_products_slugs: slugs },
+    create: { brand_id: brand_id, current_products_slugs: slugs }
+  })
 }
 
 // Helper function to get specs with type safety
