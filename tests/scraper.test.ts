@@ -1,12 +1,14 @@
-import { describe, expect, test, beforeEach } from "vitest";
+import { describe, expect, test, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
 import {
   cleanPrebuiltScrapeResults,
   getMemoryInfo,
   getPsuInfo,
   getStorageInfo,
+  savePrebuiltScrapeResults,
   scrapeAndSavePart,
 } from "@/app/api/scrape/utils";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import prisma from "@/app/db"
 import { extractUsbNumbers } from "@/app/api/scrape/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrape/serializers";
 import path from "path";
@@ -27,17 +29,43 @@ import {
 } from "./results";
 import { scrapeNzxt } from "@/app/api/scrape/prebuilt/scrapers";
 import { NzxtCategorySpecMap } from "@/app/api/scrape/prebuilt/types/nzxt";
+import { cleanedResults } from "@/app/api/scrape/types";
 
-const prisma = new PrismaClient();
 const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "./data", filename)).href;
+const testBrand = "acme"
 
-describe("find new prebuilts", async () => {
-  test('nzxtFind', async () => {
-    const prebuilt = await nzxtFind(getFile('nzxt-product-list.html'), '1')
-    expect(prebuilt).toBe(true)
-  })
-});
+beforeAll(async () => {
+    await prisma.brand.create({data: {name:testBrand}})
+  });
+
+  afterAll(async () => {
+    await prisma.brand.deleteMany()
+  });
+
+  describe("prebuilt tracker", async () => {
+    test("nzxt and prebuilt tracker", async () => {
+      const prebuilt = await nzxtFind(getFile("nzxt-list.html"), testBrand);
+
+      expect(prebuilt).toStrictEqual({
+        current: [],
+        new: [
+          "https://nzxt.com/product/player-pc-5080",
+          "https://nzxt.com/product/player-pc-5090",
+          "https://nzxt.com/product/player-one",
+          "https://nzxt.com/product/player-two",
+          "https://nzxt.com/product/player-three",
+          "https://nzxt.com/product/player-one-prime",
+          "https://nzxt.com/product/player-two-prime",
+          "https://nzxt.com/product/player-three-prime",
+        ],
+        removed: [],
+      });
+  
+      const test = await savePrebuiltScrapeResults(prebuilt, {rawResults: {url: 'test2'}} as unknown as cleanedResults, testBrand);
+    });
+  
+  });
 
 test("correctly extracts usb number", () => {
   var string =
@@ -325,20 +353,20 @@ describe("prebuilt scraper", async () => {
 }, 20000);
 
 describe("parts specs scraper", async () => {
-  try {
-    await prisma.product.deleteMany({
-      where: {
-        url: {
-          startsWith: "file://",
-        },
-      },
-    });
-  } catch (error: any) {
-    if (error.code !== "P2025") {
-      console.error(error);
-      process.exit(error.code);
-    }
-  }
+  // try {
+  //   await prisma.product.deleteMany({
+  //     where: {
+  //       url: {
+  //         startsWith: "file://",
+  //       },
+  //     },
+  //   });
+  // } catch (error: any) {
+  //   if (error.code !== "P2025") {
+  //     console.error(error);
+  //     process.exit(error.code);
+  //   }
+  // }
 
   test.each([
     ["case_fan", caseFanResult],

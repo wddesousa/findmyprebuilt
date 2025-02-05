@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest --bail=1"
+    "test": "dotenv -e .env.testing -- vitest --bail=1"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -42,6 +42,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "vitest-mock-extended": "^2.0.2"
   }
 }

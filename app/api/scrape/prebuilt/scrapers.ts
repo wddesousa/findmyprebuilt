@@ -85,7 +85,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 }
 
-export async function nzxtFind(url: string, brand_id: string) {
+export async function nzxtFind(url: string, brand_name: string) {
     let response;
     if (url.includes("file://")) {
       const filePath = url.replace("file://", "");
@@ -102,14 +102,14 @@ export async function nzxtFind(url: string, brand_id: string) {
 
     const productGridCards = jsonData.props.pageProps.category.productGridCards
     const firstKey = Object.keys(productGridCards)[0];
-    const products = productGridCards[firstKey].map((product: any) => product.slug);
+    const products = productGridCards[firstKey].map((product: any) => `https://nzxt.com/product/${product.slug}`);
 
-    return findProductUpdates(brand_id, products);
+    return findProductUpdates(brand_name, products);
     
 }
 
-async function findProductUpdates(brand_id: string, slug_list: string[]): Promise<prebuiltTrackerResults> {
-  const savedProducts = await prisma.productTracker.findUnique({ where: { brand_id: brand_id } });
+async function findProductUpdates(brand_name: string, slug_list: string[]): Promise<prebuiltTrackerResults> {
+  const savedProducts = await prisma.productTracker.findFirst({ where: {brand: {name: brand_name}} });
 
   if (!savedProducts) return { new: slug_list, removed: [], current: [] };
 

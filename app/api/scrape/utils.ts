@@ -9,6 +9,7 @@ import {
   MobaChipsetSpecs,
   scraperRawResults,
   cleanedResults,
+  prebuiltTrackerResults,
 } from "./types";
 import {
   genericSerialize,
@@ -243,6 +244,36 @@ function removeTrademarks(scrapeResults: any): any {
   }
 
   return cleanedResults;
+}
+
+export async function savePrebuiltScrapeResults(
+  foundPages: prebuiltTrackerResults,
+  cleanedPrebuilt: cleanedResults,
+  brand_name: string
+) {
+  const slugString = foundPages.current.join(";");
+  const brand = await prisma.brand.findUnique({where: {name: brand_name}})
+
+  return await prisma.$transaction([
+    prisma.newProductQueue.create({
+      data: {
+        type: "ADD",
+        website_url: cleanedPrebuilt.rawResults.url,
+        scraped_data: JSON.stringify(cleanedPrebuilt),
+      },
+    }),
+    prisma.productTracker.upsert({
+      where: { brand_id: brand?.id  },
+      update: {
+        current_products_slugs: slugString,
+        last_scraped_at: new Date(),
+      },
+      create: {
+        brand: { connect: { name: brand_name } },
+        current_products_slugs: slugString,
+      },
+    }),
+  ]);
 }
 
 export async function cleanPrebuiltScrapeResults(scrapeResults: scraperRawResults): Promise<cleanedResults> {
