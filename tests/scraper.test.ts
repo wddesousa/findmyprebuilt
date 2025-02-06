@@ -8,7 +8,7 @@ import {
   scrapeAndSavePart,
 } from "@/app/api/scrape/utils";
 import { Prisma } from "@prisma/client";
-import prisma from "@/app/db"
+import { prismaMock } from "@/app/singleton"
 import { extractUsbNumbers } from "@/app/api/scrape/mobachipsets/utils";
 import { mobaChipsetCustomSerializer } from "@/app/api/scrape/serializers";
 import path from "path";
@@ -31,17 +31,22 @@ import { scrapeNzxt } from "@/app/api/scrape/prebuilt/scrapers";
 import { NzxtCategorySpecMap } from "@/app/api/scrape/prebuilt/types/nzxt";
 import { cleanedResults } from "@/app/api/scrape/types";
 
+const prisma = prismaMock
+
 const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "./data", filename)).href;
 const testBrand = "acme"
-
 beforeAll(async () => {
-    await prisma.brand.create({data: {name:testBrand}})
-  });
+  await prisma.brand.create({data: {name:testBrand}})
+  console.log(prisma.storageType.create.mockResolvedValue({id: '1', name:"SSD"}))
+  console.log(await prisma.storageType.findMany())
+  console.log(await prisma.brand.findMany())
+});
 
-  afterAll(async () => {
-    await prisma.brand.deleteMany()
-  });
+afterAll(async () => {
+  await prisma.brand.deleteMany()
+  await prisma.storageType.deleteMany()
+});
 
   describe("prebuilt tracker", async () => {
     test("nzxt and prebuilt tracker", async () => {
@@ -170,6 +175,7 @@ describe("correctly extracts storage info", () => {
   test.each(storageTests)(
     "$input",
     async ({ input, expectedSize, expectedType }) => {
+      console.log(await prisma.storageType.findMany())
       expect(await getStorageInfo(input)).toMatchObject({
         type: { name: expectedType },
         size: expectedSize,

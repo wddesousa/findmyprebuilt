@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: 'node',
-    setupFiles: ['app/singleton.ts']
+    setupFiles: ['tests/helpers/setup.ts']
   },
 })

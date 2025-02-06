@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "dotenv -e .env.testing -- vitest --bail=1"
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "test": "npm run docker:up && dotenv -e .env.testing -- npx prisma db push && dotenv -e .env.testing -- vitest --bail=1"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -10,6 +10,7 @@ import * as cheerio from 'cheerio';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from "url";
 
 export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
@@ -88,7 +89,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 export async function nzxtFind(url: string, brand_name: string) {
     let response;
     if (url.includes("file://")) {
-      const filePath = url.replace("file://", "");
+      const filePath = fileURLToPath(url);
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       response = { data: fileContent };
     } else {
