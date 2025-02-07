@@ -2,6 +2,7 @@
   "name": "findmyprebuilt",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +10,9 @@
     "lint": "next lint",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "test": "npm run docker:up && dotenv -e .env.testing -- npx prisma db push && dotenv -e .env.testing -- vitest --bail=1"
+    "test": "npm run docker:up && dotenv -e .env.testing -- npx prisma db push && dotenv -e .env.testing -- vitest --bail=1",
+    "test:unit": "dotenv -e .env.development -- vitest --bail=1 -c ./vitest.config.unit.ts",
+    "test:unit:ui": "dotenv -e .env.development -- vitest -c ./vitest.config.unit.ts --ui"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

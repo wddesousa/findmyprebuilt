@@ -3,6 +3,7 @@ import { connect } from "puppeteer-real-browser";
 import prisma from "@/app/db"
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import untypedMap from "./serialization-map.json";
+import { NzxtCategorySpecMap } from "./prebuilt/types/nzxt";
 import {
   UniversalSerializationMap,
   PrismaModelMap,
@@ -445,4 +446,25 @@ function getMemorySpeed(memory: string) {
     }
   }
   return {number: null, size: null}
+}
+
+export function getFanSize(specs: NzxtCategorySpecMap["Cooler Fan"] | NzxtCategorySpecMap["CPU Cooler"] | null | undefined) {
+  if (!specs) return null;
+  
+  if ("Fan specs" in specs) {
+    const match = specs["Fan specs"]?.match(/(\d) x (\w+\d+\w*)/);
+
+    if (match) {
+      const number = match[1] && serializeNumber(match[1])
+      const size = match[2] && serializeNumber(match[2])
+      if (number && size) 
+        return String(number * size);
+    }
+  }
+
+  if ("Dimension" in specs) {
+    const size = specs.Dimension.split('x')[0];
+    return size.trim();
+  }
+  return null
 }

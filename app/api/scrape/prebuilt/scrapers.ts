@@ -1,4 +1,4 @@
-import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrape/utils";
+import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType, getFanSize } from "@/app/api/scrape/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
 import { scraperRawResults , prebuiltTrackerResults} from "../types";
@@ -138,23 +138,3 @@ function getNzxtSpecs<T extends NzxtSpecCategory>(
   return specs.find(spec => spec.specCategory === category)?.specValues as NzxtCategorySpecMap[T] ?? null;
 }
 
-export function getFanSize(specs: NzxtCategorySpecMap["Cooler Fan"] | NzxtCategorySpecMap["CPU Cooler"] | null | undefined) {
-  if (!specs) return null;
-  
-  if ("Fan specs" in specs) {
-    const match = specs["Fan specs"]?.match(/(\d) x (\w+\d+\w*)/);
-
-    if (match) {
-      const number = match[1] && serializeNumber(match[1])
-      const size = match[2] && serializeNumber(match[2])
-      if (number && size) 
-        return String(number * size);
-    }
-  }
-
-  if ("Dimension" in specs) {
-    const size = specs.Dimension.split('x')[0];
-    return size.trim();
-  }
-  return null
-}
