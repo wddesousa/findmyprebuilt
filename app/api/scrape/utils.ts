@@ -85,9 +85,7 @@ export async function getPuppeteerInstance(
     }
   });
   
-  console.log('beforeurl')
   const res = await page.goto(url);
-  console.log('after url')
 
   try {
     await page.waitForSelector(waitForSelector, { timeout: 5000 });
