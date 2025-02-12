@@ -33,6 +33,7 @@ import {
   saveCooler,
 } from "./db";
 import { CpuCoolerType, DoubleDataRate, PsuRating, Prisma } from "@prisma/client";
+import fs from "fs";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -67,16 +68,26 @@ export async function getPuppeteerInstance(
 
   await page.setRequestInterception(true);
   page.on("request", (request) => {
-    // Block all external resources when opening local files for testing
-    if (request.url().startsWith("file://") && !["document", "xhr", "fetch"].includes(request.resourceType())) {
-        request.abort();
-     } else {
-        request.continue();
+    //mock for local file tests
+    if (url.startsWith("file://")) {
+      if (request.url().startsWith("file://") && ["document"].includes(request.resourceType())){
+      const filePath = request.url().substring(7); // Remove "file://" from the URL
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      request.respond({
+        status: 200,
+        contentType: "text/html; charset=utf-8",
+        body: fileContent,
+      });} else {
+        request.abort()
       }
+    } else {
+      request.continue();
     }
-  );
-
-  const res = await page.goto(url, {  waitUntil: "domcontentloaded" });
+  });
+  
+  console.log('beforeurl')
+  const res = await page.goto(url);
+  console.log('after url')
 
   try {
     await page.waitForSelector(waitForSelector, { timeout: 5000 });

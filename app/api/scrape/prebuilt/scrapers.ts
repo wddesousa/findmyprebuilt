@@ -14,8 +14,6 @@ import { fileURLToPath } from "url";
 
 export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
-
-  const title = await page.title();
   
   const pageInfo = await page.$eval('#__NEXT_DATA__', (el) => {
     if (!el || !el.textContent) throw Error('No script found');
