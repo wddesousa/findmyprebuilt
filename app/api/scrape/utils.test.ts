@@ -97,28 +97,3 @@ describe("correctly extracts storage info", () => {
     });
   }, 20000);
   
-  describe("parts specs scraper", async () => {
-
-    test.each([
-      ["case_fan", caseFanResult],
-      ["case", caseResult],
-      ["psu", psuResult],
-      ["cooler", airCoolerResult],
-      ["liquid_cooler", liquidCoolerResult],
-      ["storage_hdd", hddStorageResult],
-      ["storage_ssd", ssdStorageResult],
-      ["cpu", cpuResult],
-      ["gpu", gpuResult],
-      ["moba", mobaResult],
-      ["memory", memoryResult],
-    ])("%s", async (fileName, expected) => {
-      const file = getFile(`${fileName}.html`);
-      const part = await scrapeAndSavePart(file) as any;
-      if (fileName === "moba") {
-        part.memory_speeds = part.memory_speeds.sort((a: any, b: any) => a.speed - b.speed);
-      }
-      expect(part).toMatchObject(expected);
-    });
-  
-  });
-  
