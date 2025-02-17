@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { nzxtFind, scrapeNzxt } from "./scrapers";
+import { nzxtFind, scrapeNzxt } from "./nzxt/scraper";
 import { prebuiltBrands, scraperRawResults, prebuiltTrackerResults } from "../types";
 import prisma from '@/app/db'
 import { Prebuilt, PrismaClient, Product } from "@prisma/client";

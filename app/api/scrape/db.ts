@@ -1,7 +1,7 @@
 import { spec } from "node:test/reporters";
 import { PrismaModelMap } from "./types";
 import prisma from "@/app/db";
-import { Prisma } from "@prisma/client";
+import { ProductType } from "@prisma/client";
 
 export async function saveCpu(specs: PrismaModelMap["cpu"]) {
   return prisma.cpu.create({
@@ -383,33 +383,36 @@ export async function saveCooler(specs: PrismaModelMap["cooler"]) {
 }
 
 export async function saveCaseFan(specs: PrismaModelMap["caseFan"]) {
-  return prisma.caseFan.create({
-    data: {
-      product: {
-        create: {
-          name: specs.product_name,
-          brand: {
-            connectOrCreate: {
-              where: { name: specs.brand },
-              create: { name: specs.brand },
-            },
+  const data = {
+    product: {
+      create: {
+        name: specs.product_name,
+        brand: {
+          connectOrCreate: {
+            where: { name: specs.brand },
+            create: { name: specs.brand },
           },
-          type: "CASEFAN",
-          url: specs.url,
         },
+        type: ProductType.CASEFAN,
+        url: specs.url,
       },
-      part_number: specs.part_number,
-      size_mm: specs.size_mm,
-      color: specs.color,
-      quantity: specs.quantity,
-      airflow: specs.airflow,
-      noise_level: specs.noise_level,
-      pwm: specs.pwm,
-      led: specs.led,
-      connector: specs.connector,
-      controller: specs.controller,
-      static_pressure_mmh2o: specs.static_pressure_mmh2o,
     },
+    part_number: specs.part_number,
+    size_mm: specs.size_mm,
+    color: specs.color,
+    quantity: specs.quantity,
+    airflow: specs.airflow,
+    noise_level: specs.noise_level,
+    pwm: specs.pwm,
+    led: specs.led,
+    connector: specs.connector,
+    controller: specs.controller,
+    static_pressure_mmh2o: specs.static_pressure_mmh2o,
+  }
+
+  console.log(data.product.create.brand)
+  return prisma.caseFan.create({
+    data: data,
     include: {
       product: { include: { brand: true } },
     },

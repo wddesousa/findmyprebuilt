@@ -1,29 +1,39 @@
 import { Prisma } from "@prisma/client";
 import path from "path";
 import { pathToFileURL } from "url";
+import { expect } from "vitest";
 
 export const getFile = (filename: string) =>
 pathToFileURL(path.join(__dirname, "../data", filename)).href;
 
 export const caseFanResult = {
-    part_number: ["UF-SLIN120-3B", "12SLIN3B"],
-    size_mm: 120,
-    color: "Black",
-    quantity: "3-Pack",
-    airflow: "0 - 61.3 CFM",
-    noise_level: "0 - 29 dB",
-    pwm: true,
-    led: "Addressable RGB",
-    connector: "4-pin PWM + 3-pin 5V Addressable RGB",
-    controller: "5V Addressable RGB",
-    static_pressure_mmh2o: new Prisma.Decimal(2.66),
+  data: {
     product: {
-      name: "Uni Fan SL-Infinity",
-      type: "CASEFAN",
-      asin: null,
-      brand: { name: "Lian Li" },
+      create: {
+        name: 'Uni Fan SL-Infinity',
+        brand: {
+          connectOrCreate: { where: { name: 'Lian Li' }, create: { name: 'Lian Li' } }
+        },
+        type: 'CASEFAN',
+        url: expect.stringContaining("file://")
+      }
     },
+    part_number: [ 'UF-SLIN120-3B', '12SLIN3B' ],
+    size_mm: 120,
+    color: 'Black',
+    quantity: '3-Pack',
+    airflow: '0 - 61.3 CFM',
+    noise_level: '0 - 29 dB',
+    pwm: true,
+    led: 'Addressable RGB',
+    connector: '4-pin PWM + 3-pin 5V Addressable RGB',
+    controller: '5V Addressable RGB',
+    static_pressure_mmh2o: 2.66
+  },
+  include: {
+    product: { include: { brand: true } },
   }
+}
 
   export const caseResult =  {
     part_number: ["CC-H61FB-01"],

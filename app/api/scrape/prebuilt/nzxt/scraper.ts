@@ -1,8 +1,8 @@
-import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType, getFanSize } from "@/app/api/scrape/utils";
+import { getPuppeteerInstance, getCpuBrandName, cleanTrademarks, getCoolerType } from "@/app/api/scrape/utils";
 import prisma from "@/app/db";
 import {getProduct} from "@/app/db";
-import { scraperRawResults , prebuiltTrackerResults} from "../types";
-import { NzxtSpecValues, NzxtSpecCategory, NzxtCategorySpecMap, NZXTSpecs } from "./types/nzxt";
+import { scraperRawResults , prebuiltTrackerResults} from "../../types";
+import { NzxtSpecValues, NzxtSpecCategory, NzxtCategorySpecMap, NZXTSpecs } from "./types";
 import { ScriptHTMLAttributes } from "react";
 import {serializeNumber} from "@/app/api/scrape/serializers";
 import { get } from "http";
@@ -11,6 +11,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
+import { findProductUpdates } from "../utils";
 
 export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
 const [browser, page] = await getPuppeteerInstance(url, ".relative");
@@ -107,17 +108,6 @@ export async function nzxtFind(url: string, brand_name: string) {
     
 }
 
-async function findProductUpdates(brand_name: string, slug_list: string[]): Promise<prebuiltTrackerResults> {
-  const savedProducts = await prisma.productTracker.findFirst({ where: {brand: {name: brand_name}} });
-
-  if (!savedProducts) return { new: slug_list, removed: [], current: [] };
-
-  const existingProducts = savedProducts.current_products_slugs.split(';')
-  const newProducts = slug_list.filter(slug => !existingProducts.includes(slug));
-  const removedProducts = existingProducts.filter(slug => !slug_list.includes(slug));
-  return { new: newProducts, removed: removedProducts, current: existingProducts };
-}
-
 async function saveSlugs(brand_id: string, slug_list: string[]) {
   //save the sluglist as a string separated by ;
   const slugs = slug_list.join(';');
@@ -136,3 +126,23 @@ function getNzxtSpecs<T extends NzxtSpecCategory>(
   return specs.find(spec => spec.specCategory === category)?.specValues as NzxtCategorySpecMap[T] ?? null;
 }
 
+export function getFanSize(specs: NzxtCategorySpecMap["Cooler Fan"] | NzxtCategorySpecMap["CPU Cooler"] | null | undefined) {
+  if (!specs) return null;
+  
+  if ("Fan specs" in specs) {
+    const match = specs["Fan specs"]?.match(/(\d) x (\w+\d+\w*)/);
+
+    if (match) {
+      const number = match[1] && serializeNumber(match[1])
+      const size = match[2] && serializeNumber(match[2])
+      if (number && size) 
+        return String(number * size);
+    }
+  }
+
+  if ("Dimension" in specs) {
+    const size = specs.Dimension.split('x')[0];
+    return size.trim();
+  }
+  return null
+}
