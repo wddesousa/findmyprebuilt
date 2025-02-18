@@ -232,7 +232,7 @@ export const ssdStorageResult = {
           },
         },
         type: "STORAGE",
-        url: "file:///H:/webdev/findmyprebuilt/tests/data/storage_ssd.html",
+        url: expect.stringContaining("file://"),
       },
     },
     part_number: ["SKC3000S/1024G"],
@@ -248,142 +248,294 @@ export const ssdStorageResult = {
 };
 
 export const cpuResult = {
-  part_number: ["100-100000910WOF"],
-  series: "AMD Ryzen 7",
-  microarchitecture: "Zen 4",
-  core_family: "Raphael",
-  core_count: 8,
-  thread_count: 16,
-  performance_core_clock_ghz: 4.2,
-  performance_core_boost_clock_ghz: 5,
-  l2_cache_mb: 8,
-  l3_cache_mb: 96,
-  tdp_w: 120,
-  integrated_graphics: "Radeon",
-  maximum_supported_memory_gb: 128,
-  ecc_support: true,
-  includes_cooler: false,
-  packaging: "Boxed",
-  lithography_nm: 5,
-  includes_cpu_cooler: false,
-  simultaneous_multithreading: true,
-  product: {
-    name: "Ryzen 7 7800X3D",
-    type: "CPU",
-    brand: { name: "AMD" },
+  data: {
+    product: {
+      create: {
+        name: "Ryzen 7 7800X3D",
+        brand: {
+          connectOrCreate: { where: { name: "AMD" }, create: { name: "AMD" } },
+        },
+        type: "CPU",
+        url: expect.stringContaining("file://"),
+      },
+    },
+    socket: {
+      connectOrCreate: { where: { name: "AM5" }, create: { name: "AM5" } },
+    },
+    part_number: ["100-100000910WOF"],
+    series: "AMD Ryzen 7",
+    microarchitecture: "Zen 4",
+    core_family: "Raphael",
+    core_count: 8,
+    thread_count: 16,
+    performance_core_clock_ghz: 4.2,
+    performance_core_boost_clock_ghz: 5,
+    l2_cache_mb: 8,
+    l3_cache_mb: 96,
+    tdp_w: 120,
+    integrated_graphics: "Radeon",
+    maximum_supported_memory_gb: 128,
+    ecc_support: true,
+    includes_cooler: false,
+    packaging: "Boxed",
+    lithography_nm: 5,
+    includes_cpu_cooler: false,
+    simultaneous_multithreading: true,
   },
-  socket: {
-    name: "AM5",
-  },
+  include: { product: { include: { brand: true } }, socket: true },
 };
 export const gpuResult = {
-  boost_clock_mhz: 1777,
-  case_expansion_slot_width: 2,
-  chipset: {
-    name: "GeForce RTX 3060 12GB",
+  data: {
+    product: {
+      create: {
+        name: "GeForce RTX 3060 Ventus 2X 12G",
+        brand: {
+          connectOrCreate: { where: { name: "MSI" }, create: { name: "MSI" } },
+        },
+        type: "GPU",
+        url: expect.stringContaining("file://"),
+      },
+    },
+    part_number: [
+      "RTX3060Ventus2X12GOC",
+      "GeForce RTX 3060 VENTUS 2X 12G OC",
+      "V397-022R",
+      "912-V397-039",
+    ],
+    chipset: {
+      connectOrCreate: {
+        where: { name: "GeForce RTX 3060 12GB" },
+        create: { name: "GeForce RTX 3060 12GB" },
+      },
+    },
+    memory_gb: 12,
+    memory_type: "GDDR6",
+    core_clock_mhz: 1320,
+    boost_clock_mhz: 1777,
+    effective_memory_clock_mhz: 15000,
+    interface: "PCIe x16",
+    color: "Black",
+    frame_sync: "G-Sync",
+    length_mm: 235,
+    tdp_w: 170,
+    case_expansion_slot_width: 2,
+    total_slot_width: 2,
+    cooling: 2,
+    external_power: "1 PCIe 8-pin",
+    hdmi_outputs: 1,
+    displayport_outputs: 3,
   },
-  color: "Black",
-  cooling: 2,
-  core_clock_mhz: 1320,
-  displayport_outputs: 3,
-  effective_memory_clock_mhz: 15000,
-  external_power: "1 PCIe 8-pin",
-  frame_sync: "G-Sync",
-  hdmi_outputs: 1,
-  interface: "PCIe x16",
-  length_mm: 235,
-  memory_gb: 12,
-  memory_type: "GDDR6",
-  part_number: [
-    "RTX3060Ventus2X12GOC",
-    "GeForce RTX 3060 VENTUS 2X 12G OC",
-    "V397-022R",
-    "912-V397-039",
-  ],
-  product: {
-    name: "GeForce RTX 3060 Ventus 2X 12G",
-    type: "GPU",
-    brand: { name: "MSI" },
-  },
-  tdp_w: 170,
-  total_slot_width: 2,
+  include: { product: { include: { brand: true } }, chipset: true },
 };
 
 export const mobaResult = {
-  part_number: ["Z890 Steel Legend WiFi", "90-MXBPF0-A0UAYZ"],
-  memory_max: 256,
-  memory_slots: 4,
-  color: "Silver",
-  pcie_x16_slots: 2,
-  pcie_x8_slots: 0,
-  pcie_x_slots: 1,
-  pcie_x1_slots: 0,
-  pci_slots: 0,
-  mini_pcie_slots: 0,
-  half_mini_pcie_slots: 0,
-  mini_pcie_msata_slots: 0,
-  msata_slots: 0,
-  sata_6_0_gbs: 4,
-  onboard_ethernet: "1 x 2.5 Gb/s (Realtek Dragon RTL8125BG)",
-  onboard_video: "Depends on CPU",
-  usb_2_0_headers: 2,
-  usb_2_0_headers_single_port: 0,
-  usb_3_2_gen_1_headers: 2,
-  usb_3_2_gen_2_headers: 0,
-  usb_3_2_gen_2x2_headers: 1,
-  supports_ecc: false,
-  wireless_networking: "Wi-Fi 7",
-  raid_support: true,
-  uses_back_connect_connectors: false,
-  product: {
-    name: "Z890 Steel Legend WiFi",
-    type: "MOBA",
-    asin: null,
-    brand: { name: "ASRock" },
+  data: {
+    product: {
+      create: {
+        name: "Z890 Steel Legend WiFi",
+        brand: {
+          connectOrCreate: {
+            where: { name: "ASRock" },
+            create: { name: "ASRock" },
+          },
+        },
+        type: "MOBA",
+        url: expect.stringContaining("file://"),
+      },
+    },
+    part_number: ["Z890 Steel Legend WiFi", "90-MXBPF0-A0UAYZ"],
+    socket: {
+      connectOrCreate: {
+        where: { name: "LGA1851" },
+        create: { name: "LGA1851" },
+      },
+    },
+    moba_form_factor: {
+      connectOrCreate: { where: { name: "ATX" }, create: { name: "ATX" } },
+    },
+    chipset: { connect: { name: "Z890" } },
+    memory_max: 256,
+    memory_speeds: {
+      connectOrCreate: [
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 4400 } },
+          create: { ddr: "DDR5", speed: 4400 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 4800 } },
+          create: { ddr: "DDR5", speed: 4800 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 5200 } },
+          create: { ddr: "DDR5", speed: 5200 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 5600 } },
+          create: { ddr: "DDR5", speed: 5600 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 6000 } },
+          create: { ddr: "DDR5", speed: 6000 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 6200 } },
+          create: { ddr: "DDR5", speed: 6200 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 6400 } },
+          create: { ddr: "DDR5", speed: 6400 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 6600 } },
+          create: { ddr: "DDR5", speed: 6600 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 6800 } },
+          create: { ddr: "DDR5", speed: 6800 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 7000 } },
+          create: { ddr: "DDR5", speed: 7000 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 7200 } },
+          create: { ddr: "DDR5", speed: 7200 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 7600 } },
+          create: { ddr: "DDR5", speed: 7600 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 7800 } },
+          create: { ddr: "DDR5", speed: 7800 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 8000 } },
+          create: { ddr: "DDR5", speed: 8000 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 8200 } },
+          create: { ddr: "DDR5", speed: 8200 },
+        },
+        {
+          where: { ddr_speed: { ddr: "DDR5", speed: 8400 } },
+          create: { ddr: "DDR5", speed: 8400 },
+        },
+      ],
+    },
+    memory_slots: 4,
+    color: "Silver",
+    pcie_x16_slots: 2,
+    pcie_x8_slots: 0,
+    pcie_x_slots: 1,
+    pcie_x1_slots: 0,
+    pci_slots: 0,
+    m_2_slots: {
+      create: [
+        {
+          mobaM2Slot: {
+            connectOrCreate: {
+              where: { key_type_size: { key_type: "M", size: "2280" } },
+              create: { key_type: "M", size: "2280" },
+            },
+          },
+        },
+        {
+          mobaM2Slot: {
+            connectOrCreate: {
+              where: { key_type_size: { key_type: "M", size: "2280" } },
+              create: { key_type: "M", size: "2280" },
+            },
+          },
+        },
+        {
+          mobaM2Slot: {
+            connectOrCreate: {
+              where: { key_type_size: { key_type: "M", size: "2280" } },
+              create: { key_type: "M", size: "2280" },
+            },
+          },
+        },
+        {
+          mobaM2Slot: {
+            connectOrCreate: {
+              where: {
+                key_type_size: { key_type: "M", size: "2230/2242/2260/2280" },
+              },
+              create: { key_type: "M", size: "2230/2242/2260/2280" },
+            },
+          },
+        },
+        {
+          mobaM2Slot: {
+            connectOrCreate: {
+              where: { key_type_size: { key_type: "E", size: "2230" } },
+              create: { key_type: "E", size: "2230" },
+            },
+          },
+        },
+      ],
+    },
+    mini_pcie_slots: 0,
+    half_mini_pcie_slots: 0,
+    mini_pcie_msata_slots: 0,
+    msata_slots: 0,
+    sata_6_0_gbs: 4,
+    onboard_ethernet: "1 x 2.5 Gb/s (Realtek Dragon RTL8125BG)",
+    onboard_video: "Depends on CPU",
+    usb_2_0_headers: 2,
+    usb_2_0_headers_single_port: 0,
+    usb_3_2_gen_1_headers: 2,
+    usb_3_2_gen_2_headers: 0,
+    usb_3_2_gen_2x2_headers: 1,
+    supports_ecc: false,
+    wireless_networking: "Wi-Fi 7",
+    raid_support: true,
+    uses_back_connect_connectors: false,
   },
-  chipset: {
-    name: "Z890",
+  include: {
+    product: { include: { brand: true } },
+    chipset: true,
+    m_2_slots: true,
+    memory_speeds: true,
+    moba_form_factor: true,
+    socket: true,
   },
-  memory_speeds: [
-    { ddr: "DDR5", speed: 4400 },
-    { ddr: "DDR5", speed: 4800 },
-    { ddr: "DDR5", speed: 5200 },
-    { ddr: "DDR5", speed: 5600 },
-    { ddr: "DDR5", speed: 6000 },
-    { ddr: "DDR5", speed: 6200 },
-    { ddr: "DDR5", speed: 6400 },
-    { ddr: "DDR5", speed: 6600 },
-    { ddr: "DDR5", speed: 6800 },
-    { ddr: "DDR5", speed: 7000 },
-    { ddr: "DDR5", speed: 7200 },
-    { ddr: "DDR5", speed: 7600 },
-    { ddr: "DDR5", speed: 7800 },
-    { ddr: "DDR5", speed: 8000 },
-    { ddr: "DDR5", speed: 8200 },
-    { ddr: "DDR5", speed: 8400 },
-  ],
-  moba_form_factor: { name: "ATX" },
-  socket: { name: "LGA1851" },
 };
 
 export const memoryResult = {
-  part_number: ["CMK16GX4M2B3200C16"],
-  form_factor: "288-pin DIMM (DDR4)",
-  modules: "2 x 8GB",
-  color: "Black / Yellow",
-  first_word_latency: 10,
-  cas_latency: 16,
-  voltage: new Prisma.Decimal(1.35),
-  timing: "16-18-18-36",
-  ecc_registered: "Non-ECC / Unbuffered",
-  heat_spreader: true,
-  product: {
-    name: "Vengeance LPX 16 GB",
-    type: "MEMORY",
-    asin: null,
-    brand: { name: "Corsair" },
+  data: {
+    product: {
+      create: {
+        name: "Vengeance LPX 16 GB",
+        brand: {
+          connectOrCreate: {
+            where: { name: "Corsair" },
+            create: { name: "Corsair" },
+          },
+        },
+        type: "MEMORY",
+        url: expect.stringContaining("file://"),
+      },
+    },
+    part_number: ["CMK16GX4M2B3200C16"],
+    memory_speed: {
+      connectOrCreate: {
+        where: { ddr_speed: { ddr: "DDR4", speed: 3200 } },
+        create: { ddr: "DDR4", speed: 3200 },
+      },
+    },
+    form_factor: "288-pin DIMM (DDR4)",
+    modules: "2 x 8GB",
+    color: "Black / Yellow",
+    first_word_latency: 10,
+    cas_latency: 16,
+    voltage: 1.35,
+    timing: "16-18-18-36",
+    ecc_registered: "Non-ECC / Unbuffered",
+    heat_spreader: true,
   },
-  memory_speed: { ddr: "DDR4", speed: 3200 },
+  include: { product: { include: { brand: true } }, memory_speed: true },
 };
 
 export const cleanPrebuiltScrapeResultSet = {

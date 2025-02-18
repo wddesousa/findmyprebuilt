@@ -89,7 +89,6 @@ describe("getPsuInfo", () => {
   });
 });
 
-
 describe("cleanPrebuiltScrapeResults", async () => {
   it("cleans raw prebuilt results", async () => {
     const mockedIds = { id: "1", name: "test" };
@@ -119,31 +118,28 @@ describe("cleanPrebuiltScrapeResults", async () => {
 });
 
 describe("parts specs scraper", async () => {
-
   test.each([
-    ["case_fan", caseFanResult, 'caseFan'],
-    ["case", caseResult, 'case'],
-    ["psu", psuResult, 'psu'],
-    ["cooler", airCoolerResult, 'cooler'],
-    ["liquid_cooler", liquidCoolerResult, 'cooler'],
+    ["case_fan", caseFanResult, "caseFan"],
+    ["case", caseResult, "case"],
+    ["psu", psuResult, "psu"],
+    ["cooler", airCoolerResult, "cooler"],
+    ["liquid_cooler", liquidCoolerResult, "cooler"],
     ["storage_hdd", hddStorageResult, "storage"],
     ["storage_ssd", ssdStorageResult, "storage"],
-    ["cpu", cpuResult, 'cpu'],
-    ["gpu", gpuResult, saveCaseFan],
-    ["moba", mobaResult, saveCaseFan],
-    ["memory", memoryResult, saveCaseFan],
+    ["cpu", cpuResult, "cpu"],
+    ["gpu", gpuResult, "gpu"],
+    ["moba", mobaResult, "moba"],
+    ["memory", memoryResult, "memory"],
   ])("%s", async (fileName, expected, modelName) => {
-  //som shenanigans for typescript
-  const model = modelName as keyof PrismaClient;
-  const modelDelegate = prismaMock[model] as Prisma.CaseFanDelegate;
-  //
-    (modelDelegate.create as ReturnType<typeof vi.fn>).mockResolvedValue({test: 'test'})
+    //som shenanigans for typescript
+    const model = modelName as keyof PrismaClient;
+    const modelDelegate = prismaMock[model] as Prisma.CaseFanDelegate;
+    //
+    (modelDelegate.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      test: "test",
+    });
     const file = getFile(`${fileName}.html`);
-    const part = await scrapeAndSavePart(file) as any;
-    // if (fileName === "moba") {
-    //   part.memory_speeds = part.memory_speeds.sort((a: any, b: any) => a.speed - b.speed);
-    // }
+    await scrapeAndSavePart(file);
     expect(modelDelegate.create).toHaveBeenCalledWith(expected);
   });
-
 });

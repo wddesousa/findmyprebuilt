@@ -4,7 +4,7 @@ import prisma from "@/app/db";
 import { Prisma, ProductType, PsuRating } from "@prisma/client";
 
 export async function saveCpu(specs: PrismaModelMap["cpu"]) {
-  return prisma.cpu.create({
+  const data = {
     data: {
       product: {
         create: {
@@ -15,7 +15,7 @@ export async function saveCpu(specs: PrismaModelMap["cpu"]) {
               create: { name: specs.brand },
             },
           },
-          type: "CPU",
+          type: ProductType.CPU,
           url: specs.url,
         },
       },
@@ -46,11 +46,13 @@ export async function saveCpu(specs: PrismaModelMap["cpu"]) {
       simultaneous_multithreading: specs.simultaneous_multithreading,
     },
     include: { product: { include: { brand: true } }, socket: true },
-  });
+  }
+
+  return prisma.cpu.create(data);
 }
 
 export async function saveGpu(specs: PrismaModelMap["gpu"]) {
-  return prisma.gpu.create({
+  const data = {
     data: {
       product: {
         create: {
@@ -61,7 +63,7 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
               create: { name: specs.brand },
             },
           },
-          type: "GPU",
+          type: ProductType.GPU,
           url: specs.url,
         },
       },
@@ -90,7 +92,8 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
       displayport_outputs: specs.displayport_outputs,
     },
     include: { product: { include: { brand: true } }, chipset: true },
-  });
+  }
+  return prisma.gpu.create(data);
 }
 export async function saveMoba(specs: PrismaModelMap["moba"]) {
   const data = {
@@ -184,7 +187,7 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
 }
 
 export async function saveMemory(specs: PrismaModelMap["memory"]) {
-  return prisma.memory.create({
+  const data ={
     data: {
       product: {
         create: {
@@ -195,7 +198,7 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
               create: { name: specs.brand },
             },
           },
-          type: "MEMORY",
+          type: ProductType.MEMORY,
           url: specs.url,
         },
       },
@@ -228,7 +231,9 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
       product: { include: { brand: true } },
       memory_speed: true,
     },
-  });
+  }
+  console.log(JSON.stringify(data))
+  return prisma.memory.create(data);
 }
 export async function saveStorage(specs: PrismaModelMap["storage"]) {
   const data = {
@@ -263,7 +268,6 @@ export async function saveStorage(specs: PrismaModelMap["storage"]) {
       storage_type: true,
     },
   }
-  console.log(JSON.stringify(data))
   return prisma.storage.create(data);
 }
 
