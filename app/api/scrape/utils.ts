@@ -34,6 +34,7 @@ import {
 } from "./db";
 import { CpuCoolerType, DoubleDataRate, PsuRating, Prisma } from "@prisma/client";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -71,7 +72,7 @@ export async function getPuppeteerInstance(
     //mock for local file tests
     if (url.startsWith("file://")) {
       if (request.url().startsWith("file://") && ["document"].includes(request.resourceType())){
-      const filePath = request.url().substring(7); // Remove "file://" from the URL
+      const filePath = fileURLToPath(request.url()); // Remove "file://" from the URL
       const fileContent = fs.readFileSync(filePath, "utf-8");
       request.respond({
         status: 200,
