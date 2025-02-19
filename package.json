@@ -10,7 +10,7 @@
     "lint": "next lint",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "test:int": "npm run docker:up && dotenv -e .env.testing -- npx prisma db push && dotenv -e .env.testing -- vitest --bail=1 -c ./vitest.config.integration.ts",
+    "test:int": "npm run docker:up && dotenv -e .env.test -- npx prisma db push && dotenv -e .env.test -- vitest --bail=1 -c ./vitest.config.integration.ts",
     "test:unit": "dotenv -e .env.development -- vitest --bail=1 -c ./vitest.config.unit.ts",
     "test:unit:ui": "dotenv -e .env.development -- vitest -c ./vitest.config.unit.ts --ui"
   },
