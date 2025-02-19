@@ -4,7 +4,6 @@ import {
   getMemoryInfo,
   getPsuInfo,
   getStorageInfo,
-  savePrebuiltScrapeResults,
   scrapeAndSavePart,
 } from "./utils";
 import { prismaMock } from "@/app/singleton";
@@ -35,8 +34,9 @@ import {
   mobaResult,
   ssdStorageResult,
 } from "@/tests/helpers/utils";
-import { scraperRawResults } from "./types";
+import { cleanedResults, scraperRawResults } from "./types";
 import { saveCaseFan } from "./db";
+import { prebuiltList } from "./prebuilt/utils";
 
 describe("getStorageInfo", () => {
   describe("correctly extracts storage info", () => {
@@ -116,6 +116,7 @@ describe("cleanPrebuiltScrapeResults", async () => {
     );
   });
 });
+
 
 describe("parts specs scraper", async () => {
   test.each([

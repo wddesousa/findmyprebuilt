@@ -1,6 +1,7 @@
 import { prismaMock } from "@/app/singleton";
 import { describe, expect, test, it } from "vitest";
-import { findProductUpdates, prebuiltList } from "./utils";
+import { findProductUpdates, prebuiltList, savePrebuiltScrapeResults } from "./utils";
+import { cleanedResults } from "../types";
 
 describe("findProductUpdates", () => {
 
@@ -89,3 +90,31 @@ const newPrebuilts = [
       );
   })
 });
+
+describe("savePrebuiltScrapeResults", async () => {
+  const prebuiltTrackerResults = {...prebuiltList, current: ['1', '2', '3']}
+  const cleanedPrebuilt = {rawResults: {url: "theurl.com"}}
+  const slugString = prebuiltTrackerResults.current.join(';')
+  it("saves or updates with the correct data", async () => {
+    await savePrebuiltScrapeResults(prebuiltTrackerResults, cleanedPrebuilt as cleanedResults, "1");
+    expect(prismaMock.newProductQueue.create).toHaveBeenCalledWith({
+      data: {
+        type: "ADD",
+        website_url: cleanedPrebuilt.rawResults.url,
+        scraped_data: JSON.stringify(cleanedPrebuilt),
+      },
+    });
+    expect(prismaMock.productTracker.upsert).toHaveBeenCalledWith({
+      where: { brand_id: '1' },
+      update: {
+        current_products_slugs: slugString,
+        last_scraped_at: expect.any(Date),
+      },
+      create: {
+        brand_id: '1',
+        current_products_slugs: slugString,
+      },
+    })
+  })
+  
+})

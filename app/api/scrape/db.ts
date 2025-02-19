@@ -232,7 +232,6 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
       memory_speed: true,
     },
   }
-  console.log(JSON.stringify(data))
   return prisma.memory.create(data);
 }
 export async function saveStorage(specs: PrismaModelMap["storage"]) {

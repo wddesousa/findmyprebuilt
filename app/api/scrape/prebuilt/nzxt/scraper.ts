@@ -85,7 +85,7 @@ const [browser, page] = await getPuppeteerInstance(url, ".relative");
 
 }
 
-export async function nzxtFind(url: string, brand_name: string) {
+export async function nzxtFind(url: string, brandId: string) {
     let response;
     if (url.includes("file://")) {
       const filePath = fileURLToPath(url);
@@ -104,7 +104,7 @@ export async function nzxtFind(url: string, brand_name: string) {
     const firstKey = Object.keys(productGridCards)[0];
     const products = productGridCards[firstKey].map((product: any) => `https://nzxt.com/product/${product.slug}`);
 
-    return findProductUpdates(brand_name, products);
+    return findProductUpdates(brandId, products);
     
 }
 
