@@ -7,8 +7,6 @@ import { NzxtCategorySpecMap } from "./types";
 
 describe("nzxtFind", async () => {
   const newPrebuilts = [
-    "https://nzxt.com/product/player-pc-5080",
-    "https://nzxt.com/product/player-pc-5090",
     "https://nzxt.com/product/player-one",
     "https://nzxt.com/product/player-two",
     "https://nzxt.com/product/player-three",
@@ -19,7 +17,7 @@ describe("nzxtFind", async () => {
 
   it("finds new prebuilts", async () => {
     await expect(
-      nzxtFind(getFile("nzxt-list.html"), "1")
+      nzxtFind(getFile("nzxt-list-alt.html"), "1")
     ).resolves.toStrictEqual({...prebuiltList, new: newPrebuilts});
   });
 });

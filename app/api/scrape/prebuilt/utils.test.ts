@@ -2,19 +2,10 @@ import { prismaMock } from "@/app/singleton";
 import { describe, expect, test, it } from "vitest";
 import { findProductUpdates, prebuiltList, savePrebuiltScrapeResults } from "./utils";
 import { cleanedResults } from "../types";
+import { nzxtPrebuiltLinks } from "@/tests/helpers/utils";
 
 describe("findProductUpdates", () => {
-
-const newPrebuilts = [
-    "https://nzxt.com/product/player-pc-5080",
-    "https://nzxt.com/product/player-pc-5090",
-    "https://nzxt.com/product/player-one",
-    "https://nzxt.com/product/player-two",
-    "https://nzxt.com/product/player-three",
-    "https://nzxt.com/product/player-one-prime",
-    "https://nzxt.com/product/player-two-prime",
-    "https://nzxt.com/product/player-three-prime",
-  ];
+  const newPrebuilts = nzxtPrebuiltLinks
   
   const scenarios = [
     {

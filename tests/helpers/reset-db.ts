@@ -5,7 +5,10 @@ const prisma = new PrismaClient()
 
 export default async () => {
   await prisma.$transaction([
-    prisma.brand.deleteMany(),
+    prisma.product.deleteMany(),
     prisma.storageType.deleteMany(),
+    prisma.newProductQueue.deleteMany(),
+    prisma.productTracker.deleteMany(),
+    prisma.brand.deleteMany(),
   ])
 }

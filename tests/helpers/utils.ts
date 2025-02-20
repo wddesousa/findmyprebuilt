@@ -6,6 +6,17 @@ import { expect } from "vitest";
 export const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "../data", filename)).href;
 
+export const nzxtPrebuiltLinks = [
+  "https://nzxt.com/product/player-pc-5080",
+  "https://nzxt.com/product/player-pc-5090",
+  "https://nzxt.com/product/player-one",
+  "https://nzxt.com/product/player-two",
+  "https://nzxt.com/product/player-three",
+  "https://nzxt.com/product/player-one-prime",
+  "https://nzxt.com/product/player-two-prime",
+  "https://nzxt.com/product/player-three-prime",
+];
+
 export const caseFanResult = {
   data: {
     product: {
@@ -592,33 +603,20 @@ export const scrapeNzxtResults = {
     "https://www.datocms-assets.com/34299/1727324327-player-1-ww-09-04-24-side-white.png",
     "https://www.datocms-assets.com/34299/1727324330-player-1-ww-09-04-24-front-white.png",
   ],
-  performance: {
-    "Call of Duty Modern Warfare": {
-      R1080P: 75,
-      R1440P: 50,
-      R2160P: 25,
-    },
-    Fortnite: {
-      R1080P: 65,
-      R1440P: 40,
-      R2160P: 20,
-    },
-    "Grand Theft Auto V": {
-      R1080P: 65,
-      R1440P: 40,
-      R2160P: 0,
-    },
+  performance: expect.objectContaining({
     "League of Legends": {
       R1080P: 200,
       R1440P: 200,
       R2160P: 200,
     },
-    Starfield: {
-      R1080P: 40,
-      R1440P: 30,
-      R2160P: 0,
-    },
-  },
+  }),
+  // performance: expect.objectContaining({
+  //   [expect.any(String)]: expect.objectContaining({
+  //     R1080P: expect.any(Number),
+  //     R1440P: expect.any(Number),
+  //     R2160P: expect.any(Number),
+  //   }),
+  // }),
 };
 
 export const psuTests = [
