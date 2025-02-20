@@ -60,7 +60,6 @@ export async function POST(
     const savedPrebuilts = [];
 
     for (const page of foundPages.new) {
-      console.log(page)
       const newPrebuilt = await scrape(page);
       const cleanedPrebuilt = await cleanPrebuiltScrapeResults(newPrebuilt);
       foundPages.current.push(page);
@@ -69,7 +68,7 @@ export async function POST(
       );
       if (page != foundPages.new[0]) await sleep(3000);
     }
-    return NextResponse.json({ message: savedPrebuilts }, { status: 200 });
+    return NextResponse.json({ message: "success" }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       console.error(error);

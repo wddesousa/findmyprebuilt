@@ -89,10 +89,13 @@ describe("/api", async () => {
       const params = Promise.resolve({ slug: "NZXT" });
       const response = await prebuilt.POST(req, { params })
       const data = await response?.json();
-      console.log(data.message)
 
       expect(response?.status).toBe(200);
-      expect(data.message).toBe(200);
+      await expect(prisma.productTracker.findMany()).resolves.toMatchObject( [
+         {
+          "current_products_slugs": "https://nzxt.com/product/player-two;https://nzxt.com/product/player-three;https://nzxt.com/product/player-one-prime;https://nzxt.com/product/player-two-prime;https://nzxt.com/product/player-three-prime;https://nzxt.com/product/player-one",
+        },
+      ]);
     }, 70000);
   });
 });
