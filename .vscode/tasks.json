@@ -4,7 +4,7 @@
         {
             "label": "prisma: format-generate-push",
             "type": "shell",
-            "command": "npx prisma format; npx prisma generate; npx prisma db push",
+            "command": "npx prisma format; dotenv -e .env.test npx prisma generate; dotenv -e .env.test npx prisma db push",
             "group": "build",
             "presentation": {
                 "reveal": "always"

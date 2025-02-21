@@ -16,7 +16,7 @@ import {
   Cooler,
   FormFactor,
   CaseFan,
-  Prebuilt
+  Prebuilt,
 } from "@prisma/client"; // Adjust based on your models
 import { Decimal } from "@prisma/client/runtime/library";
 
@@ -74,8 +74,11 @@ export type MobaChipsetlSerializationMap = {
   Intel: Record<string, MappedSerialization<Omit<MobaChipsetSpecs, "name">>>;
 };
 
-export type prebuiltBrands = 
-| "NZXT"
+export type prebuiltScraperFunction = (
+  url: string
+) => Promise<scraperRawResults>;
+
+export type prebuiltBrands = "NZXT" | "test";
 
 type PartsMap = {
   cpu: Cpu;
@@ -93,32 +96,43 @@ type PartsMap = {
 
 type rawResult = string | null | undefined;
 
-type gamePerformance = Record<string, Record<"R1080P" | "R1440P" | "R2160P", number>>;
+type gamePerformance = Record<
+  string,
+  Record<"R1080P" | "R1440P" | "R2160P", number>
+>;
 
 export type scraperRawResults = {
   // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
   prebuilt: {
     base_price: string;
     customizable: boolean;
-    front_fan_mm:  rawResult;
-    rear_fan_mm:  rawResult;
-    cpu_cooler_mm:  rawResult;
+    front_fan_mm: rawResult;
+    rear_fan_mm: rawResult;
+    cpu_cooler_mm: rawResult;
     cpu_cooler_type: rawResult;
     os: rawResult;
-    warranty_months: rawResult ;
+    warranty_months: rawResult;
     wireless: boolean | null | undefined;
   };
   prebuiltParts: { [K in keyof PartsMap]: rawResult };
   specsHtml: string; //save here the raw hmlt of specs to detect changes in the future
-  images: string[]
-  performance?: gamePerformance
-  url: string
-}
-;
+  images: string[];
+  performance?: gamePerformance;
+  url: string;
+};
 
 export type cleanedResults = {
-  rawResults: scraperRawResults
-  processedResults: {[K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]: Prebuilt[K] | null | undefined}
-}
+  rawResults: scraperRawResults;
+  processedResults: {
+    [K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]:
+      | Prebuilt[K]
+      | null
+      | undefined;
+  };
+};
 
-export type prebuiltTrackerResults = { new: string[]; removed: string[]; current: string[] }
+export type prebuiltTrackerResults = {
+  new: string[];
+  removed: string[];
+  current: string[];
+};

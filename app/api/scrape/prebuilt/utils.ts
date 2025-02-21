@@ -14,11 +14,14 @@ export async function findProductUpdates(brandId: string, slug_list: string[]): 
 
 
 export async function savePrebuiltScrapeResults(
-  foundPages: prebuiltTrackerResults,
+  newPage: string,
   cleanedPrebuilt: cleanedResults,
   brandId: string
 ) {
-  const slugString = foundPages.current.join(";");
+
+  const foundPages = await prisma.productTracker.findFirst({where: {brand_id: brandId}});
+  const slugs = foundPages? foundPages.current_products_slugs : [];
+  slugs.push(newPage)
 
   return await prisma.$transaction([
     prisma.newProductQueue.create({
@@ -31,12 +34,12 @@ export async function savePrebuiltScrapeResults(
     prisma.productTracker.upsert({
       where: { brand_id: brandId  },
       update: {
-        current_products_slugs: slugString,
+        current_products_slugs: slugs,
         last_scraped_at: new Date(),
       },
       create: {
         brand_id: brandId,
-        current_products_slugs: slugString,
+        current_products_slugs: slugs,
       },
     }),
   ]);

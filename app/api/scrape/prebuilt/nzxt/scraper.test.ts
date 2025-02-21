@@ -17,7 +17,7 @@ describe("nzxtFind", async () => {
 
   it("finds new prebuilts", async () => {
     await expect(
-      nzxtFind(getFile("nzxt-list-alt.html"), "1")
+      nzxtFind(getFile("nzxt-list-alt.html"))
     ).resolves.toStrictEqual({...prebuiltList, new: newPrebuilts});
   });
 });

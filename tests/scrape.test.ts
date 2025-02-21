@@ -12,7 +12,6 @@ describe("/api", async () => {
     headers.set("prebuilt-cron-secret", "supersecretcrontest");
     const requestInfo = {
       method: "POST",
-      body: JSON.stringify({ url: getFile('nzxt-list-alt.html') }),
       headers: headers,
     };
     it("responds with 403 if not authorized", async () => {
@@ -43,29 +42,29 @@ describe("/api", async () => {
       expect(data.error).toBe("Brand not configured");
     });
 
-    describe("throws 400 error if url is not included in body", async () => {
-      test.each([
-        [
-          "null body",
-          new NextRequest("http://localhost:3000/api/scrape/prebuilt/[brand]", {
-            ...requestInfo,
-            body: undefined,
-          }),
-        ],
-        [
-          "empty url",
-          new NextRequest("http://localhost:3000/api/scrape/prebuilt/[brand]", {
-            ...requestInfo,
-            body: JSON.stringify({ url: "" }),
-          }),
-        ],
-      ])("%s", async (name, req) => {
-        const params = Promise.resolve({ slug: "NZXT" });
-        const response = await prebuilt.POST(req, { params });
+    // describe("throws 400 error if url is not included in body", async () => {
+    //   test.each([
+    //     [
+    //       "null body",
+    //       new NextRequest("http://localhost:3000/api/scrape/prebuilt/[brand]", {
+    //         ...requestInfo,
+    //         body: undefined,
+    //       }),
+    //     ],
+    //     [
+    //       "empty url",
+    //       new NextRequest("http://localhost:3000/api/scrape/prebuilt/[brand]", {
+    //         ...requestInfo,
+    //         body: JSON.stringify({ url: "" }),
+    //       }),
+    //     ],
+    //   ])("%s", async (name, req) => {
+    //     const params = Promise.resolve({ slug: "NZXT" });
+    //     const response = await prebuilt.POST(req, { params });
 
-        expect(response?.status).toBe(400);
-      });
-    });
+    //     expect(response?.status).toBe(400);
+    //   });
+    // });
 
     it("adds new prebuilts to database", async () => {
       // TODO: add some brands to test database and test that new ones are added and the old ones are conserved
@@ -81,14 +80,12 @@ describe("/api", async () => {
         'https://nzxt.com/product/player-two-prime',
         'https://nzxt.com/product/player-three-prime'
       ]);
-      const newLink = "https://nzxt.com/product/player-pc-5080"
       const req = new NextRequest(
         "http://localhost:3000/api/scrape/prebuilt/[brand]",
         requestInfo
       );
-      const params = Promise.resolve({ slug: "NZXT" });
+      const params = Promise.resolve({ slug: "test" });
       const response = await prebuilt.POST(req, { params })
-      const data = await response?.json();
 
       expect(response?.status).toBe(200);
       await expect(prisma.productTracker.findMany()).resolves.toMatchObject( [

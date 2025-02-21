@@ -107,5 +107,9 @@ describe("savePrebuiltScrapeResults", async () => {
       },
     })
   })
+
+  it ("saves new productTracker if brand does not exist", async () => {
+    expect(true).toBe(false)
+  })
   
 })

@@ -113,7 +113,7 @@ export async function scrapeNzxt(url: string): Promise<scraperRawResults> {
   };
 }
 
-export async function nzxtFind(url: string, brandId: string) {
+export async function nzxtFind(url: string): Promise<string[]> {
   let response;
   if (url.includes("file://")) {
     const filePath = fileURLToPath(url);
@@ -134,17 +134,7 @@ export async function nzxtFind(url: string, brandId: string) {
     (product: any) => `https://nzxt.com/product/${product.slug}`
   );
 
-  return findProductUpdates(brandId, products);
-}
-
-async function saveSlugs(brand_id: string, slug_list: string[]) {
-  //save the sluglist as a string separated by ;
-  const slugs = slug_list.join(";");
-  return await prisma.productTracker.upsert({
-    where: { brand_id: brand_id },
-    update: { current_products_slugs: slugs },
-    create: { brand_id: brand_id, current_products_slugs: slugs },
-  });
+  return products;
 }
 
 // Helper function to get specs with type safety
