@@ -63,7 +63,7 @@ describe("findProductUpdates", () => {
   test.each(scenarios)("$name", async ({ current, newPrebuilts, expected }) => {
     prismaMock.productTracker.findFirst.mockResolvedValueOnce({
       brand_id: "1",
-      current_products_slugs: current.join(";"),
+      current_products_slugs: current,
       id: "1",
       last_scraped_at: new Date(),
     });
@@ -83,11 +83,10 @@ describe("findProductUpdates", () => {
 });
 
 describe("savePrebuiltScrapeResults", async () => {
-  const prebuiltTrackerResults = {...prebuiltList, current: ['1', '2', '3']}
   const cleanedPrebuilt = {rawResults: {url: "theurl.com"}}
-  const slugString = prebuiltTrackerResults.current.join(';')
-  it("saves or updates with the correct data", async () => {
-    await savePrebuiltScrapeResults(prebuiltTrackerResults, cleanedPrebuilt as cleanedResults, "1");
+  it("creates first track record", async () => {
+    await savePrebuiltScrapeResults('newslug.com', cleanedPrebuilt as cleanedResults, "brandid");
+
     expect(prismaMock.newProductQueue.create).toHaveBeenCalledWith({
       data: {
         type: "ADD",
@@ -96,20 +95,34 @@ describe("savePrebuiltScrapeResults", async () => {
       },
     });
     expect(prismaMock.productTracker.upsert).toHaveBeenCalledWith({
-      where: { brand_id: '1' },
+      where: { brand_id: 'brandid' },
       update: {
-        current_products_slugs: slugString,
+        current_products_slugs: ["newslug.com"],
         last_scraped_at: expect.any(Date),
       },
       create: {
-        brand_id: '1',
-        current_products_slugs: slugString,
+        brand_id: 'brandid',
+        current_products_slugs: ["newslug.com"],
       },
     })
   })
 
-  it ("saves new productTracker if brand does not exist", async () => {
-    expect(true).toBe(false)
+  it ("adds new slug to previous list of slugs", async () => {
+    prismaMock.productTracker.findFirst.mockResolvedValueOnce({last_scraped_at: new Date(), brand_id: 'brandid', current_products_slugs: ["oldslug.com"], id: '1'})
+
+    await savePrebuiltScrapeResults('newslug.com', cleanedPrebuilt as cleanedResults, "brandid");
+    
+    expect(prismaMock.productTracker.upsert).toHaveBeenCalledWith({
+      where: { brand_id: 'brandid' },
+      update: {
+        current_products_slugs: ["oldslug.com", "newslug.com"],
+        last_scraped_at: expect.any(Date),
+      },
+      create: {
+        brand_id: 'brandid',
+        current_products_slugs: ["oldslug.com", "newslug.com"],
+      },
+    })
   })
   
 })

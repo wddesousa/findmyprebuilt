@@ -40,7 +40,7 @@ export async function trackProducts(brand: string, urls: string[], date?: Date) 
   return prisma.productTracker.create({
     data: {
       brand: {connect: {name: brand}},
-      current_products_slugs: urls.join(";"),
+      current_products_slugs: urls,
       last_scraped_at: date ?? new Date()
     },
   })

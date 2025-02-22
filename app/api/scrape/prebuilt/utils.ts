@@ -6,7 +6,7 @@ export async function findProductUpdates(brandId: string, slug_list: string[]): 
   
     if (!savedProducts) return { new: slug_list, removed: [], current: [] };
   
-    const existingProducts = savedProducts.current_products_slugs.split(';')
+    const existingProducts = savedProducts.current_products_slugs
     const newProducts = slug_list.filter(slug => !existingProducts.includes(slug));
     const removedProducts = existingProducts.filter(slug => !slug_list.includes(slug));
     return { new: newProducts, removed: removedProducts, current: existingProducts };
@@ -20,9 +20,9 @@ export async function savePrebuiltScrapeResults(
 ) {
 
   const foundPages = await prisma.productTracker.findFirst({where: {brand_id: brandId}});
-  const slugs = foundPages? foundPages.current_products_slugs : [];
-  slugs.push(newPage)
+  const slugs = foundPages ? foundPages.current_products_slugs : [];
 
+  slugs.push(newPage)
   return await prisma.$transaction([
     prisma.newProductQueue.create({
       data: {

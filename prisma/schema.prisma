@@ -26,6 +26,7 @@ model Product {
   updated_at          DateTime    @default(now())
   url                 String      @unique
   asin                String?
+  slug                String      @unique
   prices              Price[]
   prebuilt_attributes Prebuilt[]
   cases               Case[]

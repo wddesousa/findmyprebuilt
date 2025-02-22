@@ -1,6 +1,7 @@
 import { spec } from "node:test/reporters";
 import { PrismaModelMap } from "./types";
 import prisma from "@/app/db";
+import { generateSlug } from "@/app/utils";
 import { Prisma, ProductType, PsuRating } from "@prisma/client";
 
 export async function saveCpu(specs: PrismaModelMap["cpu"]) {
@@ -17,6 +18,7 @@ export async function saveCpu(specs: PrismaModelMap["cpu"]) {
           },
           type: ProductType.CPU,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       socket: {
@@ -46,7 +48,7 @@ export async function saveCpu(specs: PrismaModelMap["cpu"]) {
       simultaneous_multithreading: specs.simultaneous_multithreading,
     },
     include: { product: { include: { brand: true } }, socket: true },
-  }
+  };
 
   return prisma.cpu.create(data);
 }
@@ -65,6 +67,7 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
           },
           type: ProductType.GPU,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -92,7 +95,7 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
       displayport_outputs: specs.displayport_outputs,
     },
     include: { product: { include: { brand: true } }, chipset: true },
-  }
+  };
   return prisma.gpu.create(data);
 }
 export async function saveMoba(specs: PrismaModelMap["moba"]) {
@@ -109,6 +112,7 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
           },
           type: ProductType.MOBA,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -182,12 +186,12 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
       moba_form_factor: true,
       socket: true,
     },
-  }
+  };
   return prisma.moba.create(data);
 }
 
 export async function saveMemory(specs: PrismaModelMap["memory"]) {
-  const data ={
+  const data = {
     data: {
       product: {
         create: {
@@ -200,6 +204,7 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
           },
           type: ProductType.MEMORY,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -231,7 +236,7 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
       product: { include: { brand: true } },
       memory_speed: true,
     },
-  }
+  };
   return prisma.memory.create(data);
 }
 export async function saveStorage(specs: PrismaModelMap["storage"]) {
@@ -248,6 +253,7 @@ export async function saveStorage(specs: PrismaModelMap["storage"]) {
           },
           type: ProductType.STORAGE,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -266,12 +272,12 @@ export async function saveStorage(specs: PrismaModelMap["storage"]) {
       product: { include: { brand: true } },
       storage_type: true,
     },
-  }
+  };
   return prisma.storage.create(data);
 }
 
 export async function savePsu(specs: PrismaModelMap["psu"]) {
-  const data ={
+  const data = {
     data: {
       product: {
         create: {
@@ -284,6 +290,7 @@ export async function savePsu(specs: PrismaModelMap["psu"]) {
           },
           type: ProductType.PSU,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -307,7 +314,7 @@ export async function savePsu(specs: PrismaModelMap["psu"]) {
     include: {
       product: { include: { brand: true } },
     },
-  }
+  };
   return prisma.psu.create(data);
 }
 
@@ -325,6 +332,7 @@ export async function saveCase(specs: PrismaModelMap["case"]) {
           },
           type: ProductType.CASE,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -350,16 +358,16 @@ export async function saveCase(specs: PrismaModelMap["case"]) {
       product: { include: { brand: true } },
       moba_form_factors: true,
     },
-  }
+  };
   return prisma.case.create(data);
 }
 
 export async function saveCooler(specs: PrismaModelMap["cooler"]) {
-//   const include = Prisma.validator(prisma, 'cooler', 'create', 'include')({
-//     cpu_sockets: {
-//         orderBy: [{ name: 'asc' }]
-//     },
-// })
+  //   const include = Prisma.validator(prisma, 'cooler', 'create', 'include')({
+  //     cpu_sockets: {
+  //         orderBy: [{ name: 'asc' }]
+  //     },
+  // })
   const data = {
     data: {
       product: {
@@ -373,6 +381,7 @@ export async function saveCooler(specs: PrismaModelMap["cooler"]) {
           },
           type: ProductType.COOLER,
           url: specs.url,
+          slug: generateSlug(specs.brand, specs.product_name),
         },
       },
       part_number: specs.part_number,
@@ -387,8 +396,8 @@ export async function saveCooler(specs: PrismaModelMap["cooler"]) {
       fanless: specs.fanless,
       height_mm: specs.height_mm,
       water_cooled_radiador_mm: specs.water_cooled_radiador_mm,
-    }
-  }
+    },
+  };
   return prisma.cooler.create(data);
 }
 
@@ -405,6 +414,7 @@ export async function saveCaseFan(specs: PrismaModelMap["caseFan"]) {
         },
         type: ProductType.CASEFAN,
         url: specs.url,
+        slug: generateSlug(specs.brand, specs.product_name),
       },
     },
     part_number: specs.part_number,
@@ -418,7 +428,7 @@ export async function saveCaseFan(specs: PrismaModelMap["caseFan"]) {
     connector: specs.connector,
     controller: specs.controller,
     static_pressure_mmh2o: specs.static_pressure_mmh2o,
-  }
+  };
 
   return prisma.caseFan.create({
     data: data,
