@@ -1,10 +1,12 @@
-import { describe, it, expect, test } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { NextRequest } from "next/server";
 import * as prebuilt from "@/app/api/scrape/prebuilt/[brand]/route";
 import { getFile, nzxtPrebuiltLinks } from "./helpers/utils";
 import  prisma from "./helpers/prisma";
 import { addProductToQueue, trackProducts } from "@/app/db";
 import { upsertBrand } from "@/app/api/scrape/db";
+import { addPrebuiltScrapingJob } from "@/app/api/scrape/prebuilt/[brand]/queue";
+import { scrapeNzxt } from "@/app/api/scrape/prebuilt/nzxt/scraper";
 
 describe("/api", async () => {
   describe("[POST] /scrape/prebuilt/[brand]", () => {
@@ -42,43 +44,40 @@ describe("/api", async () => {
       expect(data.error).toBe("Brand not configured");
     });
 
-    // describe("throws 400 error if url is not included in body", async () => {
-    //   test.each([
-    //     [
-    //       "null body",
-    //       new NextRequest("http://localhost:3000/api/scrape/prebuilt/[brand]", {
-    //         ...requestInfo,
-    //         body: undefined,
-    //       }),
-    //     ],
-    //     [
-    //       "empty url",
-    //       new NextRequest("http://localhost:3000/api/scrape/prebuilt/[brand]", {
-    //         ...requestInfo,
-    //         body: JSON.stringify({ url: "" }),
-    //       }),
-    //     ],
-    //   ])("%s", async (name, req) => {
-    //     const params = Promise.resolve({ slug: "NZXT" });
-    //     const response = await prebuilt.POST(req, { params });
+    it("adds jobs to scrape new prebuilts", async () => {
 
-    //     expect(response?.status).toBe(400);
-    //   });
-    // });
+      vi.mock("@/app/api/scrape/prebuilt/[brand]/queue.ts", () => ({
+        addScrapingJob: vi.fn(),
+      }));
 
-    it("adds new prebuilts to database", async () => {
-      // TODO: add some brands to test database and test that new ones are added and the old ones are conserved
-      await upsertBrand('NZXT');
-      // const links = nzxtPrebuiltLinks.slice(1)
-      // for (const link of links) {
-      //   await addProductToQueue("ADD", link, {} as any);
-      // }
-      await trackProducts("NZXT", [
+      const brand = await upsertBrand('test');
+      await trackProducts("test", [
+        'https://nzxt.com/product/player-two',
+        'https://nzxt.com/product/player-three',
+        'https://nzxt.com/product/player-one-prime'
+      ]);
+      // console.log(await prisma.productTracker.findMany())
+      const req = new NextRequest(
+        "http://localhost:3000/api/scrape/prebuilt/[brand]",
+        requestInfo
+      );
+      const params = Promise.resolve({ slug: "test" });
+      const response = await prebuilt.POST(req, { params })
+
+      expect(response?.status).toBe(200);
+      expect(addPrebuiltScrapingJob).toHaveBeenCalledTimes(3);
+      expect(addPrebuiltScrapingJob).toHaveBeenNthCalledWith(2, brand.id, 'https://nzxt.com/product/player-two-prime', scrapeNzxt);
+    });
+
+    it("sets prebuilts to be removed from database", async () => {
+      await upsertBrand('test');
+      await trackProducts("test", [
         'https://nzxt.com/product/player-two',
         'https://nzxt.com/product/player-three',
         'https://nzxt.com/product/player-one-prime',
         'https://nzxt.com/product/player-two-prime',
-        'https://nzxt.com/product/player-three-prime'
+        'https://nzxt.com/product/player-three-prime',
+        'https://nzxt.com/product/a-removed-product'
       ]);
       const req = new NextRequest(
         "http://localhost:3000/api/scrape/prebuilt/[brand]",
@@ -88,12 +87,9 @@ describe("/api", async () => {
       const response = await prebuilt.POST(req, { params })
 
       expect(response?.status).toBe(200);
-      await expect(prisma.productTracker.findMany()).resolves.toMatchObject( [
-         {
-          "current_products_slugs": "https://nzxt.com/product/player-two;https://nzxt.com/product/player-three;https://nzxt.com/product/player-one-prime;https://nzxt.com/product/player-two-prime;https://nzxt.com/product/player-three-prime;https://nzxt.com/product/player-one",
-        },
-      ]);
-    }, 70000);
+      const removeProduct = await prisma.newProductQueue.findMany({where: {type: "REMOVE"}})
+      expect(removeProduct.length).toEqual(1);
+    })
   });
 });
  

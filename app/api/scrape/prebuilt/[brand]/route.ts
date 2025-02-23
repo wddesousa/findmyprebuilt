@@ -5,8 +5,9 @@ import {
   scraperRawResults,
   prebuiltTrackerResults,
   prebuiltScraperFunction,
+  cleanedResults,
 } from "../../types";
-import prisma from "@/app/db";
+import prisma, { addProductToQueue } from "@/app/db";
 import { Prebuilt, PrismaClient, Product } from "@prisma/client";
 import { cleanPrebuiltScrapeResults } from "../../utils";
 import { serializeNumber } from "../../serializers";
@@ -14,7 +15,7 @@ import { sleep } from "@/app/utils";
 import { upsertBrand } from "../../db";
 import { findProductUpdates, savePrebuiltScrapeResults } from "../utils";
 import { getFile } from "@/tests/helpers/utils";
-import { addScrapingJob } from "./queue";
+import { addPrebuiltScrapingJob } from "./queue";
 
 export async function POST(
   req: NextRequest,
@@ -43,34 +44,37 @@ export async function POST(
       prebuiltBrands,
       [
         string,
-        (url: string) => Promise<string[]>,
-        prebuiltScraperFunction,
+        (url: string) => Promise<string[]>
       ]
     > = {
       NZXT: [
         "https://nzxt.com/category/gaming-pcs/prebuilt-pcs",
-        nzxtFind,
-        scrapeNzxt,
+        nzxtFind
       ],
-      test: [getFile("nzxt-list-alt.html"), nzxtFind, scrapeNzxt],
+      test: [getFile("nzxt-list-alt.html"), nzxtFind],
     };
 
-    const brand = (await params).slug.replace("-", " " as prebuiltBrands);
+    const brandName = (await params).slug.replace("-", " " as prebuiltBrands);
 
-    if (!(brand in scraperMap)) {
+    if (!(brandName in scraperMap)) {
       return NextResponse.json(
         { error: `Brand not configured` },
         { status: 400 }
       );
     }
-    const [url, find, scrape] = scraperMap[brand as prebuiltBrands];
-    const brandId = (await upsertBrand(brand)).id;
+    const [url, find] = scraperMap[brandName as prebuiltBrands];
+    const brand = await upsertBrand(brandName);
     const prebuilts = await find(url);
-    const foundPages = await findProductUpdates(brandId, prebuilts)
+    const foundPages = await findProductUpdates(brand.id, prebuilts)
 
     for (const page of foundPages.new) {
-      await addScrapingJob(brandId, page, scrape);
+      await addPrebuiltScrapingJob(brand, page);
     }
+
+    for (const removedPage of foundPages.removed) {
+      await addProductToQueue("REMOVE", removedPage, {} as cleanedResults);
+    }
+
     return NextResponse.json({ message: "success" }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {

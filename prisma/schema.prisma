@@ -27,6 +27,7 @@ model Product {
   url                 String      @unique
   asin                String?
   slug                String      @unique
+  is_retired          Boolean     @default(false)
   prices              Price[]
   prebuilt_attributes Prebuilt[]
   cases               Case[]
@@ -40,6 +41,7 @@ model Product {
   fans                CaseFan[]
 
   @@unique([name, brand_id])
+  @@index([is_retired])
 }
 
 model Brand {

@@ -1,29 +1,53 @@
 import { Queue, Worker, Job } from "bullmq";
 import { redis } from "../../../../redis";
-import { prebuiltScraperFunction } from "../../types";
+import { prebuiltBrands, prebuiltScraperFunction } from "../../types";
 import { cleanPrebuiltScrapeResults } from "../../utils";
 import { savePrebuiltScrapeResults } from "../utils";
+import { scrapeNzxt } from "../nzxt/scraper";
+import { Brand } from "@prisma/client";
+
+
+const scrapers: Record<prebuiltBrands, prebuiltScraperFunction> = {
+  NZXT: scrapeNzxt,
+  test: scrapeNzxt,
+};
 
 // Create a queue
-export const scrapeQueue = new Queue("scraperQueue", { connection: redis });
+export const scrapeQueue = new Queue("prebuiltScraperQueue", { connection: redis });
 
 // Function to add a product scraping job
-export async function addScrapingJob(brandId: string, productUrl: string, scrape: prebuiltScraperFunction) {
-  await scrapeQueue.add("scrape-product", { productUrl, scrape }, { delay: 3000 });
+export async function addPrebuiltScrapingJob(
+  brand: Brand,
+  productUrl: string,
+) {
+  await scrapeQueue.add(
+    `scrape-${productUrl}`,
+    { brand, productUrl },
+    { delay: 3000 }
+  );
 }
-type MyData = {brandId:string, productUrl: string, scrape: prebuiltScraperFunction}
+
+export async function prebuiltScrapeWorker(job: Job<MyData>) {
+  const { brand, productUrl } = job.data;
+
+  const scrape = scrapers[brand.name as prebuiltBrands];
+  if (!scrape) throw new Error(`No scraper found for: ${brand.name}`);
+  console.log(`Scraping product: ${productUrl}`);
+
+  const newPrebuilt = await scrape(productUrl);
+  const cleanedPrebuilt = await cleanPrebuiltScrapeResults(newPrebuilt);
+  await savePrebuiltScrapeResults(productUrl, cleanedPrebuilt, brand.id);
+  console.log(`Updated product from ${productUrl}`);
+}
+
+type MyData = {
+  brand: Brand;
+  productUrl: string;
+};
 // Worker to process the queue
 const worker = new Worker<MyData>(
-  "scraperQueue",
-  async (job: Job<MyData>) => {
-    const { brandId, productUrl, scrape } = job.data;
-    console.log(`Scraping product: ${productUrl}`);
-
-      const newPrebuilt = await scrape(productUrl);
-      const cleanedPrebuilt = await cleanPrebuiltScrapeResults(newPrebuilt);
-      await savePrebuiltScrapeResults(productUrl, cleanedPrebuilt, brandId)
-    console.log(`Updated product from ${productUrl}`);
-  },
+  "prebuiltScraperQueue",
+  prebuiltScrapeWorker,
   { connection: redis }
 );
 
