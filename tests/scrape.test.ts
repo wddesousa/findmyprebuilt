@@ -47,7 +47,7 @@ describe("/api", async () => {
     it("adds jobs to scrape new prebuilts", async () => {
 
       vi.mock("@/app/api/scrape/prebuilt/[brand]/queue.ts", () => ({
-        addScrapingJob: vi.fn(),
+        addPrebuiltScrapingJob: vi.fn(),
       }));
 
       const brand = await upsertBrand('test');
@@ -66,7 +66,7 @@ describe("/api", async () => {
 
       expect(response?.status).toBe(200);
       expect(addPrebuiltScrapingJob).toHaveBeenCalledTimes(3);
-      expect(addPrebuiltScrapingJob).toHaveBeenNthCalledWith(2, brand.id, 'https://nzxt.com/product/player-two-prime', scrapeNzxt);
+      expect(addPrebuiltScrapingJob).toHaveBeenNthCalledWith(2, brand, 'https://nzxt.com/product/player-two-prime');
     });
 
     it("sets prebuilts to be removed from database", async () => {

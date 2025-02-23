@@ -46,6 +46,16 @@ export async function trackProducts(brand: string, urls: string[], date?: Date) 
   })
 }
 
+// export async function addProductToTracker(brandId: string, url: string) {
+//   return prisma.productTracker.update({
+//     where: {brand_id: brandId},
+//     data: {
+//       current_products_slugs: {push: url},
+//       last_scraped_at: new Date()
+//     },
+//   })
+// }
+
 // export async function savePrebuilt(specs: Prebuilt) {
 //   const brand = await prisma.brand.findUnique({
 //     where: { name: brandName },
