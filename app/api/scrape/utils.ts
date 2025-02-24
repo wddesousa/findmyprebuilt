@@ -1,16 +1,13 @@
 import puppeteer from "puppeteer-extra";
-import { connect } from "puppeteer-real-browser";
-import prisma from "@/app/db"
+import prisma from "@/app/db";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import untypedMap from "./serialization-map.json";
-import { NzxtCategorySpecMap } from "./prebuilt/types";
 import {
   UniversalSerializationMap,
   PrismaModelMap,
-  MobaChipsetSpecs,
   scraperRawResults,
   cleanedResults,
-  prebuiltTrackerResults,
+  prebuiltBrands,
 } from "./types";
 import {
   genericSerialize,
@@ -20,7 +17,6 @@ import {
   serializeArray,
 } from "./serializers";
 import { Page, Browser, ElementHandle } from "puppeteer";
-import { spec } from "node:test/reporters";
 import {
   saveCaseFan,
   saveCase,
@@ -32,7 +28,12 @@ import {
   saveStorage,
   saveCooler,
 } from "./db";
-import { CpuCoolerType, DoubleDataRate, PsuRating, Prisma } from "@prisma/client";
+import {
+  CpuCoolerType,
+  DoubleDataRate,
+  PsuRating,
+  Prisma,
+} from "@prisma/client";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
@@ -71,21 +72,25 @@ export async function getPuppeteerInstance(
   page.on("request", (request) => {
     //mock for local file tests
     if (url.startsWith("file://")) {
-      if (request.url().startsWith("file://") && ["document"].includes(request.resourceType())){
-      const filePath = fileURLToPath(request.url()); // Remove "file://" from the URL
-      const fileContent = fs.readFileSync(filePath, "utf-8");
-      request.respond({
-        status: 200,
-        contentType: "text/html; charset=utf-8",
-        body: fileContent,
-      });} else {
-        request.abort()
+      if (
+        request.url().startsWith("file://") &&
+        ["document"].includes(request.resourceType())
+      ) {
+        const filePath = fileURLToPath(request.url()); // Remove "file://" from the URL
+        const fileContent = fs.readFileSync(filePath, "utf-8");
+        request.respond({
+          status: 200,
+          contentType: "text/html; charset=utf-8",
+          body: fileContent,
+        });
+      } else {
+        request.abort();
       }
     } else {
       request.continue();
     }
   });
-  
+
   const res = await page.goto(url);
 
   try {
@@ -248,62 +253,98 @@ function removeTrademarks(scrapeResults: any): any {
   const cleanedResults: any = {};
 
   for (const key in scrapeResults.prebuiltParts) {
-    if (Object.prototype.hasOwnProperty.call(scrapeResults.prebuiltParts, key)) {
+    if (
+      Object.prototype.hasOwnProperty.call(scrapeResults.prebuiltParts, key)
+    ) {
       const value = scrapeResults.prebuiltParts[key];
-      cleanedResults[key] = value ? cleanTrademarks(value): value;
+      cleanedResults[key] = value ? cleanTrademarks(value) : value;
     }
   }
 
   return cleanedResults;
 }
 
-export async function cleanPrebuiltScrapeResults(scrapeResults: scraperRawResults): Promise<cleanedResults> {
+export async function cleanPrebuiltScrapeResults(
+  scrapeResults: scraperRawResults
+): Promise<cleanedResults> {
+  scrapeResults.prebuiltParts = removeTrademarks(scrapeResults);
 
-    scrapeResults.prebuiltParts = removeTrademarks(scrapeResults);
+  const getNumber = (value: any) => (value ? serializeNumber(value) : null);
+  const findIdByName = async (
+    name: any,
+    model: "operativeSystem" | "gpuChipset" | "mobaChipset"
+  ) =>
+    name
+      ? (await (prisma[model] as any).findUnique({ where: { name: name } }))?.id
+      : null;
+  const cleanGpuBrand = (gpu: string) =>
+    gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
 
-    const getNumber = (value: any)  => value ? serializeNumber(value) : null
-    const findIdByName = async (name: any, model:  "operativeSystem" | "gpuChipset" | "mobaChipset") => name ? (await (prisma[model] as any).findUnique({where: {name: name}}))?.id : null
-    const cleanGpuBrand = (gpu:string) => gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
+  const memoryInfo = getMemoryInfo(scrapeResults.prebuiltParts.ram);
+  const mainStorageInfo = await getStorageInfo(
+    scrapeResults.prebuiltParts.main_storage
+  );
+  const secondaryStorageInfo = await getStorageInfo(
+    scrapeResults.prebuiltParts.second_storage
+  );
+  const psuInfo = getPsuInfo(scrapeResults.prebuiltParts.psu);
+  const price = getNumber(scrapeResults.prebuilt.base_price);
 
-    const memoryInfo = getMemoryInfo(scrapeResults.prebuiltParts.ram)
-    const mainStorageInfo = await getStorageInfo(scrapeResults.prebuiltParts.main_storage)
-    const secondaryStorageInfo = await getStorageInfo(scrapeResults.prebuiltParts.second_storage)
-    const psuInfo = getPsuInfo(scrapeResults.prebuiltParts.psu)
-    const price = getNumber(scrapeResults.prebuilt.base_price)
-
-    const processedResults = {
-      base_price: price ? new Prisma.Decimal(price.toFixed(2)) : null,
-      cpu_cooler_mm: getNumber(scrapeResults.prebuilt.cpu_cooler_mm),
-      cpu_cooler_type: scrapeResults.prebuilt.cpu_cooler_type ? getCoolerType(scrapeResults.prebuilt.cpu_cooler_type) : null,
-      customizable: scrapeResults.prebuilt.customizable,
-      front_fan_mm: getNumber(scrapeResults.prebuilt.front_fan_mm),
-      rear_fan_mm: getNumber(scrapeResults.prebuilt.rear_fan_mm),
-      os_id: await findIdByName(scrapeResults.prebuilt.os, 'operativeSystem'),
-      gpu_chipset_id: scrapeResults.prebuiltParts.gpu ? await findIdByName(cleanGpuBrand(scrapeResults.prebuiltParts.gpu), 'gpuChipset') : null,
-      moba_chipset_id: await findIdByName(scrapeResults.prebuiltParts.moba, 'mobaChipset'),
-      main_storage_gb: mainStorageInfo?.size,
-      seconday_storage_gb: secondaryStorageInfo?.size,
-      main_storage_type_id: mainStorageInfo?.type?.id,
-      secondary_storage_type_id: secondaryStorageInfo?.type?.id,
-      memory_modules: memoryInfo.modules.number,
-      memory_module_gb: memoryInfo.modules.size,
-      memory_speed_id: memoryInfo.ddr && memoryInfo.speed ? (await prisma.memorySpeed.findUnique({where: {ddr_speed: {ddr: memoryInfo.ddr as DoubleDataRate, speed: memoryInfo.speed}}}))?.id : null,
-      warranty_months: getNumber(scrapeResults.prebuilt.warranty_months),
-      wireless: scrapeResults.prebuilt.wireless,
-      psu_efficiency_rating: psuInfo.rating,
-      psu_wattage: psuInfo.wattage
-  }
+  const processedResults = {
+    base_price: price ? new Prisma.Decimal(price.toFixed(2)) : null,
+    cpu_cooler_mm: getNumber(scrapeResults.prebuilt.cpu_cooler_mm),
+    cpu_cooler_type: scrapeResults.prebuilt.cpu_cooler_type
+      ? getCoolerType(scrapeResults.prebuilt.cpu_cooler_type)
+      : null,
+    customizable: scrapeResults.prebuilt.customizable,
+    front_fan_mm: getNumber(scrapeResults.prebuilt.front_fan_mm),
+    rear_fan_mm: getNumber(scrapeResults.prebuilt.rear_fan_mm),
+    os_id: await findIdByName(scrapeResults.prebuilt.os, "operativeSystem"),
+    gpu_chipset_id: scrapeResults.prebuiltParts.gpu
+      ? await findIdByName(
+          cleanGpuBrand(scrapeResults.prebuiltParts.gpu),
+          "gpuChipset"
+        )
+      : null,
+    moba_chipset_id: await findIdByName(
+      scrapeResults.prebuiltParts.moba,
+      "mobaChipset"
+    ),
+    main_storage_gb: mainStorageInfo?.size,
+    seconday_storage_gb: secondaryStorageInfo?.size,
+    main_storage_type_id: mainStorageInfo?.type?.id,
+    secondary_storage_type_id: secondaryStorageInfo?.type?.id,
+    memory_modules: memoryInfo.modules.number,
+    memory_module_gb: memoryInfo.modules.size,
+    memory_speed_id:
+      memoryInfo.ddr && memoryInfo.speed
+        ? (
+            await prisma.memorySpeed.findUnique({
+              where: {
+                ddr_speed: {
+                  ddr: memoryInfo.ddr as DoubleDataRate,
+                  speed: memoryInfo.speed,
+                },
+              },
+            })
+          )?.id
+        : null,
+    warranty_months: getNumber(scrapeResults.prebuilt.warranty_months),
+    wireless: scrapeResults.prebuilt.wireless,
+    psu_efficiency_rating: psuInfo.rating,
+    psu_wattage: psuInfo.wattage,
+  };
 
   return {
-        rawResults: scrapeResults,
-        processedResults: processedResults
-    }
+    rawResults: scrapeResults,
+    processedResults: processedResults,
+  };
 }
 
 export function getCpuBrandName(cpu: string) {
-  if (cpu.toLowerCase().includes("intel")) return "Intel"; 
-  if (cpu.toLowerCase().includes("amd")) return "AMD"; 
-  return null
+  if (cpu.toLowerCase().includes("intel")) return "Intel";
+  if (cpu.toLowerCase().includes("amd")) return "AMD";
+  return null;
 }
 
 export function cleanTrademarks(string: string) {
@@ -311,119 +352,130 @@ export function cleanTrademarks(string: string) {
 }
 
 export async function getStorageInfo(storage: string | null | undefined) {
-  if (!storage) return {type: null, size: null};
-  const type = await getStorageType(storage)
-  const size = getStorageSize(storage)
+  if (!storage) return { type: null, size: null };
+  const type = await getStorageType(storage);
+  const size = getStorageSize(storage);
   return {
     type,
-    size
-  }
+    size,
+  };
 }
 
-async function getStorageType(storage:any) {
+async function getStorageType(storage: any) {
   var type;
-  if (storage.toLowerCase().match(/ssd|nvme/)) 
-    type = "SSD";
+  if (storage.toLowerCase().match(/ssd|nvme/)) type = "SSD";
   if (storage.toLowerCase().match(/hdd|hard drive/)) {
-    const matchSpeed = storage.toLowerCase().match(/\d+\s?rpm/g)
-    if (matchSpeed)
-      type = serializeNumber(matchSpeed[0]) + " RPM"
+    const matchSpeed = storage.toLowerCase().match(/\d+\s?rpm/g);
+    if (matchSpeed) type = serializeNumber(matchSpeed[0]) + " RPM";
   }
-  return await prisma.storageType.findUnique({where: {name: type}})
+  return await prisma.storageType.findUnique({ where: { name: type } });
 }
 
 function getStorageSize(storage: any) {
   if (!storage) return null;
-  var match = storage.toLowerCase().match(/\d+\s?gb/g)
+  var match = storage.toLowerCase().match(/\d+\s?gb/g);
   if (match) {
-      return serializeNumber(match[0])
+    return serializeNumber(match[0]);
   }
-  match = storage.toLowerCase().match(/\d+\s?tb/g)
+  match = storage.toLowerCase().match(/\d+\s?tb/g);
   if (match) {
-     const tbs = serializeNumber(match[0])
-      return tbs ? tbs * 1024 : null
+    const tbs = serializeNumber(match[0]);
+    return tbs ? tbs * 1024 : null;
   }
 }
 
-
-export function getPsuInfo(psu: string | null | undefined): {rating: PsuRating | null, wattage: number | null} {
+export function getPsuInfo(psu: string | null | undefined): {
+  rating: PsuRating | null;
+  wattage: number | null;
+} {
   // there is 0 chance there's a prebuilt being sold with a PSU that is not 80+ rated so will assume that
-  if (!psu) return {rating: null, wattage: null};
-  
+  if (!psu) return { rating: null, wattage: null };
+
   return {
     rating: getPsuRating(psu),
-    wattage: getPsuWattage(psu)
-  }
-}
-
-function getPsuWattage(psu: string) {
-  const match = psu.toLowerCase().match(/\d+\s?w/g)
-  if (match) {
-    return serializeNumber(match[0])
-  }
-  return null
-}
-
-function getPsuRating(psu: string): PsuRating| null {
-  const match = psu.toUpperCase().match(/TITANIUM|PLATINUM|GOLD|SILVER|BRONZE/g);
-  if (match) {
-    return match[0] as PsuRating
-  }
-  return null
-}
-
-export function getCoolerType(cooler: string): CpuCoolerType | null {
-  if (cooler.toLowerCase().includes("air")) return "AIR"; 
-  if (cooler.toLowerCase().match(/aio|liquid/)) return "LIQUID"; 
-  return null
-}
-export function getMemoryInfo(memory: string | null | undefined) {
-  if (!memory) return {ddr: null, speed: null, modules: {number: null, size: null}};
-  
-  const ddr = getMemoryDdr(memory);
-  const speed = getMemorySpeed(memory);
-  const modules = getMemoryModules(memory);
-  
-  return {
-    ddr,
-    speed,
-    modules
+    wattage: getPsuWattage(psu),
   };
 }
 
- function getMemoryDdr(memory: string) {
-  const match = memory.toUpperCase().match(/DDR\d/g)
+function getPsuWattage(psu: string) {
+  const match = psu.toLowerCase().match(/\d+\s?w/g);
   if (match) {
-      return match[0]
+    return serializeNumber(match[0]);
   }
-  return null
+  return null;
+}
+
+function getPsuRating(psu: string): PsuRating | null {
+  const match = psu
+    .toUpperCase()
+    .match(/TITANIUM|PLATINUM|GOLD|SILVER|BRONZE/g);
+  if (match) {
+    return match[0] as PsuRating;
+  }
+  return null;
+}
+
+export function getCoolerType(cooler: string): CpuCoolerType | null {
+  if (cooler.toLowerCase().includes("air")) return "AIR";
+  if (cooler.toLowerCase().match(/aio|liquid/)) return "LIQUID";
+  return null;
+}
+export function getMemoryInfo(memory: string | null | undefined) {
+  if (!memory)
+    return { ddr: null, speed: null, modules: { number: null, size: null } };
+
+  const ddr = getMemoryDdr(memory);
+  const speed = getMemorySpeed(memory);
+  const modules = getMemoryModules(memory);
+
+  return {
+    ddr,
+    speed,
+    modules,
+  };
+}
+
+function getMemoryDdr(memory: string) {
+  const match = memory.toUpperCase().match(/DDR\d/g);
+  if (match) {
+    return match[0];
+  }
+  return null;
 }
 
 function getMemorySpeed(memory: string) {
-  const match = memory.toLowerCase().match(/\d+\s?mhz/g)
+  const match = memory.toLowerCase().match(/\d+\s?mhz/g);
   if (match) {
-      return serializeNumber(match[0])
+    return serializeNumber(match[0]);
   }
-  return null
+  return null;
 }
 
- function getMemoryModules(memory: string) {
-  var match = memory.toLowerCase().match(/\d x \d+\s?gb/g)
+function getMemoryModules(memory: string) {
+  var match = memory.toLowerCase().match(/\d x \d+\s?gb/g);
   if (match) {
-      const [number, size] = match[0].split('x').map(serializeNumber)
-      return {
-        number,
-        size
-      }
-  }
-
-  match = memory.toLowerCase().match(/\d+\s?gb x \d/g)
-  if (match) {
-    const [size, number] = match[0].split('x').map(serializeNumber)
+    const [number, size] = match[0].split("x").map(serializeNumber);
     return {
       number,
-      size
-    }
+      size,
+    };
   }
-  return {number: null, size: null}
+
+  match = memory.toLowerCase().match(/\d+\s?gb x \d/g);
+  if (match) {
+    const [size, number] = match[0].split("x").map(serializeNumber);
+    return {
+      number,
+      size,
+    };
+  }
+  return { number: null, size: null };
+}
+
+export async function getBrandFromSlug(
+  params: Promise<{
+    slug: string;
+  }>
+) {
+  return (await params).slug.replace("-", " ") as prebuiltBrands;
 }

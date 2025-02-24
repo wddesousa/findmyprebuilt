@@ -1,4 +1,4 @@
-import { cleanPrebuiltScrapeResults } from "@/app/api/scrape/utils";
+import { cleanPrebuiltScrapeResults, getBrandFromSlug } from "@/app/api/scrape/utils";
 import { prebuiltBrands, prebuiltScraperFunction } from "../../../types";
 import { processNzxtData } from "../../utils/nzxt";
 import { NextRequest, NextResponse } from "next/server";
@@ -27,7 +27,7 @@ export async function POST(
       );
     }
 
-    const brandName = (await params).slug.replace("-", " ") as prebuiltBrands;
+    const brandName = await getBrandFromSlug(params)
 
     if (!(brandName in scraperMap)) {
       return NextResponse.json(

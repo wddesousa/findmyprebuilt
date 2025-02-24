@@ -9,7 +9,7 @@ import {
 } from "../../types";
 import prisma, { addProductToQueue } from "@/app/db";
 import { Prebuilt, PrismaClient, Product } from "@prisma/client";
-import { cleanPrebuiltScrapeResults } from "../../utils";
+import { cleanPrebuiltScrapeResults, getBrandFromSlug } from "../../utils";
 import { serializeNumber } from "../../serializers";
 import { sleep } from "@/app/utils";
 import { upsertBrand } from "../../db";
@@ -49,7 +49,7 @@ export async function POST(
       test: [getFile("nzxt-list-alt.html"), nzxtFind],
     };
 
-    const brandName = (await params).slug.replace("-", " " as prebuiltBrands);
+    const brandName = await getBrandFromSlug(params)
 
     if (!(brandName in scraperMap)) {
       return NextResponse.json(
