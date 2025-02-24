@@ -75,8 +75,9 @@ export type MobaChipsetlSerializationMap = {
 };
 
 export type prebuiltScraperFunction = (
+  data: any,
   url: string
-) => Promise<scraperRawResults>;
+) => scraperRawResults;
 
 export type prebuiltBrands = "NZXT" | "test";
 

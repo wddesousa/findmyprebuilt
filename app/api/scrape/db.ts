@@ -445,3 +445,7 @@ export async function upsertBrand(brand: string) {
     create: { name: brand },
   });
 }
+
+export async function getBrand(brand:string) {
+  return prisma.brand.findFirst({where: {name: brand}})
+}

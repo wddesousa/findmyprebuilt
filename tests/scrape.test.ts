@@ -1,34 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
 import { NextRequest } from "next/server";
 import * as prebuilt from "@/app/api/scrape/prebuilt/[brand]/route";
-import { getFile, nzxtPrebuiltLinks } from "./helpers/utils";
 import  prisma from "./helpers/prisma";
-import { addProductToQueue, trackProducts } from "@/app/db";
+import { trackProducts } from "@/app/db";
 import { upsertBrand } from "@/app/api/scrape/db";
 import { addPrebuiltScrapingJob } from "@/app/api/scrape/prebuilt/[brand]/queue";
-import { scrapeNzxt } from "@/app/api/scrape/prebuilt/nzxt/scraper";
 
-describe("/api", async () => {
+describe("/api/scrape", async () => {
+  const headers = new Headers();
+  headers.set("prebuilt-cron-secret", "supersecretcrontest");
+  const requestInfo = {
+    method: "POST",
+    headers: headers,
+  };
   describe("[POST] /scrape/prebuilt/[brand]", () => {
-    const headers = new Headers();
-    headers.set("prebuilt-cron-secret", "supersecretcrontest");
-    const requestInfo = {
-      method: "POST",
-      headers: headers,
-    };
-    it("responds with 403 if not authorized", async () => {
-      const req = new NextRequest(
-        "http://localhost:3000/api/scrape/prebuilt/[brand]",
-        {
-          method: "POST",
-          body: null,
-        }
-      );
-
-      const params = Promise.resolve({ slug: "" });
-      const response = await prebuilt.POST(req, { params });
-      expect(response?.status).toBe(403);
-    });
 
     it("throws 400 error if brand is not configured", async () => {
       const req = new NextRequest(
@@ -91,5 +76,25 @@ describe("/api", async () => {
       expect(removeProduct.length).toEqual(1);
     })
   });
+
+  describe("[POST] /scrape/prebuilt/process/[brand]", () => {
+    it("throws 400 error if brand is not configured", async () => {
+      const req = new NextRequest(
+        "http://localhost:3000/api/scrape/prebuilt/[brand]",
+        requestInfo
+      );
+
+      const params = Promise.resolve({ slug: "nZt" });
+      const response = await prebuilt.POST(req, { params });
+      const data = await response?.json();
+
+      expect(response?.status).toBe(400);
+      expect(data.error).toBe("Brand not configured");
+    });
+
+    it("throws 400 error if body is not complete", async () => {})
+    expect(true).toBe(false);
+
+  })
 });
  

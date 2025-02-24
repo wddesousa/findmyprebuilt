@@ -1,9 +1,9 @@
 import { describe } from "vitest";
 import { expect, it } from "vitest";
-import { getFanSize, nzxtFind, scrapeNzxt } from "./scraper";
-import { prebuiltList } from "../utils";
+import { getFanSize, nzxtFind, processNzxtData } from "./nzxt";
 import { air, fan, getFile, liquid, scrapeNzxtResults } from "@/tests/helpers/utils";
-import { NzxtCategorySpecMap } from "./types";
+import { NzxtCategorySpecMap } from "../types/nzxt";
+import nzxtData from '@/tests/data/nzxt-full-info.json';
 
 describe("nzxtFind", async () => {
   const newPrebuilts = [
@@ -33,10 +33,10 @@ describe("getFanSize", async () => {
   });
 });
 
-describe("scrapeNzxt", async () => {
-  it("scrapes prebuilt", async () => {
+describe("processNzxtData", async () => {
+  it("processes nzxt scraped data", async () => {
     const file = getFile("nzxt.html");
-    const nzxt = await scrapeNzxt(file);
+    const nzxt = processNzxtData(nzxtData, file);
     expect(nzxt).toMatchObject(scrapeNzxtResults);
   });
 });

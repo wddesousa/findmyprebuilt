@@ -1,5 +1,6 @@
 import prisma from "@/app/db";
-import { cleanedResults, prebuiltTrackerResults } from "../types";
+import { cleanedResults, prebuiltTrackerResults } from "../../types";
+import { getBrand } from "../../db";
 
 export async function findProductUpdates(brandId: string, slug_list: string[]): Promise<prebuiltTrackerResults> {
     const savedProducts = await prisma.productTracker.findFirst({ where: {brand_id: brandId} });
@@ -16,11 +17,19 @@ export async function findProductUpdates(brandId: string, slug_list: string[]): 
 export async function savePrebuiltScrapeResults(
   newPage: string,
   cleanedPrebuilt: cleanedResults,
-  brandId: string
+  brandName: string
 ) {
 
+  const brand = await getBrand(brandName);
+
+  if (!brand) {
+    throw new Error(`Brand not found: ${brandName}`);
+  }
+
+  const brandId = brand.id;
   const foundPages = await prisma.productTracker.findFirst({where: {brand_id: brandId}});
   const slugs = foundPages ? foundPages.current_products_slugs : [];
+
 
   slugs.push(newPage)
   return await prisma.$transaction([

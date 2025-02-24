@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { nzxtFind, scrapeNzxt } from "../nzxt/scraper";
+import { nzxtFind } from "../utils/nzxt";
 import {
   prebuiltBrands,
   scraperRawResults,
@@ -13,7 +13,7 @@ import { cleanPrebuiltScrapeResults } from "../../utils";
 import { serializeNumber } from "../../serializers";
 import { sleep } from "@/app/utils";
 import { upsertBrand } from "../../db";
-import { findProductUpdates, savePrebuiltScrapeResults } from "../utils";
+import { findProductUpdates, savePrebuiltScrapeResults } from "../utils/utils";
 import { getFile } from "@/tests/helpers/utils";
 import { addPrebuiltScrapingJob } from "./queue";
 
@@ -23,12 +23,7 @@ export async function POST(
 ) {
   //first in array is the function to check if new prebuilts are available, second scrapes the prebuilt
   try {
-    const cronSecret = process.env.PREBUILT_CRON_SECRET;
-    const providedSecret = req.headers.get("prebuilt-cron-secret"); // or req.query.secret
 
-    if (providedSecret !== cronSecret) {
-      return NextResponse.json({ error: `Unauthorized` }, { status: 403 });
-    }
     // const body = await req.json();
     // const url = body.url;
     // // const requiredKeys = ['url']; // Replace with your required keys

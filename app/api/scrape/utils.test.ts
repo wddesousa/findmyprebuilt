@@ -1,4 +1,4 @@
-import { describe, expect, test, it, Vitest, vi } from "vitest";
+import { describe, expect, test, it, vi } from "vitest";
 import {
   cleanPrebuiltScrapeResults,
   getMemoryInfo,
@@ -8,19 +8,14 @@ import {
 } from "./utils";
 import { prismaMock } from "@/app/singleton";
 import { MobaChipset, Prisma, PrismaClient } from "@prisma/client";
-import { NzxtCategorySpecMap } from "./prebuilt/nzxt/types";
 import {
-  air,
   cleanPrebuiltScrapeResultSet,
-  fan,
   getFile,
-  liquid,
   memoryModuleTests,
   psuTests,
   scrapeNzxtResults,
   storageTests,
 } from "@/tests/helpers/utils";
-import { scrapeNzxt } from "./prebuilt/nzxt/scraper";
 import {
   psuResult,
   airCoolerResult,
@@ -34,10 +29,7 @@ import {
   mobaResult,
   ssdStorageResult,
 } from "@/tests/helpers/utils";
-import { cleanedResults, scraperRawResults } from "./types";
-import { saveCaseFan } from "./db";
-import { prebuiltList } from "./prebuilt/utils";
-
+import { scraperRawResults } from "./types";
 describe("getStorageInfo", () => {
   describe("correctly extracts storage info", () => {
     test.each(storageTests)(
@@ -116,7 +108,6 @@ describe("cleanPrebuiltScrapeResults", async () => {
     );
   });
 });
-
 
 describe("parts specs scraper", async () => {
   test.each([

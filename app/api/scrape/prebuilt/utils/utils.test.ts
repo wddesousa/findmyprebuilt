@@ -1,7 +1,7 @@
 import { prismaMock } from "@/app/singleton";
-import { describe, expect, test, it } from "vitest";
+import { describe, expect, test, it, beforeEach } from "vitest";
 import { findProductUpdates, prebuiltList, savePrebuiltScrapeResults } from "./utils";
-import { cleanedResults } from "../types";
+import { cleanedResults } from "../../types";
 import { nzxtPrebuiltLinks } from "@/tests/helpers/utils";
 
 describe("findProductUpdates", () => {
@@ -83,9 +83,12 @@ describe("findProductUpdates", () => {
 });
 
 describe("savePrebuiltScrapeResults", async () => {
+  beforeEach(() => {
+    prismaMock.brand.findFirst.mockResolvedValueOnce({id: 'brandid', name: 'testbrand'})
+  })
   const cleanedPrebuilt = {rawResults: {url: "theurl.com"}}
   it("creates first track record", async () => {
-    await savePrebuiltScrapeResults('newslug.com', cleanedPrebuilt as cleanedResults, "brandid");
+    await savePrebuiltScrapeResults('newslug.com', cleanedPrebuilt as cleanedResults, "testbrand");
 
     expect(prismaMock.newProductQueue.create).toHaveBeenCalledWith({
       data: {

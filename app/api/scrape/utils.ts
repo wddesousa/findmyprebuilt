@@ -3,7 +3,7 @@ import { connect } from "puppeteer-real-browser";
 import prisma from "@/app/db"
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import untypedMap from "./serialization-map.json";
-import { NzxtCategorySpecMap } from "./prebuilt/nzxt/types";
+import { NzxtCategorySpecMap } from "./prebuilt/types";
 import {
   UniversalSerializationMap,
   PrismaModelMap,
