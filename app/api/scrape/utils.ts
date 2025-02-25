@@ -269,17 +269,6 @@ export async function cleanPrebuiltScrapeResults(
 ): Promise<cleanedResults> {
   scrapeResults.prebuiltParts = removeTrademarks(scrapeResults);
 
-  const getNumber = (value: any) => (value ? serializeNumber(value) : null);
-  const findIdByName = async (
-    name: any,
-    model: "operativeSystem" | "gpuChipset" | "mobaChipset"
-  ) =>
-    name
-      ? (await (prisma[model] as any).findUnique({ where: { name: name } }))?.id
-      : null;
-  const cleanGpuBrand = (gpu: string) =>
-    gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
-
   const memoryInfo = getMemoryInfo(scrapeResults.prebuiltParts.ram);
   const mainStorageInfo = await getStorageInfo(
     scrapeResults.prebuiltParts.main_storage
@@ -340,6 +329,18 @@ export async function cleanPrebuiltScrapeResults(
     processedResults: processedResults,
   };
 }
+
+const getNumber = (value: any) => (value ? serializeNumber(value) : null);
+const findIdByName = async (
+  name: any,
+  model: "operativeSystem" | "gpuChipset" | "mobaChipset"
+) =>
+  name
+    ? (await (prisma[model] as any).findUnique({ where: { name: name } }))?.id
+    : null;
+const cleanGpuBrand = (gpu: string) =>
+  gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
+
 
 export function getCpuBrandName(cpu: string) {
   if (cpu.toLowerCase().includes("intel")) return "Intel";
