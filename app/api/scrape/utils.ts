@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer-extra";
 import prisma from "@/app/db";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import * as cheerio from "cheerio";
 import untypedMap from "./serialization-map.json";
 import {
   UniversalSerializationMap,
@@ -111,12 +112,9 @@ export async function getPuppeteerInstance(
   return [browser, page];
 }
 
-export async function scrapeAndSavePart(url: string) {
-  const [browser, page] = await getPuppeteerInstance(url, "nav");
-  const product_type = await page.$eval(".breadcrumb a", (l) =>
-    (l as HTMLAnchorElement).innerText.toLowerCase()
-  );
-
+export async function processPartScrapedData(url: string, scrapedData: string) {
+  const $ = cheerio.load(scrapedData);
+  const product_type = $(".breadcrumb a").text().toLowerCase();
   const productTitleMapping: Record<string, keyof PrismaModelMap> = {
     "video card": "gpu",
     cpu: "cpu",
@@ -136,55 +134,50 @@ export async function scrapeAndSavePart(url: string) {
       `Product type ${product_type} not configured for serialization`
     );
 
-  const serialized = await serializeProduct(productKey, page);
-  await browser.close();
+  const serialized = await serializeProduct(productKey, url, $);
   return serialized;
 }
 
-export async function getSpecName(spec: ElementHandle<Element>) {
-  return spec.$eval(".group__title", (l) =>
-    (l as HTMLHeadingElement).innerText.trim()
-  );
+export async function getSpecName(spec: cheerio.Cheerio) {
+  return spec.find(".group__title").text().trim();
 }
 
-export async function getSpecValue(spec: ElementHandle<Element>) {
-  const value = await spec.evaluate((s) =>
-    s.childNodes[3]?.textContent?.trim()
-  );
+export async function getSpecValue(spec: cheerio.Cheerio) {
+  const value = spec.contents().eq(3).text().trim();
+
   if (value == null || value.trim() === "") {
     throw new Error(`Spec cannot be undefined or empty`);
   }
   return value;
 }
 
-export async function getTitle(page: Page) {
-  return page.$eval(".pageTitle", (l) =>
-    (l as HTMLHeadingElement).innerText.trim()
-  );
+export function getTitle($: cheerio.Root) {
+  return $("title:first").text().trim();
 }
 
 async function serializeProduct<T extends keyof PrismaModelMap>(
   productType: T,
-  page: Page
+  url: string,
+  $: cheerio.Root
 ) {
   const serialized: Partial<PrismaModelMap[T]> = {};
   const map = untypedMap as unknown as UniversalSerializationMap;
-  const mainSpecDiv = await page.$(".block.xs-hide.md-block.specs");
+  const $mainSpecDiv = $(".block.xs-hide.md-block.specs:first");
 
-  if (!mainSpecDiv) throw Error("Main spec div not found");
+  if (!$mainSpecDiv) throw Error("Main spec div not found");
 
-  const specs = await mainSpecDiv.$$(".xs-hide .group--spec");
-  serialized.url = page.url();
+  const specs = $mainSpecDiv.find(".xs-hide .group--spec");
+  serialized.url = url;
 
-  const title = await getTitle(page);
+  const title = $("title:first").text();
 
   const separator = nameSeparators[productType];
 
   if (typeof separator !== "string")
-    serialized.product_name = title.substring(0, await separator(page));
+    serialized.product_name = title.substring(0, await separator($));
 
   for (const spec of specs) {
-    const specName = await getSpecName(spec);
+    const specName = await getSpecName($(spec));
     const mapped = map[productType][specName];
 
     if (typeof mapped === "undefined")
@@ -192,14 +185,13 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
 
     const [snakeSpecName, mappedSpecSerializationType] = mapped;
 
-    const specValue = await getSpecValue(spec);
+    const specValue = await getSpecValue($(spec));
     if (specName === separator)
       serialized.product_name = title.split(specValue)[0];
 
     //
 
     if (mappedSpecSerializationType === "custom") {
-      console.log(snakeSpecName);
       serialized[snakeSpecName] =
         customSerializers[productType]![snakeSpecName]!(specValue);
     } else if (mappedSpecSerializationType === "array") {
@@ -340,7 +332,6 @@ const findIdByName = async (
     : null;
 const cleanGpuBrand = (gpu: string) =>
   gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
-
 
 export function getCpuBrandName(cpu: string) {
   if (cpu.toLowerCase().includes("intel")) return "Intel";

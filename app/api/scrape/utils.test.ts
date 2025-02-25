@@ -1,10 +1,11 @@
 import { describe, expect, test, it, vi } from "vitest";
+import fs from "fs";
 import {
   cleanPrebuiltScrapeResults,
   getMemoryInfo,
   getPsuInfo,
   getStorageInfo,
-  scrapeAndSavePart,
+  processPartScrapedData,
 } from "./utils";
 import { prismaMock } from "@/app/singleton";
 import { MobaChipset, Prisma, PrismaClient } from "@prisma/client";
@@ -30,6 +31,7 @@ import {
   ssdStorageResult,
 } from "@/tests/helpers/utils";
 import { scraperRawResults } from "./types";
+import path from "path";
 describe("getStorageInfo", () => {
   describe("correctly extracts storage info", () => {
     test.each(storageTests)(
@@ -109,7 +111,7 @@ describe("cleanPrebuiltScrapeResults", async () => {
   });
 });
 
-describe("parts specs scraper", async () => {
+describe("processPartScrapedData", async () => {
   test.each([
     ["case_fan", caseFanResult, "caseFan"],
     ["case", caseResult, "case"],
@@ -130,8 +132,13 @@ describe("parts specs scraper", async () => {
     (modelDelegate.create as ReturnType<typeof vi.fn>).mockResolvedValue({
       test: "test",
     });
-    const file = getFile(`${fileName}.html`);
-    await scrapeAndSavePart(file);
+    const file = path.join(
+      __dirname,
+      "../../../tests/data",
+      `${fileName}.html`
+    );
+    const html = fs.readFileSync(file, "utf-8");
+    await processPartScrapedData(file, html);
     expect(modelDelegate.create).toHaveBeenCalledWith(expected);
   });
 });
