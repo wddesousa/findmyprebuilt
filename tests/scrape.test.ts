@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import fs from 'fs';
 import * as prebuiltFind from "@/app/api/scrape/prebuilt/[brand]/route";
 import * as prebuiltProcess from "@/app/api/scrape/prebuilt/process/[brand]/route";
 import nzxtData from './data/nzxt-full-info.json';
 import * as pcparts from "@/app/api/scrape/pcparts/route";
+import * as pcpartsReceiver from "@/app/api/scrape/pcparts/process/route";
 import  prisma from "./helpers/prisma";
 import { trackProducts } from "@/app/db";
 import { upsertBrand } from "@/app/api/scrape/db";
 import { addPrebuiltScrapingJob } from "@/app/api/scrape/prebuilt/[brand]/queue";
 import { addPartcrapingJob } from "@/app/api/scrape/pcparts/queue";
+import {intelChipsets} from './helpers/utils'
+import { Decimal } from "@prisma/client/runtime/library";
 
 describe("/api/scrape", async () => {
 
@@ -116,9 +120,7 @@ describe("/api/scrape", async () => {
     });
 
     it("saves prebuilt data to database", async () => {
-    //   vi.mock('@/app/api/scrape/prebuilt/utils/utils.ts', () => ({
-    //     savePrebuiltScrapeResults: vi.fn()
-    //   }))
+
       const url = 'test.com'
       const data = nzxtData
       const req = new NextRequest(
@@ -143,7 +145,7 @@ describe("/api/scrape", async () => {
 
     it("throws 400 error if body is not complete", async () => {
       const req = new NextRequest(
-        "http://localhost:3000/api/scrape/prebuilt/process/[brand]",
+        "http://localhost:3000",
         {...requestInfo, body: '{}'}
       );
 
@@ -157,7 +159,7 @@ describe("/api/scrape", async () => {
     it("calls perbuilt scraper worker", async () => {
       const url = 'test'
       const req = new NextRequest(
-        "http://localhost:3000/api/scrape/prebuilt/process/[brand]",
+        "http://localhost:3000",
         {...requestInfo, body: JSON.stringify({url})}
       );
 
@@ -168,6 +170,39 @@ describe("/api/scrape", async () => {
       expect(response?.status).toBe(200);
       expect(data.message).toBe("success");
     }) 
+
+  })
+  describe("[POST] /scrape/pcparts/process", () => {
+
+    it("throws 400 error if body is not complete", async () => {
+      const req = new NextRequest(
+        "http://localhost:3000",
+        {...requestInfo, body: '{}'}
+      );
+
+      const response = await pcpartsReceiver.POST(req);
+      const data = await response?.json();
+
+      expect(response?.status).toBe(400);
+      expect(data.error).toBe("The following keys are missing from request: url, scrapedData");
+    }) 
+
+    it("processes pc parts scraped data", async () => {
+      const url = 'test'
+      const data = fs.readFileSync('./tests/data/moba.html', 'utf-8')
+      const req = new NextRequest(
+        "http://localhost:3000",
+        {...requestInfo, body: JSON.stringify({url, scrapedData: data})}
+      );
+
+      await prisma.brand.create({data: {name: 'Intel', id: intelChipsets[4].brand_id}})
+      await prisma.mobaChipset.create({data: intelChipsets[4]})
+
+      const response = await pcpartsReceiver.POST(req);
+
+      expect(response?.status).toBe(200);
+      const moba = await prisma.mobaChipset.findFirst({});
+      expect(moba).toMatchObject({...intelChipsets[4], pci_generation: new Decimal(4)})    }) 
 
   })
 });

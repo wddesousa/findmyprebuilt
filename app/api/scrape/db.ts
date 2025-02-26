@@ -187,6 +187,7 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
       socket: true,
     },
   };
+  console.log(specs.chipset_id)
   return prisma.moba.create(data);
 }
 

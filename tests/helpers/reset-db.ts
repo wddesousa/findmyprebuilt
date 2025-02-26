@@ -9,6 +9,7 @@ export default async () => {
     prisma.storageType.deleteMany(),
     prisma.newProductQueue.deleteMany(),
     prisma.productTracker.deleteMany(),
+    prisma.mobaChipset.deleteMany(),
     prisma.brand.deleteMany(),
   ])
 }
