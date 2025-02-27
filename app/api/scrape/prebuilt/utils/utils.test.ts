@@ -94,7 +94,7 @@ describe("savePrebuiltScrapeResults", async () => {
       data: {
         type: "ADD",
         website_url: cleanedPrebuilt.rawResults.url,
-        scraped_data: JSON.stringify(cleanedPrebuilt),
+        scraped_data: cleanedPrebuilt,
       },
     });
     expect(prismaMock.productTracker.upsert).toHaveBeenCalledWith({

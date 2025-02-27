@@ -133,7 +133,7 @@ describe("/api/scrape", async () => {
       expect(response?.status).toBe(200);
       
       const queued = await prisma.newProductQueue.findFirst({where: {type: "ADD"}});
-      expect(queued).toMatchObject({scraped_data: expect.any(String), website_url: url})
+      expect(queued).toMatchObject({scraped_data: expect.any(Object), website_url: url})
     })
 
   })

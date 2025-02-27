@@ -37,7 +37,7 @@ export async function savePrebuiltScrapeResults(
       data: {
         type: "ADD",
         website_url: cleanedPrebuilt.rawResults.url,
-        scraped_data: JSON.stringify(cleanedPrebuilt),
+        scraped_data: cleanedPrebuilt,
       },
     }),
     prisma.productTracker.upsert({

@@ -105,6 +105,7 @@ describe("cleanPrebuiltScrapeResults", async () => {
       ...scrapeNzxtResults,
       prebuiltParts: { ...scrapeNzxtResults.prebuiltParts, moba: "a chipset" },
     } as unknown as scraperRawResults);
+
     expect(cleanedResults.processedResults).toEqual(
       cleanPrebuiltScrapeResultSet
     );
