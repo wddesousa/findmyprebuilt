@@ -8,9 +8,9 @@ import { scraperRawResults } from "../../types";
 import { NzxtSpecCategory, NZXTSpecs, NzxtCategorySpecMap, NzxtSpecValues } from "../types/nzxt";
 
 export function  processNzxtData(data: any, url: string):  scraperRawResults {
-  const specs = data.props.pageProps.data.techTable as NzxtSpecValues[];
-  const baseProductInfo =
-    data.props.pageProps.data.decoratedDefaultUpgradeProducts[0];
+  const nzxtData = data.props.pageProps.data
+  const specs = nzxtData.techTable as NzxtSpecValues[];
+  const baseProductInfo = nzxtData.decoratedDefaultUpgradeProducts[0];
   const images = baseProductInfo.images as { url: string }[];
   const gamePerformance = baseProductInfo.fps;
 
@@ -62,6 +62,7 @@ export function  processNzxtData(data: any, url: string):  scraperRawResults {
     images: images.map((image) => image.url),
     performance: performance,
     url: url,
+    name: nzxtData.productName
   };
 }
 

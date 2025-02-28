@@ -628,6 +628,8 @@ export const scrapeNzxtResults = {
   //     R2160P: expect.any(Number),
   //   }),
   // }),
+  url: expect.stringContaining(".html"),
+  name: "Player: One"
 };
 
 export const psuTests = [

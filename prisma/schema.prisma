@@ -101,7 +101,7 @@ model Prebuilt {
   main_storage_type_id      String
   secondary_storage_type    StorageType?    @relation("Prebuilt_SecondaryStorageType", fields: [secondary_storage_type_id], references: [id])
   secondary_storage_type_id String
-  cpu_variation             Cpu             @relation(fields: [cpu_id], references: [product_id])
+  cpu                       Cpu             @relation(fields: [cpu_id], references: [product_id])
   cpu_id                    String
   parts                     PrebuiltParts?
   performance               Performance[]

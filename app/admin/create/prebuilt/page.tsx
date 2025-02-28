@@ -9,14 +9,16 @@ async function getQueuedPrebuilt() {
 export default async function Page() {
   const queued = await getQueuedPrebuilt();
 
-  console.log(queued);
+  console.log(queued?.scraped_data);
   return (
     <>
       <h1>test</h1>
       {queued ? (
         <NewPrebuiltForm
           rawResults={(queued?.scraped_data as cleanedResults)?.rawResults}
-          processedResults={(queued?.scraped_data as cleanedResults)?.processedResults}
+          processedResults={
+            (queued?.scraped_data as cleanedResults)?.processedResults
+          }
         />
       ) : (
         <div>No queued prebuilt found</div>

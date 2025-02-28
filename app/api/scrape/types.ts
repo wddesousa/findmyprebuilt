@@ -115,12 +115,15 @@ export type scraperRawResults = {
     warranty_months: rawResult;
     wireless: boolean | null | undefined;
   };
-  prebuiltParts: { [K in keyof PartsMap]: rawResult };
+  prebuiltParts: prebuiltParts
   specsHtml: string; //save here the raw hmlt of specs to detect changes in the future
   images: string[];
   performance?: gamePerformance;
   url: string;
+  name: string;
 };
+
+export type prebuiltParts = Record<keyof PartsMap, rawResult> ;
 
 export type cleanedResults = {
   rawResults: scraperRawResults;

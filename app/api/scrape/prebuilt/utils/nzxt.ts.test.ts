@@ -37,6 +37,6 @@ describe("processNzxtData", async () => {
   it("processes nzxt scraped data", async () => {
     const file = getFile("nzxt.html");
     const nzxt = processNzxtData(nzxtData, file);
-    expect(nzxt).toMatchObject(scrapeNzxtResults);
+    expect(nzxt).toStrictEqual(scrapeNzxtResults);
   });
 });

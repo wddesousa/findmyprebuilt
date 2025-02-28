@@ -764,6 +764,7 @@ export const prebuiltForUpload = {
     performance: {
         "League of Legends": { R1080P: 200, R1440P: 200, R2160P: 200 },
       },
+    name: "Player: One"
   },
   processedResults: {
     base_price: "829",
