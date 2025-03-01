@@ -3,7 +3,8 @@ import {
   scrapeAmdMobaChipsets,
   scrapeIntelMobaChipsets,
 } from "@/app/api/scrape/mobachipsets/utils";
-import { prebuiltForUpload, intelChipsets } from "./data";
+import { prebuiltForUpload } from "./data.development";
+import { intelChipsets } from "./data"
 
 async function main() {
   // if (!await prisma.mobaChipset.findFirst({where: {brand: {name: 'AMD'}}})) {

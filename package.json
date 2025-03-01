@@ -13,10 +13,11 @@
     "test:int": "npm run docker:up && dotenv -e .env.test -- npx prisma db push && dotenv -e .env.test -- vitest --bail=1 -c ./vitest.config.integration.ts",
     "test:unit": "dotenv -e .env.test -- vitest --bail=1 -c ./vitest.config.unit.ts",
     "test:unit:ui": "dotenv -e .env.test -- vitest -c ./vitest.config.unit.ts --ui",
-    "migrate:reset": "dotenv -e .env.development -- npx prisma migrate reset"
+    "migrate:reset": "dotenv -e .env.development -- npx prisma migrate reset && dotenv -e .env.development -- prisma db seed",
+    "seed:dev": "dotenv -e .env.development -- tsx prisma/seed.development.ts"
   },
   "prisma": {
-    "seed": "dotenv -e .env.development -- tsx prisma/seed.ts"
+    "seed": "dotenv -e .env.development -- tsx prisma/seed.development.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.1",
