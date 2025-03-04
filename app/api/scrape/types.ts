@@ -95,7 +95,7 @@ type PartsMap = {
   cpu_cooler: Cooler;
 };
 
-type rawResult = string | null | undefined;
+export type rawResult = string | null | undefined;
 
 type gamePerformance = Record<
   string,

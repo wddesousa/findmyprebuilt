@@ -2,28 +2,15 @@
 
 import { useActionState, useState } from "react";
 import { submitPrebuilt } from "../action";
-import { cleanedResults, prebuiltParts } from "@/app/api/scrape/types";
-import { inputMap } from "../utils";
-import { useDebounce, useDebouncedCallback } from "use-debounce";
-import axios from "axios";
-import { ExecFileSyncOptionsWithStringEncoding } from "child_process";
+import {
+  cleanedResults,
+  prebuiltParts,
+  rawResult,
+} from "@/app/api/scrape/types";
+import { inputMap, searchValue } from "../utils";
+import { useDebouncedCallback } from "use-debounce";
 import { prebuiltForeignValues } from "../types";
-
-const searchValue = async (target: HTMLInputElement) => {
-  const { name, value } = target;
-  const params = new URLSearchParams({ keyword: value });
-  return axios
-    .get(
-      `${process.env.NEXT_PUBLIC_AUTOCOMPLETE_URL}/${name}?keyword=${params.toString()}`
-    )
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      return [];
-    });
-};
+import { productSearchResult } from "@/app/types";
 
 const CheckboxInput = ({
   label,
@@ -38,12 +25,7 @@ const CheckboxInput = ({
     <div>
       <label>
         {label}
-        <input
-          type="checkbox"
-          name={name}
-          key={name}
-          defaultChecked={defaultChecked}
-        />
+        <input type="checkbox" name={name} defaultChecked={defaultChecked} />
       </label>
       <br />
     </div>
@@ -67,7 +49,6 @@ const TextInput = ({
           type="text"
           className="text-black"
           name={name}
-          key={name}
           defaultValue={defaultValue}
         />
       </label>
@@ -76,11 +57,17 @@ const TextInput = ({
   );
 };
 
-const Option = ({realValue, displayValue, defaultSelected}: {realValue: string, displayValue: string, defaultSelected:string}) => {
-return <option value={realValue} defaultValue={defaultSelected}>{displayValue}</option>
-}
+const Option = ({
+  realValue,
+  displayValue,
+}: {
+  realValue: string;
+  displayValue: string;
+}) => {
+  return <option value={realValue}>{displayValue}</option>;
+};
 
-const DropdownInput = ({
+export const DropdownInput = ({
   label,
   name,
   defaultValue,
@@ -88,23 +75,26 @@ const DropdownInput = ({
 }: {
   label: string;
   name: string;
-  defaultValue: string
+  defaultValue: string;
   databaseValues: prebuiltForeignValues;
 }) => {
-  const key = name as keyof prebuiltForeignValues
+  const key = name as keyof prebuiltForeignValues;
+
   if (!(name in databaseValues))
-  throw Error(`dropdown not configured for ${name}`)
+    throw Error(`dropdown not configured for ${name}`);
+
   return (
     <div>
       <label>
         {label}
-        <select
-          className="text-black"
-          name={name}
-          key={name}
-        >
-          {databaseValues[key].map((option) => <Option displayValue={option.name} realValue={option.id} defaultSelected={defaultValue}/>)}
-          
+        <select className="text-black" name={name} defaultValue={defaultValue}>
+          {databaseValues[key].map((option) => (
+            <Option
+              key={option.id}
+              displayValue={option.name}
+              realValue={option.id}
+            />
+          ))}
         </select>
       </label>
       <br />
@@ -112,12 +102,12 @@ const DropdownInput = ({
   );
 };
 
-const MainSpecsInputs = ({
+export const MainSpecsInputs = ({
   processedResults,
-  databaseValues
+  databaseValues,
 }: {
   processedResults: cleanedResults["processedResults"];
-  databaseValues: prebuiltForeignValues
+  databaseValues: prebuiltForeignValues;
 }) => {
   return Object.keys(processedResults).map((spec) => {
     const key = spec as keyof cleanedResults["processedResults"];
@@ -130,6 +120,7 @@ const MainSpecsInputs = ({
             defaultChecked={value === true}
             name={key}
             label={key}
+            key={key}
           />
         );
       case "text":
@@ -138,6 +129,7 @@ const MainSpecsInputs = ({
             defaultValue={(value as string) ?? undefined}
             name={key}
             label={key}
+            key={key}
           />
         );
       case "number":
@@ -146,6 +138,7 @@ const MainSpecsInputs = ({
             defaultValue={(value as string) ?? undefined}
             name={key}
             label={key}
+            key={key}
           />
         );
       case "dropdown":
@@ -153,9 +146,9 @@ const MainSpecsInputs = ({
           <DropdownInput
             name={key}
             label={key}
+            key={key}
             databaseValues={databaseValues}
             defaultValue={value as string}
-
           />
         );
     }
@@ -163,77 +156,52 @@ const MainSpecsInputs = ({
   // return <input type={typeMapping[key as keyof cleanedResults["processedResults"]]} name={key} defaultValue={processedResults[key as keyof cleanedResults["processedResults"]] as string} />
 };
 
-const SearchPartInputs = ({
-  prebuiltParts,
-}: {
-  prebuiltParts: prebuiltParts;
-}) => {
-  return (
-    //TODO:SEARCH THESE IN DATABASE
-    Object.keys(prebuiltParts).map((part) => {
-      const key = part as keyof prebuiltParts; // Type assertion
-      return (
-        <>
-          <label htmlFor={part}>{part} </label>
-          <input
-            className="text-black"
-            type="text"
-            name={part}
-            defaultValue={prebuiltParts[key] ?? undefined}
-          />
-          <br />
-        </>
-      );
-    })
-  );
-};
-
-const SearchInput = ({
+export const SearchInput = ({
   name,
   defaultValue,
 }: {
-  name: string;
-  defaultValue?: string;
+  name: keyof prebuiltParts;
+  defaultValue?: rawResult;
 }) => {
-  //this will call for results in db to associate pc parts with the prebuilt. Call this component if the scraper didn't find an id in the database for the part
-  const [results, setResults] = useState([{}]);
-  const [partName, setPartName] = useState(undefined);
+  const [results, setResults] = useState<productSearchResult[]>([]);
+  const [partName, setPartName] = useState<string>();
 
-  const debounced = useDebouncedCallback(
-    // function
-    async (target: HTMLInputElement) => {
-      const data = await searchValue(target);
-      setResults(data);
-    },
-    // delay in ms
-    300
-  );
+  const debounced = useDebouncedCallback(async (target: HTMLInputElement) => {
+    const data = await searchValue(target);
+    setResults(data);
+  }, 300);
 
-  const handleClick = (e) => {
-    setPartName(result.name);
-    setResults([{}]);
+  const handleClick = (productName: string) => {
+    setPartName(productName);
+    setResults([]);
   };
 
   return (
     <>
-      <label htmlFor={name}>{name}</label>
-      <input
-        type="text"
-        className="text-black"
-        name={name}
-        key={name}
-        value={partName}
-        defaultValue={defaultValue}
-        onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) =>
-          debounced(e.target as HTMLInputElement)
-        }
-      />
+      <label htmlFor={name}>
+        {name}
+        <input
+          type="text"
+          className="text-black"
+          name={name}
+          value={partName}
+          defaultValue={defaultValue ?? undefined}
+          onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            debounced(e.target as HTMLInputElement);
+          }}
+        />
+      </label>
       {results.length > 0 && (
-        <div className="results">
-          {results.map((result) => (
-            <div onClick={handleClick}></div>
-          ))}
-        </div>
+        <ul className="results">
+          {results.map((result) => {
+            console.log(result);
+            return (
+              <li key={result.slug} onClick={() => handleClick(result.name)}>
+                {result.name}
+              </li>
+            );
+          })}
+        </ul>
       )}
       <br></br>
     </>
@@ -243,15 +211,22 @@ const SearchInput = ({
 export default function NewPrebuiltForm({
   processedResults,
   rawResults,
-  databaseValues
-}: {processedResults: cleanedResults["processedResults"], rawResults: cleanedResults["rawResults"], databaseValues: prebuiltForeignValues}) {
+  databaseValues,
+}: {
+  processedResults: cleanedResults["processedResults"];
+  rawResults: cleanedResults["rawResults"];
+  databaseValues: prebuiltForeignValues;
+}) {
   const [state, action, pending] = useActionState(submitPrebuilt, undefined);
   const [prebuilt, setPrebuilt] = useState({ processedResults, rawResults });
 
   return (
     <form key="form" action={action}>
       <h2 className="text-xl">Basic Specs</h2>
-      <MainSpecsInputs processedResults={processedResults} databaseValues={databaseValues}  />
+      <MainSpecsInputs
+        processedResults={processedResults}
+        databaseValues={databaseValues}
+      />
       <br />
 
       <h2 className="text-xl">Parts</h2>
@@ -260,7 +235,8 @@ export default function NewPrebuiltForm({
         return (
           <SearchInput
             name={key}
-            defaultValue={rawResults.prebuiltParts[key] ?? undefined}
+            defaultValue={rawResults.prebuiltParts[key]}
+            key={key}
           />
         );
       })}

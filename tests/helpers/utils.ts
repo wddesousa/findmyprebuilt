@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
+import { CpuCoolerType, Prisma, PsuRating } from "@prisma/client";
 import path from "path";
 import { pathToFileURL } from "url";
 import { expect } from "vitest";
-
+import type {prebuiltForeignValues} from "@/app/admin/create/prebuilt/types"
 export const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "../data", filename)).href;
 
@@ -560,10 +560,44 @@ export const memoryResult = {
   include: { product: { include: { brand: true } }, memory_speed: true },
 };
 
+export const prebuiltExternalValues: prebuiltForeignValues = {
+  os_id: [
+    { id: 'mLdWVo-klZjblMKNeUlFM', name: 'Windows 11 Home' },
+    { id: 'K6eJ4Ak--L6Zsu3gu8uMv', name: 'Windows 11 Pro' },
+    { id: 'B7OW18mNJA8dh0cKq0IG4', name: 'macOS Monterey' },
+    { id: 'NI0Z2TtKmo9ckKRZAQFs-', name: 'Ubuntu 20.04 LTS' },
+    { id: 'FAEcoi3_br9gS6CS9mGQ_', name: 'Fedora 35' },
+    { id: '7rUK5ippFx0RDcIm4X-8A', name: 'Chrome OS' },
+    { id: '9gRiINUOxQyUZGih3SPpy', name: 'Windows 10' }
+  ],
+  gpu_chipset_id: [ { id: 'fxS2xi2CH8flp2J6XiBVr', name: 'GeForce RTX 3050' } ],
+  cpu_cooler_type: [ { name: 'AIR', id: 'AIR' }, { name: 'LIQUID', id: 'LIQUID' } ],
+  memory_speed_id: [ { id: '_nzmuJAzx1kwnlqZnewOz', name: 'DDR5 5200' } ],
+  moba_chipset_id: [{
+    id: '_1fyazPe4BDuzIZvkjgLk',
+    name: 'Q870',
+  }],
+  main_storage_type_id: [
+    { id: '0UZmNb5f3pxFabBkykne3', name: 'SSD' },
+    { id: 'IjWROHFtMUUewcZBkusQg', name: '7200 RPM' }
+  ],
+  secondary_storage_type_id: [
+    { id: '0UZmNb5f3pxFabBkykne3', name: 'SSD' },
+    { id: 'IjWROHFtMUUewcZBkusQg', name: '7200 RPM' }
+  ],
+  psu_efficiency_rating: [
+    { id: 'BRONZE', name: 'BRONZE' },
+    { id: 'GOLD', name: 'GOLD' },
+    { id: 'PLATINUM', name: 'PLATINUM' },
+    { id: 'SILVER', name: 'SILVER' },
+    { id: 'TITANIUM', name: 'TITANIUM' }
+  ]
+}
+
 export const cleanPrebuiltScrapeResultSet = {
   base_price: new Prisma.Decimal(829),
   cpu_cooler_mm: 120,
-  cpu_cooler_type: "AIR",
+  cpu_cooler_type: CpuCoolerType.AIR,
   customizable: true,
   front_fan_mm: 120,
   rear_fan_mm: 120,
@@ -579,7 +613,7 @@ export const cleanPrebuiltScrapeResultSet = {
   memory_speed_id: "1",
   warranty_months: 24,
   wireless: undefined,
-  psu_efficiency_rating: "GOLD",
+  psu_efficiency_rating: PsuRating.GOLD,
   psu_wattage: 650,
 };
 

@@ -2,6 +2,8 @@ import { cleanedResults } from "@/app/api/scrape/types";
 import prisma from "@/app/db";
 import { CpuCoolerType, PsuRating } from "@prisma/client";
 import { prebuiltForeignValues, foreignValues } from "./types";
+import axios from "axios";
+import { productSearchResult } from "@/app/types";
 
 export const inputMap: Record<
   keyof cleanedResults["processedResults"],
@@ -34,13 +36,15 @@ export async function getQueuedPrebuilt() {
 }
 
 export async function getForeignValues(): Promise<prebuiltForeignValues> {
+  const storageTypes = await getStorageTypes()
   return {
     os_id: await getOperativeSystems(),
     gpu_chipset_id: await getGpuChipsets(),
     cpu_cooler_type: await getCpuCoolerTypes(),
     memory_speed_id: await getMemorySpeeds(),
     moba_chipset_id: await getMobaChipsets(),
-    main_storage_type_id: await getMainStorageTypes(),
+    main_storage_type_id: storageTypes,
+    secondary_storage_type_id: storageTypes,
     psu_efficiency_rating: await getPsuEfficiencyRatings(),
   };
 }
@@ -78,7 +82,7 @@ export async function getMobaChipsets(): Promise<foreignValues[]> {
   return JSON.parse(JSON.stringify(chipsets));
 }
 
-export async function getMainStorageTypes(): Promise<foreignValues[]> {
+export async function getStorageTypes(): Promise<foreignValues[]> {
   return prisma.storageType.findMany({});
 }
 
@@ -94,3 +98,17 @@ export async function getPsuEfficiencyRatings(): Promise<foreignValues[]> {
     name: rating,
   }));
 }
+export const searchValue = async (target: HTMLInputElement) => {
+  const { name, value } = target;
+  const params = new URLSearchParams({ keyword: value });
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_AUTOCOMPLETE_URL}/${name}?keyword=${params.toString()}`
+    );
+    return response.data as productSearchResult[];
+  } catch (error) {
+    console.error("Error:", error);
+  }
+  return [];
+
+};

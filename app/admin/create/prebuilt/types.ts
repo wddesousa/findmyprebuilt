@@ -10,6 +10,6 @@ export interface foreignValues {
     memory_speed_id: foreignValues[];
     moba_chipset_id: foreignValues[];
     main_storage_type_id: foreignValues[];
+    secondary_storage_type_id: foreignValues[];
     psu_efficiency_rating: foreignValues[];
   };
-  

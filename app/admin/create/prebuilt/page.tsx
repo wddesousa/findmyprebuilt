@@ -6,8 +6,6 @@ import { getQueuedPrebuilt, getForeignValues } from "./utils";
 export default async function Page() {
   const queued = await getQueuedPrebuilt();
   const databaseValues = await getForeignValues();
-  console.log(queued?.scraped_data);
-  console.log("CHIPSETS", databaseValues.moba_chipset_id)
   return (
     <>
       <h1>test</h1>
