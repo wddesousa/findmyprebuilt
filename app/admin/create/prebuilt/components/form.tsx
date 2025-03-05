@@ -1,16 +1,16 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import React, { useActionState, useEffect, useState } from "react";
 import { submitPrebuilt } from "../action";
 import {
   cleanedResults,
   prebuiltParts,
   rawResult,
 } from "@/app/api/scrape/types";
-import { inputMap, searchValue } from "../utils";
 import { useDebouncedCallback } from "use-debounce";
 import { prebuiltForeignValues } from "../types";
 import { productSearchResult } from "@/app/types";
+import { fetchPrebuilt, inputMap, searchValue } from "../utils/client";
 
 const CheckboxInput = ({
   label,
@@ -164,12 +164,19 @@ export const SearchInput = ({
   defaultValue?: rawResult;
 }) => {
   const [results, setResults] = useState<productSearchResult[]>([]);
-  const [partName, setPartName] = useState<string>();
+  const [partName, setPartName] = useState<string>(
+    defaultValue ? defaultValue : ""
+  );
 
   const debounced = useDebouncedCallback(async (target: HTMLInputElement) => {
     const data = await searchValue(target);
     setResults(data);
   }, 300);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debounced(e.currentTarget);
+    setPartName(e.currentTarget.value);
+  };
 
   const handleClick = (productName: string) => {
     setPartName(productName);
@@ -185,16 +192,12 @@ export const SearchInput = ({
           className="text-black"
           name={name}
           value={partName}
-          defaultValue={defaultValue ?? undefined}
-          onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) => {
-            debounced(e.target as HTMLInputElement);
-          }}
+          onChange={onChange}
         />
       </label>
       {results.length > 0 && (
         <ul className="results">
           {results.map((result) => {
-            console.log(result);
             return (
               <li key={result.slug} onClick={() => handleClick(result.name)}>
                 {result.name}
@@ -205,6 +208,44 @@ export const SearchInput = ({
       )}
       <br></br>
     </>
+  );
+};
+
+export const  ProductNameInput = ({
+  brandName,
+  prebuiltName,
+}: {
+  brandName: string;
+  prebuiltName: string;
+}) => {
+  const fullName = `${brandName} ${prebuiltName}`
+  const [productName, setProductName] = useState<string>(fullName);
+  const [prebuiltExists, setPrebuiltExists] = useState<boolean>(false);
+
+  const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.currentTarget.value;
+    setProductName(value);
+
+    if (value.length > 5) {
+      const result = await fetchPrebuilt(value);
+      setPrebuiltExists(result.length > 0);
+    }
+  };
+
+  useEffect(() => {
+    if (prebuiltExists) {
+      alert("Product already exists!");
+    }
+  }, [prebuiltExists]);
+  return (
+    <input
+      className="text-black"
+      type="text"
+      name="name"
+      id="name"
+      value={productName}
+      onChange={onChange}
+    />
   );
 };
 
@@ -222,6 +263,11 @@ export default function NewPrebuiltForm({
 
   return (
     <form key="form" action={action}>
+      <h2>Main Info</h2>
+      <ProductNameInput
+        brandName={rawResults.brandName}
+        prebuiltName={rawResults.name}
+      />
       <h2 className="text-xl">Basic Specs</h2>
       <MainSpecsInputs
         processedResults={processedResults}

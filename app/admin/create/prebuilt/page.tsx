@@ -1,7 +1,7 @@
 import NewPrebuiltForm from "./components/form";
 import prisma from "@/app/db";
 import { cleanedResults } from "@/app/api/scrape/types";
-import { getQueuedPrebuilt, getForeignValues } from "./utils";
+import { getQueuedPrebuilt, getForeignValues } from "./utils/db";
 
 export default async function Page() {
   const queued = await getQueuedPrebuilt();

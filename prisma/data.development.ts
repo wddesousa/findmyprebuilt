@@ -39,7 +39,8 @@ export const prebuiltForUpload: cleanedResults = {
     performance: {
         "League of Legends": { R1080P: 200, R1440P: 200, R2160P: 200 },
       },
-    name: "Player: One"
+    name: "Player: One",
+    brandName: "NZXT"
   },
   processedResults: {
     base_price: new Decimal(829),

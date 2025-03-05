@@ -28,7 +28,7 @@ type ProductSpecs = Omit<
     socket: string;
     brand: string;
   } & Product,
-  "product_id" | "brand_id" | "name"
+  "id" | "brand_id" | "name"
 >;
 
 export type mobaAmdChipsetIndexes = {
@@ -121,6 +121,7 @@ export type scraperRawResults = {
   performance?: gamePerformance;
   url: string;
   name: string;
+  brandName: prebuiltBrands
 };
 
 export type prebuiltParts = Record<keyof PartsMap, rawResult> ;

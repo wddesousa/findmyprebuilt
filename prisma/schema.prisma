@@ -17,7 +17,7 @@ datasource db {
 }
 
 model Product {
-  id                  String      @id @default(nanoid()) @map("product_id")
+  id                  String      @id @default(nanoid())
   name                String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
   type                ProductType
   brand               Brand       @relation(fields: [brand_id], references: [id])

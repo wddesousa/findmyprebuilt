@@ -21,7 +21,7 @@ CREATE TYPE "TypeOfEdit" AS ENUM ('ADD', 'REMOVE', 'UPDATE');
 
 -- CreateTable
 CREATE TABLE "Product" (
-    "product_id" TEXT NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "type" "ProductType" NOT NULL,
     "brand_id" TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE "Product" (
     "slug" TEXT NOT NULL,
     "is_retired" BOOLEAN NOT NULL DEFAULT false,
 
-    CONSTRAINT "Product_pkey" PRIMARY KEY ("product_id")
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -526,7 +526,7 @@ CREATE INDEX "_CoolerToSocket_B_index" ON "_CoolerToSocket"("B");
 ALTER TABLE "Product" ADD CONSTRAINT "Product_brand_id_fkey" FOREIGN KEY ("brand_id") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -574,19 +574,19 @@ ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_front_fan_id_fkey" FOR
 ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_back_fan_id_fkey" FOREIGN KEY ("back_fan_id") REFERENCES "CaseFan"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Storage" ADD CONSTRAINT "Storage_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Storage" ADD CONSTRAINT "Storage_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Storage" ADD CONSTRAINT "Storage_storage_type_id_fkey" FOREIGN KEY ("storage_type_id") REFERENCES "StorageType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Case" ADD CONSTRAINT "Case_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Case" ADD CONSTRAINT "Case_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CaseFan" ADD CONSTRAINT "CaseFan_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CaseFan" ADD CONSTRAINT "CaseFan_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Memory" ADD CONSTRAINT "Memory_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Memory" ADD CONSTRAINT "Memory_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Memory" ADD CONSTRAINT "Memory_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -595,22 +595,22 @@ ALTER TABLE "Memory" ADD CONSTRAINT "Memory_memory_speed_id_fkey" FOREIGN KEY ("
 ALTER TABLE "Price" ADD CONSTRAINT "Price_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Price" ADD CONSTRAINT "Price_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Price" ADD CONSTRAINT "Price_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Gpu" ADD CONSTRAINT "Gpu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Gpu" ADD CONSTRAINT "Gpu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Gpu" ADD CONSTRAINT "Gpu_chipset_id_fkey" FOREIGN KEY ("chipset_id") REFERENCES "GpuChipset"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Cpu" ADD CONSTRAINT "Cpu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Cpu" ADD CONSTRAINT "Cpu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Cpu" ADD CONSTRAINT "Cpu_socket_id_fkey" FOREIGN KEY ("socket_id") REFERENCES "Socket"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Moba" ADD CONSTRAINT "Moba_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Moba" ADD CONSTRAINT "Moba_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Moba" ADD CONSTRAINT "Moba_socket_id_fkey" FOREIGN KEY ("socket_id") REFERENCES "Socket"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -631,10 +631,10 @@ ALTER TABLE "MobaM2SlotsOnMobas" ADD CONSTRAINT "MobaM2SlotsOnMobas_moba_id_fkey
 ALTER TABLE "MobaM2SlotsOnMobas" ADD CONSTRAINT "MobaM2SlotsOnMobas_mobaM2Slots_id_fkey" FOREIGN KEY ("mobaM2Slots_id") REFERENCES "MobaM2Slots"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Cooler" ADD CONSTRAINT "Cooler_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Cooler" ADD CONSTRAINT "Cooler_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Psu" ADD CONSTRAINT "Psu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Psu" ADD CONSTRAINT "Psu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Performance" ADD CONSTRAINT "Performance_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "Game"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,8 +1,15 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  queryByRole,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { describe, it, expect, vi, afterAll, beforeEach } from "vitest";
 import { DropdownInput, MainSpecsInputs, SearchInput } from "./form";
-import { searchValue } from "../utils";
+import { searchValue } from "../utils/client";
 import {
   cleanPrebuiltScrapeResultSet,
   prebuiltExternalValues,
@@ -69,7 +76,7 @@ describe("SearchInput", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
-  it("searches and sets products", async () => {
+  it("searches and sets values", async () => {
     vi.mock("../utils", async (importOriginal) => {
       const actualUtils = (await importOriginal()) as any; // Import the actual module
       return {
@@ -89,8 +96,13 @@ describe("SearchInput", () => {
     await userEvent.type(input, "new value");
     vi.advanceTimersByTime(300);
     expect(searchValue).toHaveBeenCalledWith(input);
+
     const results = await screen.findAllByRole("listitem");
     expect(results).toHaveLength(2);
     expect(results[0]).toHaveTextContent("result 1");
+
+    await userEvent.click(results[0]);
+    expect(input).toHaveValue("result 1");
+    expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
   });
 });

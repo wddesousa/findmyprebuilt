@@ -62,7 +62,8 @@ export function  processNzxtData(data: any, url: string):  scraperRawResults {
     images: images.map((image) => image.url),
     performance: performance,
     url: url,
-    name: nzxtData.productName
+    name: nzxtData.productName,
+    brandName: "NZXT"
   };
 }
 
