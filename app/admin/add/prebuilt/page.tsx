@@ -11,10 +11,7 @@ export default async function Page() {
       <h1>test</h1>
       {queued ? (
         <NewPrebuiltForm
-          rawResults={(queued?.scraped_data as cleanedResults)?.rawResults}
-          processedResults={
-            (queued?.scraped_data as cleanedResults)?.processedResults
-          }
+        cleanedResults={queued?.scraped_data as cleanedResults}
           databaseValues={databaseValues}
         />
       ) : (

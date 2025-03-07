@@ -11,7 +11,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { prebuiltForeignValues } from "../types";
 import { productSearchResult } from "@/app/types";
 import { fetchPrebuilt, inputMap, searchValue } from "../utils/client";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const CheckboxInput = ({
   label,
@@ -22,11 +22,13 @@ const CheckboxInput = ({
   name: string;
   defaultChecked: boolean;
 }) => {
+  const [checked, setChecked] = useState<boolean>(defaultChecked)
+
   return (
     <div>
       <label>
         {label}
-        <input type="checkbox" name={name} defaultChecked={defaultChecked} />
+        <input type="checkbox" name={name} checked={checked} onChange={(e) => setChecked(e.currentTarget.checked)} />
       </label>
       <br />
     </div>
@@ -42,6 +44,8 @@ const TextInput = ({
   name: string;
   defaultValue: string;
 }) => {
+  const [value, setValue] = useState<string>(defaultValue ?? '')
+
   return (
     <div>
       <label>
@@ -50,7 +54,8 @@ const TextInput = ({
           type="text"
           className="text-black"
           name={name}
-          defaultValue={defaultValue}
+          value={value}
+          onChange={(e) => setValue(e.currentTarget.value)}
         />
       </label>
       <br />
@@ -80,7 +85,7 @@ export const DropdownInput = ({
   databaseValues: prebuiltForeignValues;
 }) => {
   const key = name as keyof prebuiltForeignValues;
-
+  const [selected, setSelected] = useState<string>(defaultValue ?? '')
   if (!(name in databaseValues))
     throw Error(`dropdown not configured for ${name}`);
 
@@ -88,7 +93,11 @@ export const DropdownInput = ({
     <div>
       <label>
         {label}
-        <select className="text-black" name={name} defaultValue={defaultValue}>
+        <select className="text-black" name={name} value={selected} onChange={(e) => setSelected(e.currentTarget.value)}>
+        <Option
+              displayValue={'Select'}
+              realValue={''}
+            />
           {databaseValues[key].map((option) => (
             <Option
               key={option.id}
@@ -106,53 +115,59 @@ export const DropdownInput = ({
 export const MainSpecsInputs = ({
   processedResults,
   databaseValues,
+  state,
 }: {
   processedResults: cleanedResults["processedResults"];
   databaseValues: prebuiltForeignValues;
+  state: any;
 }) => {
   return Object.keys(processedResults).map((spec) => {
     const key = spec as keyof cleanedResults["processedResults"];
     const value = processedResults[key];
 
-    switch (inputMap[key]) {
-      case "boolean":
-        return (
-          <CheckboxInput
-            defaultChecked={value === true}
-            name={key}
-            label={key}
-            key={key}
-          />
-        );
-      case "text":
-        return (
-          <TextInput
-            defaultValue={(value as string) ?? undefined}
-            name={key}
-            label={key}
-            key={key}
-          />
-        );
-      case "number":
-        return (
-          <TextInput
-            defaultValue={(value as string) ?? undefined}
-            name={key}
-            label={key}
-            key={key}
-          />
-        );
-      case "dropdown":
-        return (
-          <DropdownInput
-            name={key}
-            label={key}
-            key={key}
-            databaseValues={databaseValues}
-            defaultValue={value as string}
-          />
-        );
-    }
+    const getInput = () => {
+      switch (inputMap[key]) {
+        case "boolean":
+          return (
+            <CheckboxInput
+              defaultChecked={value === true}
+              name={key}
+              label={key}
+            />
+          );
+        case "text":
+          return (
+            <TextInput
+              defaultValue={(value as string) ?? undefined}
+              name={key}
+              label={key}
+            />
+          );
+        case "number":
+          return (
+            <TextInput
+              defaultValue={(value as string) ?? undefined}
+              name={key}
+              label={key}
+            />
+          );
+        case "dropdown":
+          return (
+            <DropdownInput
+              name={key}
+              label={key}
+              databaseValues={databaseValues}
+              defaultValue={value as string}
+            />
+          );
+      }
+    };
+    return (
+      <div key={key}>
+        {getInput()}
+        {state?.errors?.[key]}
+      </div>
+    );
   });
   // return <input type={typeMapping[key as keyof cleanedResults["processedResults"]]} name={key} defaultValue={processedResults[key as keyof cleanedResults["processedResults"]] as string} />
 };
@@ -285,25 +300,25 @@ const ImageContainer = ({ urls }: { urls: string[] }) => {
   );
 };
 
-const StoreLinkInput = ({
-  title,
-  name,
-}: {
-  title: string;
-  name: string;
-}) => {
-  const [inputs, setInputs] = useState<{id: string; value: string}[]>([{id: uuidv4(), value: ''}]);
+const StoreLinkInput = ({ title, name }: { title: string; name: string }) => {
+  const [inputs, setInputs] = useState<{ id: string; value: string }[]>([
+    { id: uuidv4(), value: "" },
+  ]);
 
-  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
-    const newInputs = inputs.map((input) => input.id === id ? {...input, value: e.currentTarget.value} : input )
-    setInputs(newInputs)
-    console.log(newInputs)
-  }
+  const handleOnChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    id: string
+  ) => {
+    const newInputs = inputs.map((input) =>
+      input.id === id ? { ...input, value: e.currentTarget.value } : input
+    );
+    setInputs(newInputs);
+  };
 
   const newInputRef = useRef<HTMLInputElement | null>(null);
 
-  const  handleAddInput = () => {
-    const newInput = { id: uuidv4(), value: '' };
+  const handleAddInput = () => {
+    const newInput = { id: uuidv4(), value: "" };
     setInputs([...inputs, newInput]);
 
     // Focus the new input after it's added
@@ -313,7 +328,7 @@ const StoreLinkInput = ({
       }
     }, 0);
   };
-  
+
   return (
     <label htmlFor="">
       {title}
@@ -325,43 +340,51 @@ const StoreLinkInput = ({
             type="text"
             name={name}
             value={thisInputValue.value}
-            onChange={(e) =>
-              handleOnChange(e, thisInputValue.id)
-            }
+            onChange={(e) => handleOnChange(e, thisInputValue.id)}
           />
         </div>
       ))}
-      <button onClick={handleAddInput}>
-        add more
-      </button>
+      <button onClick={handleAddInput}>add more</button>
     </label>
   );
 };
 
 export default function NewPrebuiltForm({
-  processedResults,
-  rawResults,
+  cleanedResults,
   databaseValues,
 }: {
-  processedResults: cleanedResults["processedResults"];
-  rawResults: cleanedResults["rawResults"];
+  cleanedResults: cleanedResults;
   databaseValues: prebuiltForeignValues;
 }) {
-  const [state, action, pending] = useActionState(submitPrebuilt, undefined);
-  const [prebuilt, setPrebuilt] = useState({ processedResults, rawResults });
+  const submitPrebuiltWithOriginalData = submitPrebuilt.bind(
+    null,
+    cleanedResults
+  );
+
+  const [state, action, pending] = useActionState(
+    submitPrebuiltWithOriginalData,
+    undefined
+  );
+
+  const processedResults = cleanedResults.processedResults;
+  const rawResults = cleanedResults.rawResults;
   const brand = rawResults.brandName;
+
   return (
     <form key="form" action={action}>
+      {state?.message}
       <h2>Main Info</h2>
       <input type="hidden" name="brand" value={brand} />
       <input type="hidden" name="url" value={rawResults.url} />
       <ProductNameInput brandName={brand} prebuiltName={rawResults.name} />
+      {state?.errors?.name}
       <h2>Images</h2>
       <ImageContainer urls={rawResults.images} />
       <h2 className="text-xl">Basic Specs</h2>
       <MainSpecsInputs
         processedResults={processedResults}
         databaseValues={databaseValues}
+        state={state}
       />
       <br />
 
@@ -369,15 +392,25 @@ export default function NewPrebuiltForm({
       {Object.keys(rawResults.prebuiltParts).map((part) => {
         const key = part as keyof prebuiltParts;
         return (
-          <SearchInput
-            name={key}
-            defaultValue={rawResults.prebuiltParts[key]}
-            key={key}
-          />
+          <div key={key}>
+            <SearchInput
+              name={key}
+              defaultValue={rawResults.prebuiltParts[key]}
+            />
+            {state?.errors?.[key]}
+          </div>
         );
       })}
       <h2>Ecommerce stores</h2>
       <StoreLinkInput title="Amazon" name="amazon" />
+      {state?.errors?.amazon}
+      <div className="">
+        <button disabled={pending} type="submit">
+          Submit
+        </button>
+        <button>Skip for now</button>
+        <button>Delete forever</button>
+      </div>
     </form>
   );
 }

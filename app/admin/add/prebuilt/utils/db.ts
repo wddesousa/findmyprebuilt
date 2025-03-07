@@ -68,14 +68,27 @@ export async function getProductsByType(
 }
 
 export async function getPsuEfficiencyRatings(): Promise<foreignValues[]> {
-  return [
-    PsuRating.BRONZE,
-    PsuRating.GOLD,
-    PsuRating.PLATINUM,
-    PsuRating.SILVER,
-    PsuRating.TITANIUM,
-  ].map((rating) => ({
+  return Object.values(PsuRating).map((rating) => ({
     id: rating,
     name: rating,
   }));
+}
+
+export async function formDataToObject(formData: FormData, arrayFields: string[] = []): Promise<Record<string, any>> {
+  const result: Record<string, any> = {};
+
+  for (const [key, value] of formData.entries()) {
+    if (arrayFields.includes(key)) {
+      // Always treat these fields as arrays
+      if (!result[key]) {
+        result[key] = [];
+      }
+      result[key].push(value);
+    } else {
+      // Handle other fields as usual
+      result[key] = value;
+    }
+  }
+
+  return result;
 }
