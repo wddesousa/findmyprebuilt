@@ -10,6 +10,7 @@ export async function getQueuedPrebuilt() {
 
 export async function getForeignValues(): Promise<prebuiltForeignValues> {
   const storageTypes = await getStorageTypes();
+  const formFactors = await getFormFactors();
   return {
     os_id: await getOperativeSystems(),
     gpu_chipset_id: await getGpuChipsets(),
@@ -19,6 +20,8 @@ export async function getForeignValues(): Promise<prebuiltForeignValues> {
     main_storage_type_id: storageTypes,
     secondary_storage_type_id: storageTypes,
     psu_efficiency_rating: await getPsuEfficiencyRatings(),
+    moba_form_factor_id: formFactors,
+    case_form_factor: formFactors,
   };
 }
 
@@ -57,6 +60,10 @@ export async function getMobaChipsets(): Promise<foreignValues[]> {
 
 export async function getStorageTypes(): Promise<foreignValues[]> {
   return prisma.storageType.findMany({});
+}
+
+export async function getFormFactors(): Promise<foreignValues[]> {
+  return prisma.formFactor.findMany({});
 }
 
 export async function getProductsByType(

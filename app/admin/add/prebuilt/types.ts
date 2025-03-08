@@ -12,4 +12,6 @@ export interface foreignValues {
     main_storage_type_id: foreignValues[];
     secondary_storage_type_id: foreignValues[];
     psu_efficiency_rating: foreignValues[];
+    moba_form_factor_id: foreignValues[];
+    case_form_factor: foreignValues[];
   };

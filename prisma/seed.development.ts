@@ -4,7 +4,7 @@ import {
   scrapeIntelMobaChipsets,
 } from "@/app/api/scrape/mobachipsets/utils";
 import { prebuiltForUpload } from "./data.development";
-import { intelChipsets } from "./data"
+import { formFactors, intelChipsets } from "./data"
 
 async function main() {
   // if (!await prisma.mobaChipset.findFirst({where: {brand: {name: 'AMD'}}})) {
@@ -24,6 +24,13 @@ async function main() {
   try {
     await prisma.mobaChipset.createMany({
       data: intelChipsets,
+    });
+  } catch (e) {
+    console.log("skipping intel chipsets");
+  }
+  try {
+    await prisma.formFactor.createMany({
+      data: formFactors,
     });
   } catch (e) {
     console.log("skipping intel chipsets");

@@ -728,3 +728,10 @@ export const intelChipsets = [
       brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
     }
   ]
+
+export const formFactors = [
+  {name: "Mini ITX"},
+  {name: "Micro ATX"},
+  {name: "ATX"},
+  {name: "EATX"}
+]

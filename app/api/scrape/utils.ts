@@ -291,6 +291,14 @@ export async function cleanPrebuiltScrapeResults(
       scrapeResults.prebuiltParts.moba,
       "mobaChipset"
     ),
+    moba_form_factor_id: await findIdByName(
+      scrapeResults.prebuilt.moba_form_factor,
+      "formFactor"
+    ),
+    case_form_factor: await findIdByName(
+      scrapeResults.prebuilt.case_form_factor,
+      "formFactor"
+    ),
     main_storage_gb: mainStorageInfo?.size,
     seconday_storage_gb: secondaryStorageInfo?.size,
     main_storage_type_id: mainStorageInfo?.type?.id,
@@ -325,7 +333,7 @@ export async function cleanPrebuiltScrapeResults(
 const getNumber = (value: any) => (value ? serializeNumber(value) : null);
 const findIdByName = async (
   name: any,
-  model: "operativeSystem" | "gpuChipset" | "mobaChipset"
+  model: "operativeSystem" | "gpuChipset" | "mobaChipset" | "formFactor"
 ) =>
   name
     ? (await (prisma[model] as any).findUnique({ where: { name: name } }))?.id
@@ -351,6 +359,42 @@ export async function getStorageInfo(storage: string | null | undefined) {
     type,
     size,
   };
+}
+
+export function getLargestFormFactor(forms?: string[]) {
+  //normalize possible names
+  //if one of the provided names is not in the list then just return undefined so we put it manually when submitting the prebuilt and avoid mistakes
+  
+  if (!Array.isArray(forms) || typeof forms[0] !== 'string') return undefined;
+
+  const sizeOrder: Record<string, { weight: number; name: string }> = {
+    MINIITX: { weight: 1, name: "Mini ITX" },
+    MICROATX: { weight: 2, name: "Micro ATX" },
+    ATX: { weight: 3, name: "ATX" },
+    EATX: { weight: 4, name: "EATX" },
+  };
+  const serialize = (form: string) =>
+    form.toUpperCase().replace("-", "").trim();
+
+  const largest = forms.reduce(
+    (acc, curr) => {
+      const form = serialize(curr);
+
+      if (sizeOrder[form] === undefined)
+        return { form: "MINIITX", formNotFound: true };
+
+      return {
+        form:
+          sizeOrder[form].weight > sizeOrder[acc.form].weight ? form : acc.form,
+        formNotFound: acc.formNotFound,
+      };
+    },
+    { form: "MINIITX", formNotFound: false }
+  );
+
+  return largest.formNotFound === true
+    ? undefined
+    : sizeOrder[largest.form].name;
 }
 
 async function getStorageType(storage: any) {

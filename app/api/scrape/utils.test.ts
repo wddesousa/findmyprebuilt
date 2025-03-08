@@ -2,6 +2,7 @@ import { describe, expect, test, it, vi } from "vitest";
 import fs from "fs";
 import {
   cleanPrebuiltScrapeResults,
+  getLargestFormFactor,
   getMemoryInfo,
   getPsuInfo,
   getStorageInfo,
@@ -11,6 +12,7 @@ import { prismaMock } from "@/app/singleton";
 import { MobaChipset, Prisma, PrismaClient } from "@prisma/client";
 import {
   cleanPrebuiltScrapeResultSet,
+  formFactorSizeTest,
   getFile,
   memoryModuleTests,
   psuTests,
@@ -48,6 +50,14 @@ describe("getStorageInfo", () => {
         });
       }
     );
+  });
+});
+
+describe("getLargestFormFactor", () => {
+  describe("gets largest form factor our of a list and returns undefined if one is not recognized", () => {
+    test.each(formFactorSizeTest)("$input", async ({ input, expectedForm }) => {
+      expect(getLargestFormFactor(input as any)).toBe(expectedForm);
+    });
   });
 });
 
@@ -100,9 +110,14 @@ describe("cleanPrebuiltScrapeResults", async () => {
       ddr: "DDR5",
       speed: 2,
     });
+    prismaMock.formFactor.findUnique.mockResolvedValue({
+      name: "ATX",
+      id: "1",
+    });
 
     const cleanedResults = await cleanPrebuiltScrapeResults({
       ...scrapeNzxtResults,
+      prebuilt: { ...scrapeNzxtResults.prebuilt, moba_form_factor: "ATX" },
       prebuiltParts: { ...scrapeNzxtResults.prebuiltParts, moba: "a chipset" },
     } as unknown as scraperRawResults);
 

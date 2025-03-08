@@ -111,6 +111,8 @@ export type scraperRawResults = {
     rear_fan_mm: rawResult;
     cpu_cooler_mm: rawResult;
     cpu_cooler_type: rawResult;
+    moba_form_factor: rawResult;
+    case_form_factor: rawResult;
     os: rawResult;
     warranty_months: rawResult;
     wireless: boolean | null | undefined;
@@ -126,14 +128,16 @@ export type scraperRawResults = {
 
 export type prebuiltParts = Record<keyof PartsMap, rawResult> ;
 
+type processedResults = {
+  [K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]:
+    | Prebuilt[K]
+    | null
+    | undefined;
+};
+
 export type cleanedResults = {
   rawResults: scraperRawResults;
-  processedResults: {
-    [K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]:
-      | Prebuilt[K]
-      | null
-      | undefined;
-  };
+  processedResults: processedResults & {case_form_factor: rawResult}
 };
 
 export type prebuiltTrackerResults = {

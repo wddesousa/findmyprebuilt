@@ -5,6 +5,7 @@ import {
   waitFor,
   queryByRole,
   waitForElementToBeRemoved,
+  cleanup,
 } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { describe, it, expect, vi, afterAll, beforeEach } from "vitest";
@@ -16,53 +17,57 @@ import {
 } from "@/tests/helpers/utils";
 import { sleep } from "@/app/utils";
 
+beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+});
+
 afterAll(() => {
   vi.useRealTimers();
 });
 
 describe("DropdownInput", () => {
-  it("selects the correct default value for dropdown inputs", () => {
-    const { rerender } = render(
-      <DropdownInput
-        databaseValues={prebuiltExternalValues}
-        defaultValue="PLATINUM"
-        label="psu_efficiency_rating"
-        name="psu_efficiency_rating"
-      />
-    );
-    // Find the <select> element
-    var selectElement = screen.getByRole("combobox") as HTMLSelectElement;
+  describe("selects the correct default value", () => {
 
-    // Check that the default value is "PLATINUM"
-    expect(selectElement.value).toBe("PLATINUM");
+    it('when it\s an enum', () => {
+      render(
+        <DropdownInput
+          databaseValues={prebuiltExternalValues}
+          defaultValue="PLATINUM"
+          label="psu_efficiency_rating"
+          name="psu_efficiency_rating"
+        />
+      );
+      // Find the <select> element
+      const selectElement = screen.getByRole("combobox") as HTMLSelectElement;
+  
+      // Check that the default value is "PLATINUM"
+      expect(selectElement.value).toBe("PLATINUM");
+    })
 
-    rerender(
-      <DropdownInput
-        databaseValues={prebuiltExternalValues}
-        defaultValue="_1fyazPe4BDuzIZvkjgLk"
-        label="moba_chipset_id"
-        name="moba_chipset_id"
-      />
-    );
+    it("when it's a DB id", () => {
 
-    selectElement = screen.getByRole("combobox");
-
-    // Check that the default value is "PLATINUM"
-    expect(selectElement.value).toBe("_1fyazPe4BDuzIZvkjgLk");
-  });
+      render(
+        <DropdownInput
+          databaseValues={prebuiltExternalValues}
+          defaultValue={prebuiltExternalValues.moba_chipset_id[0].id}
+          label="moba_chipset_id"
+          name="moba_chipset_id"
+        />
+      );
+  
+      const selectElement = screen.getByRole("combobox")  as HTMLSelectElement;
+      expect(selectElement.value).toBe(prebuiltExternalValues.moba_chipset_id[0].id);
+    })
+    });
 });
 
 describe("MainSpecsInputs", () => {
   it("doesn't throw error", () => {
-    render(
-      <MainSpecsInputs
-        databaseValues={prebuiltExternalValues}
-        processedResults={cleanPrebuiltScrapeResultSet}
-      />
-    );
+
     expect(() =>
       render(
         <MainSpecsInputs
+          state={undefined}
           databaseValues={prebuiltExternalValues}
           processedResults={cleanPrebuiltScrapeResultSet}
         />
@@ -72,12 +77,8 @@ describe("MainSpecsInputs", () => {
 });
 
 describe("SearchInput", () => {
-  beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-  });
-
   it("searches and sets values", async () => {
-    vi.mock("../utils", async (importOriginal) => {
+    vi.mock("../utils/client", async (importOriginal) => {
       const actualUtils = (await importOriginal()) as any; // Import the actual module
       return {
         ...actualUtils, // Spread the actual exports

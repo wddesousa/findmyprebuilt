@@ -31,6 +31,8 @@ export const inputMap: Record<
   cpu_cooler_type: "dropdown",
   main_storage_gb: "number",
   memory_speed_id: "dropdown",
+  moba_form_factor_id: "dropdown",
+  case_form_factor: "dropdown",
   moba_chipset_id: "dropdown",
   warranty_months: "number",
   memory_module_gb: "number",

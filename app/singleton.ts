@@ -2,8 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { mockDeep, mockReset, DeepMockProxy } from "vitest-mock-extended";
 
 import prisma from "@/app/db";
-import { beforeEach, vitest } from "vitest";
-import { afterEach } from "node:test";
+import { afterEach, beforeEach, vitest } from "vitest";
 import { cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 

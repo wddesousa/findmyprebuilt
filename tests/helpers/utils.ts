@@ -2,7 +2,8 @@ import { CpuCoolerType, Prisma, PsuRating } from "@prisma/client";
 import path from "path";
 import { pathToFileURL } from "url";
 import { expect } from "vitest";
-import type {prebuiltForeignValues} from "@/app/admin/create/prebuilt/types"
+import type { prebuiltForeignValues } from "@/app/admin/add/prebuilt/types";
+import { cleanedResults } from "@/app/api/scrape/types";
 export const getFile = (filename: string) =>
   pathToFileURL(path.join(__dirname, "../data", filename)).href;
 
@@ -30,7 +31,7 @@ export const caseFanResult = {
         },
         type: "CASEFAN",
         url: expect.stringContaining(".html"),
-        slug: "lian-li-uni-fan-sl-infinity"
+        slug: "lian-li-uni-fan-sl-infinity",
       },
     },
     part_number: ["UF-SLIN120-3B", "12SLIN3B"],
@@ -63,7 +64,7 @@ export const caseResult = {
         },
         type: "CASE",
         url: expect.stringContaining(".html"),
-        "slug": "nzxt-h6-flow"
+        slug: "nzxt-h6-flow",
       },
     },
     part_number: ["CC-H61FB-01"],
@@ -102,7 +103,7 @@ export const psuResult = {
         },
         type: "PSU",
         url: expect.stringContaining(".html"),
-        "slug": "corsair-rm750e-(2023)",
+        slug: "corsair-rm750e-(2023)",
       },
     },
     part_number: [
@@ -144,7 +145,7 @@ export const airCoolerResult = {
         },
         type: "COOLER",
         url: expect.stringContaining(".html"),
-        "slug": "arctic-freezer-36-a-rgb",
+        slug: "arctic-freezer-36-a-rgb",
       },
     },
     part_number: ["ACFRE00124A"],
@@ -177,7 +178,7 @@ export const liquidCoolerResult = {
         },
         type: "COOLER",
         url: expect.stringContaining(".html"),
-        "slug": "corsair-icue-h150i-elite-capellix-xt",
+        slug: "corsair-icue-h150i-elite-capellix-xt",
       },
     },
     part_number: ["CW-9060073-WW"],
@@ -219,7 +220,7 @@ export const hddStorageResult = {
         },
         type: "STORAGE",
         url: expect.stringContaining(".html"),
-        "slug": "seagate-ironwolf-pro-24-tb",
+        slug: "seagate-ironwolf-pro-24-tb",
       },
     },
     part_number: ["ST24000NT002"],
@@ -250,7 +251,7 @@ export const ssdStorageResult = {
         },
         type: "STORAGE",
         url: expect.stringContaining(".html"),
-        "slug": "kingston-kc3000-1.024-tb",
+        slug: "kingston-kc3000-1.024-tb",
       },
     },
     part_number: ["SKC3000S/1024G"],
@@ -275,7 +276,7 @@ export const cpuResult = {
         },
         type: "CPU",
         url: expect.stringContaining(".html"),
-        "slug": "amd-ryzen-7-7800x3d",
+        slug: "amd-ryzen-7-7800x3d",
       },
     },
     socket: {
@@ -313,7 +314,7 @@ export const gpuResult = {
         },
         type: "GPU",
         url: expect.stringContaining(".html"),
-        "slug": "msi-geforce-rtx-3060-ventus-2x-12g",
+        slug: "msi-geforce-rtx-3060-ventus-2x-12g",
       },
     },
     part_number: [
@@ -361,7 +362,7 @@ export const mobaResult = {
         },
         type: "MOBA",
         url: expect.stringContaining(".html"),
-        "slug": "asrock-z890-steel-legend-wifi",
+        slug: "asrock-z890-steel-legend-wifi",
       },
     },
     part_number: ["Z890 Steel Legend WiFi", "90-MXBPF0-A0UAYZ"],
@@ -537,7 +538,7 @@ export const memoryResult = {
         },
         type: "MEMORY",
         url: expect.stringContaining(".html"),
-        "slug": "corsair-vengeance-lpx-16-gb",
+        slug: "corsair-vengeance-lpx-16-gb",
       },
     },
     part_number: ["CMK16GX4M2B3200C16"],
@@ -562,60 +563,80 @@ export const memoryResult = {
 
 export const prebuiltExternalValues: prebuiltForeignValues = {
   os_id: [
-    { id: 'mLdWVo-klZjblMKNeUlFM', name: 'Windows 11 Home' },
-    { id: 'K6eJ4Ak--L6Zsu3gu8uMv', name: 'Windows 11 Pro' },
-    { id: 'B7OW18mNJA8dh0cKq0IG4', name: 'macOS Monterey' },
-    { id: 'NI0Z2TtKmo9ckKRZAQFs-', name: 'Ubuntu 20.04 LTS' },
-    { id: 'FAEcoi3_br9gS6CS9mGQ_', name: 'Fedora 35' },
-    { id: '7rUK5ippFx0RDcIm4X-8A', name: 'Chrome OS' },
-    { id: '9gRiINUOxQyUZGih3SPpy', name: 'Windows 10' }
+    { id: "mLdWVo-klZjblMKNeUlFM", name: "Windows 11 Home" },
+    { id: "K6eJ4Ak--L6Zsu3gu8uMv", name: "Windows 11 Pro" },
+    { id: "B7OW18mNJA8dh0cKq0IG4", name: "macOS Monterey" },
+    { id: "NI0Z2TtKmo9ckKRZAQFs-", name: "Ubuntu 20.04 LTS" },
+    { id: "FAEcoi3_br9gS6CS9mGQ_", name: "Fedora 35" },
+    { id: "7rUK5ippFx0RDcIm4X-8A", name: "Chrome OS" },
+    { id: "9gRiINUOxQyUZGih3SPpy", name: "Windows 10" },
   ],
-  gpu_chipset_id: [ { id: 'fxS2xi2CH8flp2J6XiBVr', name: 'GeForce RTX 3050' } ],
-  cpu_cooler_type: [ { name: 'AIR', id: 'AIR' }, { name: 'LIQUID', id: 'LIQUID' } ],
-  memory_speed_id: [ { id: '_nzmuJAzx1kwnlqZnewOz', name: 'DDR5 5200' } ],
-  moba_chipset_id: [{
-    id: '_1fyazPe4BDuzIZvkjgLk',
-    name: 'Q870',
-  }],
+  gpu_chipset_id: [{ id: "fxS2xi2CH8flp2J6XiBVr", name: "GeForce RTX 3050" }],
+  cpu_cooler_type: [
+    { name: "AIR", id: "AIR" },
+    { name: "LIQUID", id: "LIQUID" },
+  ],
+  memory_speed_id: [{ id: "_nzmuJAzx1kwnlqZnewOz", name: "DDR5 5200" }],
+  moba_chipset_id: [
+    {
+      id: "_1fyazPe4BDuzIZvkjgLk",
+      name: "Q870",
+    },
+  ],
   main_storage_type_id: [
-    { id: '0UZmNb5f3pxFabBkykne3', name: 'SSD' },
-    { id: 'IjWROHFtMUUewcZBkusQg', name: '7200 RPM' }
+    { id: "0UZmNb5f3pxFabBkykne3", name: "SSD" },
+    { id: "IjWROHFtMUUewcZBkusQg", name: "7200 RPM" },
   ],
   secondary_storage_type_id: [
-    { id: '0UZmNb5f3pxFabBkykne3', name: 'SSD' },
-    { id: 'IjWROHFtMUUewcZBkusQg', name: '7200 RPM' }
+    { id: "0UZmNb5f3pxFabBkykne3", name: "SSD" },
+    { id: "IjWROHFtMUUewcZBkusQg", name: "7200 RPM" },
+  ],
+  moba_form_factor_id: [
+    { id: "gsgadsgs", name: "Micro ATX" },
+    { id: "asdfasfasd", name: "Mini ITX" },
+    { id: "asdfasd", name: "ATX" },
+    { id: "gsdgadsgh", name: "EATX" },
+  ],
+  case_form_factor: [
+    { id: "gsgadsgs", name: "Micro ATX" },
+    { id: "asdfasfasd", name: "Mini ITX" },
+    { id: "asdfasd", name: "ATX" },
+    { id: "gsdgadsgh", name: "EATX" },
   ],
   psu_efficiency_rating: [
-    { id: 'BRONZE', name: 'BRONZE' },
-    { id: 'GOLD', name: 'GOLD' },
-    { id: 'PLATINUM', name: 'PLATINUM' },
-    { id: 'SILVER', name: 'SILVER' },
-    { id: 'TITANIUM', name: 'TITANIUM' }
-  ]
-}
-
-export const cleanPrebuiltScrapeResultSet = {
-  base_price: new Prisma.Decimal(829),
-  cpu_cooler_mm: 120,
-  cpu_cooler_type: CpuCoolerType.AIR,
-  customizable: true,
-  front_fan_mm: 120,
-  rear_fan_mm: 120,
-  os_id: "1",
-  gpu_chipset_id: "1",
-  moba_chipset_id: "1",
-  main_storage_gb: 1024,
-  seconday_storage_gb: null,
-  main_storage_type_id: "1",
-  secondary_storage_type_id: undefined,
-  memory_modules: 2,
-  memory_module_gb: 8,
-  memory_speed_id: "1",
-  warranty_months: 24,
-  wireless: undefined,
-  psu_efficiency_rating: PsuRating.GOLD,
-  psu_wattage: 650,
+    { id: "BRONZE", name: "BRONZE" },
+    { id: "GOLD", name: "GOLD" },
+    { id: "PLATINUM", name: "PLATINUM" },
+    { id: "SILVER", name: "SILVER" },
+    { id: "TITANIUM", name: "TITANIUM" },
+  ],
 };
+
+export const cleanPrebuiltScrapeResultSet: cleanedResults["processedResults"] =
+  {
+    base_price: new Prisma.Decimal(829),
+    cpu_cooler_mm: 120,
+    cpu_cooler_type: CpuCoolerType.AIR,
+    customizable: true,
+    front_fan_mm: 120,
+    rear_fan_mm: 120,
+    os_id: "1",
+    gpu_chipset_id: "1",
+    moba_chipset_id: "1",
+    case_form_factor: "1",
+    moba_form_factor_id: "1",
+    main_storage_gb: 1024,
+    seconday_storage_gb: null,
+    main_storage_type_id: "1",
+    secondary_storage_type_id: undefined,
+    memory_modules: 2,
+    memory_module_gb: 8,
+    memory_speed_id: "1",
+    warranty_months: 24,
+    wireless: undefined,
+    psu_efficiency_rating: PsuRating.GOLD,
+    psu_wattage: 650,
+  };
 
 export const scrapeNzxtResults = {
   prebuilt: {
@@ -627,6 +648,8 @@ export const scrapeNzxtResults = {
     cpu_cooler_type: "Air Cooler",
     os: "Windows 11 Home",
     warranty_months: "24",
+    moba_form_factor: undefined,
+    case_form_factor: "ATX",
     wireless: undefined,
   },
   prebuiltParts: {
@@ -663,7 +686,8 @@ export const scrapeNzxtResults = {
   //   }),
   // }),
   url: expect.stringContaining(".html"),
-  name: "Player: One"
+  name: "Player: One",
+  brandName: "NZXT",
 };
 
 export const psuTests = [
@@ -758,6 +782,35 @@ export const storageTests = [
   },
 ];
 
+export const formFactorSizeTest = [
+  { input: ["ATX", "MINI-ITX", "microatx"], expectedForm: "ATX" },
+  { input: ["ATX", "MINI-ITX", "micrasoatx"], expectedForm: undefined },
+  {
+    input: ["ATX", "MINI-ITX", "microatx", "E-ATX"],
+    expectedForm: "EATX",
+  },
+  {
+    input: ["MINI-ITX", "micro-Atx"],
+    expectedForm: "Micro ATX",
+  },
+  {
+    input: ["MINIITX"],
+    expectedForm: "Mini ITX",
+  },
+  {
+    input: ["microatx"],
+    expectedForm: "Micro ATX",
+  },
+  {
+    input: undefined,
+    expectedForm: undefined,
+  },
+  {
+    input: [undefined],
+    expectedForm: undefined,
+  },
+];
+
 export const air = {
   Model: "NZXT T120 RGB",
   "Cooling type": "Air Cooler ",
@@ -787,8 +840,7 @@ export const fan = {
 
 export const intelChipsets = [
   {
-    
-    name: 'Q870',
+    name: "Q870",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: false,
@@ -798,11 +850,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H810',
+    name: "H810",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: false,
@@ -812,11 +863,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'W880',
+    name: "W880",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: true,
@@ -826,53 +876,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B860',
-    pci_generation: 4,
-    cpu_oc: false,
-    memory_oc: true,
-    max_usb_5_gbps: 6,
-    max_usb_10_gbps: 4,
-    max_usb_20_gbps: 2,
-    max_sata_ports: 4,
-    max_usb_2_gen: 12,
-    usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
-  },
-  {
-    
-    name: 'Z890',
-    pci_generation: 4,
-    cpu_oc: true,
-    memory_oc: true,
-    max_usb_5_gbps: 10,
-    max_usb_10_gbps: 10,
-    max_usb_20_gbps: 5,
-    max_sata_ports: 8,
-    max_usb_2_gen: 14,
-    usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
-  },
-  {
-    
-    name: 'W790',
-    pci_generation: 4,
-    cpu_oc: true,
-    memory_oc: true,
-    max_usb_5_gbps: 10,
-    max_usb_10_gbps: 10,
-    max_usb_20_gbps: 5,
-    max_sata_ports: 8,
-    max_usb_2_gen: 14,
-    usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
-  },
-  {
-    
-    name: 'B760',
+    name: "B860",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: true,
@@ -882,11 +889,49 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H770',
+    name: "Z890",
+    pci_generation: 4,
+    cpu_oc: true,
+    memory_oc: true,
+    max_usb_5_gbps: 10,
+    max_usb_10_gbps: 10,
+    max_usb_20_gbps: 5,
+    max_sata_ports: 8,
+    max_usb_2_gen: 14,
+    usb_4_guaranteed: null,
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
+  },
+  {
+    name: "W790",
+    pci_generation: 4,
+    cpu_oc: true,
+    memory_oc: true,
+    max_usb_5_gbps: 10,
+    max_usb_10_gbps: 10,
+    max_usb_20_gbps: 5,
+    max_sata_ports: 8,
+    max_usb_2_gen: 14,
+    usb_4_guaranteed: null,
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
+  },
+  {
+    name: "B760",
+    pci_generation: 4,
+    cpu_oc: false,
+    memory_oc: true,
+    max_usb_5_gbps: 6,
+    max_usb_10_gbps: 4,
+    max_usb_20_gbps: 2,
+    max_sata_ports: 4,
+    max_usb_2_gen: 12,
+    usb_4_guaranteed: null,
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
+  },
+  {
+    name: "H770",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: true,
@@ -896,11 +941,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z790',
+    name: "Z790",
     pci_generation: 4,
     cpu_oc: true,
     memory_oc: true,
@@ -910,11 +954,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'R680E',
+    name: "R680E",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: false,
@@ -924,11 +967,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'W680',
+    name: "W680",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: true,
@@ -938,11 +980,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q670E',
+    name: "Q670E",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: false,
@@ -952,11 +993,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q670',
+    name: "Q670",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: false,
@@ -966,11 +1006,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H610',
+    name: "H610",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -980,11 +1019,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H670',
+    name: "H670",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: true,
@@ -994,11 +1032,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B660',
+    name: "B660",
     pci_generation: 4,
     cpu_oc: false,
     memory_oc: true,
@@ -1008,11 +1045,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H610E',
+    name: "H610E",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1022,11 +1058,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z690',
+    name: "Z690",
     pci_generation: 4,
     cpu_oc: true,
     memory_oc: true,
@@ -1036,11 +1071,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'W480E',
+    name: "W480E",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: true,
@@ -1050,11 +1084,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q470E',
+    name: "Q470E",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1064,11 +1097,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q470',
+    name: "Q470",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1078,11 +1110,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'W480',
+    name: "W480",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: true,
@@ -1092,11 +1123,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B460',
+    name: "B460",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1106,11 +1136,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H410',
+    name: "H410",
     pci_generation: 2,
     cpu_oc: false,
     memory_oc: false,
@@ -1120,11 +1149,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H420E',
+    name: "H420E",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1134,11 +1162,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z490',
+    name: "Z490",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1148,11 +1175,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H470',
+    name: "H470",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1162,11 +1188,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'W580',
+    name: "W580",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: true,
@@ -1176,11 +1201,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q570',
+    name: "Q570",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1190,11 +1214,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z590',
+    name: "Z590",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1204,11 +1227,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H570',
+    name: "H570",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: true,
@@ -1218,11 +1240,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B560',
+    name: "B560",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: true,
@@ -1232,11 +1253,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H510',
+    name: "H510",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1246,11 +1266,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B365',
+    name: "B365",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1260,11 +1279,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z390',
+    name: "Z390",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1274,11 +1292,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B360',
+    name: "B360",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1288,11 +1305,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H310',
+    name: "H310",
     pci_generation: 2,
     cpu_oc: false,
     memory_oc: false,
@@ -1302,11 +1318,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q370',
+    name: "Q370",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1316,11 +1331,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H370',
+    name: "H370",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1330,11 +1344,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z370',
+    name: "Z370",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1344,11 +1357,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'X299',
+    name: "X299",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1358,11 +1370,10 @@ export const intelChipsets = [
     max_sata_ports: 8,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q250',
+    name: "Q250",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1372,11 +1383,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B250',
+    name: "B250",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1386,11 +1396,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q270',
+    name: "Q270",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1400,11 +1409,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z270',
+    name: "Z270",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1414,11 +1422,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H270',
+    name: "H270",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1428,11 +1435,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q170',
+    name: "Q170",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1442,11 +1448,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Q150',
+    name: "Q150",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1456,11 +1461,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H110',
+    name: "H110",
     pci_generation: 2,
     cpu_oc: false,
     memory_oc: false,
@@ -1470,11 +1474,10 @@ export const intelChipsets = [
     max_sata_ports: 4,
     max_usb_2_gen: 10,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'B150',
+    name: "B150",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1484,11 +1487,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 12,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'H170',
+    name: "H170",
     pci_generation: 3,
     cpu_oc: false,
     memory_oc: false,
@@ -1498,11 +1500,10 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
   {
-    
-    name: 'Z170',
+    name: "Z170",
     pci_generation: 3,
     cpu_oc: true,
     memory_oc: true,
@@ -1512,6 +1513,6 @@ export const intelChipsets = [
     max_sata_ports: 6,
     max_usb_2_gen: 14,
     usb_4_guaranteed: null,
-    brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
-  }
-]
+    brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
+  },
+];

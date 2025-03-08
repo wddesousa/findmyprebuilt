@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useActionState, useEffect, useRef, useState } from "react";
-import { submitPrebuilt } from "../action";
+import React, { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { submitPrebuilt } from "../actions";
 import {
   cleanedResults,
   prebuiltParts,
@@ -371,7 +371,11 @@ export default function NewPrebuiltForm({
   const brand = rawResults.brandName;
 
   return (
-    <form key="form" action={action}>
+    <form     onSubmit={(e) => {
+      //workaround for bug that resets the form on submission
+      e.preventDefault();
+      startTransition(() => action(new FormData(e.currentTarget)));
+  }}>
       {state?.message}
       <h2>Main Info</h2>
       <input type="hidden" name="brand" value={brand} />

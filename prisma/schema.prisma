@@ -76,20 +76,22 @@ model Prebuilt {
   base_price                Decimal         @db.Decimal(7, 2)
   memory_modules            Int
   memory_module_gb          Int
-  memory_speed              MemorySpeed     @relation(fields: [memory_speed_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  memory_speed              MemorySpeed     @relation(fields: [memory_speed_id], references: [id])
   memory_speed_id           String
   main_storage_gb           Int
-  case_moba_form_factors    FormFactor[]
+  case_form_factors         FormFactor[]    @relation(name: "Prebuilt_CaseFormFactors")
+  moba_form_factor          FormFactor      @relation(name: "Prebuilt_MobaFormFactor", fields: [moba_form_factor_id], references: [id])
+  moba_form_factor_id       String
   seconday_storage_gb       Int?
-  front_fan_mm              Float?
-  rear_fan_mm               Float?
-  cpu_cooler_mm             Float?
+  front_fan_mm              Float
+  rear_fan_mm               Float
+  cpu_cooler_mm             Float
   cpu_cooler_type           CpuCoolerType
   os                        OperativeSystem @relation(fields: [os_id], references: [id])
   os_id                     String
   wireless                  Boolean
   psu_wattage               Int
-  psu_efficiency_rating     PsuRating?
+  psu_efficiency_rating     PsuRating
   customizable              Boolean
   warranty_months           Int //warranty in months
   specs_html                String
@@ -184,11 +186,12 @@ model CaseFan {
 }
 
 model FormFactor {
-  id        String     @id @default(nanoid())
-  name      String     @unique
-  cases     Case[]
-  mobas     Moba[]
-  prebuilts Prebuilt[]
+  id              String     @id @default(nanoid())
+  name            String     @unique
+  cases           Case[]
+  mobas           Moba[]
+  prebuilts_cases Prebuilt[] @relation(name: "Prebuilt_CaseFormFactors")
+  prebuilt_mobas  Prebuilt[] @relation(name: "Prebuilt_MobaFormFactor")
 }
 
 model Memory {
