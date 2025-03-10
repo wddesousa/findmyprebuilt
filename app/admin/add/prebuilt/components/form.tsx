@@ -294,10 +294,20 @@ export const ProductNameInput = ({
 const ImageContainer = ({ urls }: { urls: string[] }) => {
   const [selectedImages, setSelectedImages] = useState<string[]>(urls);
 
+  const handleButtonClick = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    index: number
+  ) => {
+    e.preventDefault();
+    const [movedImage] = selectedImages.splice(index, 1);
+    setSelectedImages([movedImage, ...selectedImages]);
+  };
+
   return (
     <div className="flex flex-wrap">
-      {selectedImages.map((image) => (
+      {selectedImages.map((image, index) => (
         <div key={image}>
+          {index === 0 && <div>Main Image</div>}
           <i
             className="cursor-pointer"
             onClick={() =>
@@ -312,6 +322,11 @@ const ImageContainer = ({ urls }: { urls: string[] }) => {
           </i>
           <img src={image} width="300" />
           <input type="hidden" name="images" value={image} />
+          {index !== 0 && (
+            <button onClick={(e) => handleButtonClick(e, index)}>
+              Make main
+            </button>
+          )}
         </div>
       ))}
     </div>
