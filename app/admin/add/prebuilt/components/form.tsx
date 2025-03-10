@@ -1,6 +1,12 @@
 "use client";
 
-import React, { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import React, {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { submitPrebuilt } from "../actions";
 import {
   cleanedResults,
@@ -22,13 +28,18 @@ const CheckboxInput = ({
   name: string;
   defaultChecked: boolean;
 }) => {
-  const [checked, setChecked] = useState<boolean>(defaultChecked)
+  const [checked, setChecked] = useState<boolean>(defaultChecked);
 
   return (
     <div>
       <label>
         {label}
-        <input type="checkbox" name={name} checked={checked} onChange={(e) => setChecked(e.currentTarget.checked)} />
+        <input
+          type="checkbox"
+          name={name}
+          checked={checked}
+          onChange={(e) => setChecked(e.currentTarget.checked)}
+        />
       </label>
       <br />
     </div>
@@ -44,7 +55,7 @@ const TextInput = ({
   name: string;
   defaultValue: string;
 }) => {
-  const [value, setValue] = useState<string>(defaultValue ?? '')
+  const [value, setValue] = useState<string>(defaultValue ?? "");
 
   return (
     <div>
@@ -85,7 +96,7 @@ export const DropdownInput = ({
   databaseValues: prebuiltForeignValues;
 }) => {
   const key = name as keyof prebuiltForeignValues;
-  const [selected, setSelected] = useState<string>(defaultValue ?? '')
+  const [selected, setSelected] = useState<string>(defaultValue ?? "");
   if (!(name in databaseValues))
     throw Error(`dropdown not configured for ${name}`);
 
@@ -93,11 +104,13 @@ export const DropdownInput = ({
     <div>
       <label>
         {label}
-        <select className="text-black" name={name} value={selected} onChange={(e) => setSelected(e.currentTarget.value)}>
-        <Option
-              displayValue={'Select'}
-              realValue={''}
-            />
+        <select
+          className="text-black"
+          name={name}
+          value={selected}
+          onChange={(e) => setSelected(e.currentTarget.value)}
+        >
+          <Option displayValue={"Select"} realValue={""} />
           {databaseValues[key].map((option) => (
             <Option
               key={option.id}
@@ -235,7 +248,7 @@ export const ProductNameInput = ({
   prebuiltName: string;
 }) => {
   const fullName = `${brandName} ${prebuiltName}`;
-  const [productName, setProductName] = useState<string>(fullName);
+  const [productName, setProductName] = useState<string>(prebuiltName);
   const [prebuiltExists, setPrebuiltExists] = useState<boolean>(false);
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,14 +256,14 @@ export const ProductNameInput = ({
     setProductName(value);
 
     if (value.length > 5) {
-      const result = await fetchPrebuilt(value);
+      const result = await fetchPrebuilt(fullName);
       setPrebuiltExists(result.length > 0);
     }
   };
 
   //check that the found name doesn't exist
   useEffect(() => {
-    fetchPrebuilt(productName)
+    fetchPrebuilt(fullName)
       .then((result) => setPrebuiltExists(result.length > 0))
       .catch((error) => console.error("error fetching productName", error));
   }, []);
@@ -262,14 +275,19 @@ export const ProductNameInput = ({
   }, [prebuiltExists]);
 
   return (
-    <input
-      className="text-black"
-      type="text"
-      name="name"
-      id="name"
-      value={productName}
-      onChange={onChange}
-    />
+    <div>
+      <label htmlFor="name">
+        Product Name
+        <input
+          className="text-black"
+          type="text"
+          name="name"
+          id="name"
+          value={productName}
+          onChange={onChange}
+        />
+      </label>
+    </div>
   );
 };
 
@@ -371,11 +389,13 @@ export default function NewPrebuiltForm({
   const brand = rawResults.brandName;
 
   return (
-    <form     onSubmit={(e) => {
-      //workaround for bug that resets the form on submission
-      e.preventDefault();
-      startTransition(() => action(new FormData(e.currentTarget)));
-  }}>
+    <form
+      onSubmit={(e) => {
+        //workaround for bug that resets the form on submission
+        e.preventDefault();
+        startTransition(() => action(new FormData(e.currentTarget)));
+      }}
+    >
       {state?.message}
       <h2>Main Info</h2>
       <input type="hidden" name="brand" value={brand} />
@@ -384,6 +404,7 @@ export default function NewPrebuiltForm({
       {state?.errors?.name}
       <h2>Images</h2>
       <ImageContainer urls={rawResults.images} />
+      {state?.imageError}
       <h2 className="text-xl">Basic Specs</h2>
       <MainSpecsInputs
         processedResults={processedResults}

@@ -623,8 +623,8 @@ export const cleanPrebuiltScrapeResultSet: cleanedResults["processedResults"] =
     os_id: "1",
     gpu_chipset_id: "1",
     moba_chipset_id: "1",
-    case_form_factor: "1",
     moba_form_factor_id: "1",
+    case_form_factor_id: "1",
     main_storage_gb: 1024,
     seconday_storage_gb: null,
     main_storage_type_id: "1",
@@ -784,9 +784,10 @@ export const storageTests = [
 
 export const formFactorSizeTest = [
   { input: ["ATX", "MINI-ITX", "microatx"], expectedForm: "ATX" },
+  { input: ["ATX", "MINI ITX", "microatx"], expectedForm: "ATX" },
   { input: ["ATX", "MINI-ITX", "micrasoatx"], expectedForm: undefined },
   {
-    input: ["ATX", "MINI-ITX", "microatx", "E-ATX"],
+    input: ["ATX", "MINI-ITX", "microatx", "E-ATX "],
     expectedForm: "EATX",
   },
   {

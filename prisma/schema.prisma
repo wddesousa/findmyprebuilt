@@ -39,6 +39,7 @@ model Product {
   coolers             Cooler[]
   psus                Psu[]
   fans                CaseFan[]
+  images  Image[]
 
   @@unique([name, brand_id])
   @@index([is_retired])
@@ -488,6 +489,15 @@ model ProductTracker {
   brand_id               String   @unique
   current_products_slugs String[] //; separated list of slugs to product pages
   last_scraped_at        DateTime @default(now())
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  is_main    Boolean  @default(false) 
+  product_id String     
+  product   Product  @relation(fields: [product_id], references: [id])
+  @@unique([product_id, is_main])
 }
 
 enum TypeOfEdit {

@@ -51,15 +51,16 @@ CREATE TABLE "Prebuilt" (
     "memory_module_gb" INTEGER NOT NULL,
     "memory_speed_id" TEXT NOT NULL,
     "main_storage_gb" INTEGER NOT NULL,
+    "moba_form_factor_id" TEXT NOT NULL,
     "seconday_storage_gb" INTEGER,
-    "front_fan_mm" DOUBLE PRECISION,
-    "rear_fan_mm" DOUBLE PRECISION,
-    "cpu_cooler_mm" DOUBLE PRECISION,
+    "front_fan_mm" DOUBLE PRECISION NOT NULL,
+    "rear_fan_mm" DOUBLE PRECISION NOT NULL,
+    "cpu_cooler_mm" DOUBLE PRECISION NOT NULL,
     "cpu_cooler_type" "CpuCoolerType" NOT NULL,
     "os_id" TEXT NOT NULL,
     "wireless" BOOLEAN NOT NULL,
     "psu_wattage" INTEGER NOT NULL,
-    "psu_efficiency_rating" "PsuRating",
+    "psu_efficiency_rating" "PsuRating" NOT NULL,
     "customizable" BOOLEAN NOT NULL,
     "warranty_months" INTEGER NOT NULL,
     "specs_html" TEXT NOT NULL,
@@ -425,6 +426,16 @@ CREATE TABLE "ProductTracker" (
 );
 
 -- CreateTable
+CREATE TABLE "Image" (
+    "id" SERIAL NOT NULL,
+    "url" TEXT NOT NULL,
+    "is_main" BOOLEAN NOT NULL DEFAULT false,
+    "product_id" TEXT NOT NULL,
+
+    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_CaseToFormFactor" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -433,11 +444,11 @@ CREATE TABLE "_CaseToFormFactor" (
 );
 
 -- CreateTable
-CREATE TABLE "_FormFactorToPrebuilt" (
+CREATE TABLE "_Prebuilt_CaseFormFactors" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
 
-    CONSTRAINT "_FormFactorToPrebuilt_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "_Prebuilt_CaseFormFactors_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
@@ -511,10 +522,13 @@ CREATE UNIQUE INDEX "NewProductQueue_website_url_key" ON "NewProductQueue"("webs
 CREATE UNIQUE INDEX "ProductTracker_brand_id_key" ON "ProductTracker"("brand_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Image_product_id_is_main_key" ON "Image"("product_id", "is_main");
+
+-- CreateIndex
 CREATE INDEX "_CaseToFormFactor_B_index" ON "_CaseToFormFactor"("B");
 
 -- CreateIndex
-CREATE INDEX "_FormFactorToPrebuilt_B_index" ON "_FormFactorToPrebuilt"("B");
+CREATE INDEX "_Prebuilt_CaseFormFactors_B_index" ON "_Prebuilt_CaseFormFactors"("B");
 
 -- CreateIndex
 CREATE INDEX "_MemorySpeedToMoba_B_index" ON "_MemorySpeedToMoba"("B");
@@ -529,7 +543,10 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_brand_id_fkey" FOREIGN KEY ("brand
 ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_moba_form_factor_id_fkey" FOREIGN KEY ("moba_form_factor_id") REFERENCES "FormFactor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_os_id_fkey" FOREIGN KEY ("os_id") REFERENCES "OperativeSystem"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -646,16 +663,19 @@ ALTER TABLE "Performance" ADD CONSTRAINT "Performance_prebuilt_id_fkey" FOREIGN 
 ALTER TABLE "ProductTracker" ADD CONSTRAINT "ProductTracker_brand_id_fkey" FOREIGN KEY ("brand_id") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Image" ADD CONSTRAINT "Image_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "_CaseToFormFactor" ADD CONSTRAINT "_CaseToFormFactor_A_fkey" FOREIGN KEY ("A") REFERENCES "Case"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CaseToFormFactor" ADD CONSTRAINT "_CaseToFormFactor_B_fkey" FOREIGN KEY ("B") REFERENCES "FormFactor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_FormFactorToPrebuilt" ADD CONSTRAINT "_FormFactorToPrebuilt_A_fkey" FOREIGN KEY ("A") REFERENCES "FormFactor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_Prebuilt_CaseFormFactors" ADD CONSTRAINT "_Prebuilt_CaseFormFactors_A_fkey" FOREIGN KEY ("A") REFERENCES "FormFactor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_FormFactorToPrebuilt" ADD CONSTRAINT "_FormFactorToPrebuilt_B_fkey" FOREIGN KEY ("B") REFERENCES "Prebuilt"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_Prebuilt_CaseFormFactors" ADD CONSTRAINT "_Prebuilt_CaseFormFactors_B_fkey" FOREIGN KEY ("B") REFERENCES "Prebuilt"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_MemorySpeedToMoba" ADD CONSTRAINT "_MemorySpeedToMoba_A_fkey" FOREIGN KEY ("A") REFERENCES "MemorySpeed"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -3,6 +3,7 @@
 import prisma from "@/app/db";
 import { CpuCoolerType, ProductType, PsuRating } from "@prisma/client";
 import { prebuiltForeignValues, foreignValues } from "../types";
+import { v2 as cloudinary } from "cloudinary";
 
 export async function getQueuedPrebuilt() {
   return prisma.newProductQueue.findFirst({ where: { is_curated: false } });
@@ -98,4 +99,10 @@ export async function formDataToObject(formData: FormData, arrayFields: string[]
   }
 
   return result;
+}
+
+export async function uploadImageToCloud(image: string, slug: string) {
+  return await cloudinary.uploader.upload(image, {
+    public_id_prefix: slug,
+  });
 }

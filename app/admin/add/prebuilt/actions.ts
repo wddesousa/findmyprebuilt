@@ -1,11 +1,15 @@
 "use server";
 
 import { z } from "zod";
-import { formDataToObject, getPsuEfficiencyRatings } from "./utils/db";
+import { formDataToObject, uploadImageToCloud } from "./utils/db";
 import { CpuCoolerType, PsuRating } from "@prisma/client";
 import { cleanedResults } from "@/app/api/scrape/types";
 
+import { generateSlug } from "@/app/utils";
+import { L } from "vitest/dist/chunks/reporters.nr4dxCkA.js";
+
 const schema = z.object({
+  brand: z.string().nonempty(),
   name: z.string().min(5).nonempty(),
   url: z.string().nonempty(),
   os_id: z.string().nonempty(),
@@ -18,16 +22,16 @@ const schema = z.object({
   gpu_chipset_id: z.string().nonempty(),
   memory_modules: z.coerce.number().min(1).max(4),
   cpu_cooler_type: z.nativeEnum(CpuCoolerType),
-  main_storage_gb: z.coerce.number(),
+  main_storage_gb: z.coerce.number().max(24000).min(8),
   memory_speed_id: z.string().nonempty(),
   moba_chipset_id: z.string().nonempty(),
-  warranty_months: z.coerce.number(),
-  memory_module_gb: z.coerce.number(),
-  secondary_storage_gb: z.string(),
+  warranty_months: z.coerce.number().min(0).max(60),
+  memory_module_gb: z.coerce.number().max(16).min(4),
+  secondary_storage_gb: z.coerce.number().max(24000).min(8),
   main_storage_type_id: z.string().nonempty(),
   psu_efficiency_rating: z.nativeEnum(PsuRating),
-  // moba_form_factor: z.
-  // case_form_factor: z.
+  moba_form_factor_id: z.string().nonempty(),
+  case_form_factor: z.string().nonempty(),
   cpu: z.string(),
   gpu: z.string(),
   psu: z.string(),
@@ -48,10 +52,13 @@ export async function submitPrebuilt(
   prevState: any,
   formData: FormData
 ) {
-  const data = await formDataToObject(formData, ["images", "amazon"]);
-  const validatedFields = schema.safeParse(data);
+  const unvalidatedFields = await formDataToObject(formData, [
+    "images",
+    "amazon",
+  ]);
+  const validatedFields = schema.safeParse(unvalidatedFields);
   console.log(formData);
-  console.log(data);
+  console.log(unvalidatedFields);
 
   if (!validatedFields.success) {
     console.error(validatedFields.error);
@@ -59,6 +66,21 @@ export async function submitPrebuilt(
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
+
+  const data = validatedFields.data;
+
+  for (let index = 0; index < data.images.length; index++) {
+    const image = data.images[index];
+    try {
+      const uploaded = await uploadImageToCloud(image, generateSlug(data.brand, data.name))
+      data.images[index] = uploaded.public_id;
+      console.log(uploaded);
+    } catch (error) {
+      console.error(error);
+      return { imageError: `Error uploading images ${error}` };
+    }
+  }
+
   return {
     message: "Success",
   };

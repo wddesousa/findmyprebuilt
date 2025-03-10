@@ -13,7 +13,7 @@
     "test:int": "npm run docker:up && dotenv -e .env.test -- npx prisma db push && dotenv -e .env.test -- vitest --bail=1 -c ./vitest.config.integration.ts",
     "test:unit": "dotenv -e .env.test -- vitest --bail=1 -c ./vitest.config.unit.ts",
     "test:unit:ui": "dotenv -e .env.test -- vitest -c ./vitest.config.unit.ts --ui",
-    "migrate:reset": "dotenv -e .env.development -- npx prisma migrate reset && dotenv -e .env.development -- prisma db seed",
+    "migrate:reset": "dotenv -e .env.development -- npx prisma migrate dev && dotenv -e .env.development -- prisma db seed",
     "seed:dev": "dotenv -e .env.development -- tsx prisma/seed.development.ts"
   },
   "prisma": {
@@ -24,9 +24,11 @@
     "axios": "^1.7.9",
     "bullmq": "^5.41.4",
     "cheerio": "^1.0.0",
+    "cloudinary": "^2.5.1",
     "crypto": "^1.0.1",
     "ioredis": "^5.5.0",
     "next": "^15.2",
+    "next-cloudinary": "^6.16.0",
     "puppeteer": "^24.0.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

@@ -295,7 +295,7 @@ export async function cleanPrebuiltScrapeResults(
       scrapeResults.prebuilt.moba_form_factor,
       "formFactor"
     ),
-    case_form_factor: await findIdByName(
+    case_form_factor_id: await findIdByName(
       scrapeResults.prebuilt.case_form_factor,
       "formFactor"
     ),
@@ -368,13 +368,13 @@ export function getLargestFormFactor(forms?: string[]) {
   if (!Array.isArray(forms) || typeof forms[0] !== 'string') return undefined;
 
   const sizeOrder: Record<string, { weight: number; name: string }> = {
-    MINIITX: { weight: 1, name: "Mini ITX" },
+    MINIITX:  { weight: 1, name: "Mini ITX" },
     MICROATX: { weight: 2, name: "Micro ATX" },
-    ATX: { weight: 3, name: "ATX" },
-    EATX: { weight: 4, name: "EATX" },
+    ATX:      { weight: 3, name: "ATX" },
+    EATX:     { weight: 4, name: "EATX" },
   };
   const serialize = (form: string) =>
-    form.toUpperCase().replace("-", "").trim();
+    form.toUpperCase().replace(/[ -]/, "").trim();
 
   const largest = forms.reduce(
     (acc, curr) => {

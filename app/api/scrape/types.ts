@@ -137,7 +137,7 @@ type processedResults = {
 
 export type cleanedResults = {
   rawResults: scraperRawResults;
-  processedResults: processedResults & {case_form_factor: rawResult}
+  processedResults: processedResults & {case_form_factor_id: rawResult}
 };
 
 export type prebuiltTrackerResults = {

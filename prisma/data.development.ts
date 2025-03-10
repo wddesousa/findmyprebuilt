@@ -13,6 +13,8 @@ export const prebuiltForUpload: cleanedResults = {
       cpu_cooler_mm: "120",
       cpu_cooler_type: "Air Cooler",
       os: "Windows 11 Home",
+      case_form_factor: "ATX",
+      moba_form_factor: "ATX",
       warranty_months: "24",
       wireless: false
     },
@@ -55,6 +57,8 @@ export const prebuiltForUpload: cleanedResults = {
     main_storage_gb: 1024,
     seconday_storage_gb: null,
     main_storage_type_id: "1",
+    case_form_factor: "1",
+    moba_form_factor_id: "1",
     memory_modules: 2,
     memory_module_gb: 8,
     memory_speed_id: "1",
