@@ -324,7 +324,7 @@ const ImageContainer = ({ urls }: { urls: string[] }) => {
           <input type="hidden" name="images" value={image} />
           {index !== 0 && (
             <button onClick={(e) => handleButtonClick(e, index)}>
-              Make main
+              Select as main image
             </button>
           )}
         </div>
