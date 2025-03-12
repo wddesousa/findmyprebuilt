@@ -97,8 +97,11 @@ export const DropdownInput = ({
 }) => {
   const key = name as keyof prebuiltForeignValues;
   const [selected, setSelected] = useState<string>(defaultValue ?? "");
-  if (!(name in databaseValues))
+  console.log(name);
+
+  if (!(name in databaseValues)) {
     throw Error(`dropdown not configured for ${name}`);
+  }
 
   return (
     <div>
@@ -134,7 +137,8 @@ export const MainSpecsInputs = ({
   databaseValues: prebuiltForeignValues;
   state: any;
 }) => {
-  return Object.keys(processedResults).map((spec) => {
+  console.log(processedResults);
+  return Object.keys(processedResults).toSorted().map((spec) => {
     const key = spec as keyof cleanedResults["processedResults"];
     const value = processedResults[key];
 
@@ -192,10 +196,18 @@ export const SearchInput = ({
   name: keyof prebuiltParts;
   defaultValue?: rawResult;
 }) => {
+  const baseResult = {
+    brand: "",
+    image: "",
+    name: "",
+    slug: "",
+    type: "",
+  };
   const [results, setResults] = useState<productSearchResult[]>([]);
-  const [partName, setPartName] = useState<string>(
-    defaultValue ? defaultValue : ""
+  const [partName, setPart] = useState<productSearchResult>(
+    defaultValue ? { ...baseResult, name: defaultValue } : baseResult
   );
+  const [scoreValue, setScorevalue] = useState<string>('');
 
   const debounced = useDebouncedCallback(async (target: HTMLInputElement) => {
     const data = await searchValue(target);
@@ -204,11 +216,14 @@ export const SearchInput = ({
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     debounced(e.currentTarget);
-    setPartName(e.currentTarget.value);
+    setPart({
+      ...baseResult,
+      name: e.currentTarget.value,
+    });
   };
 
-  const handleClick = (productName: string) => {
-    setPartName(productName);
+  const handleClick = (product: productSearchResult) => {
+    setPart(product);
     setResults([]);
   };
 
@@ -220,15 +235,27 @@ export const SearchInput = ({
           type="text"
           className="text-black"
           name={name}
-          value={partName}
+          value={partName.name}
           onChange={onChange}
         />
       </label>
+      {partName.score_3dmark === 0 && (
+        <label htmlFor={`${name}_score`}>
+          3dmark score for {name}
+          <input
+            type="text"
+            name={`${name}_score`}
+            className="text-black"
+            value={scoreValue}
+            onChange={(e) => setScorevalue(e.currentTarget.value)}
+          />
+        </label>
+      )}
       {results.length > 0 && (
         <ul className="results">
           {results.map((result) => {
             return (
-              <li key={result.slug} onClick={() => handleClick(result.name)}>
+              <li key={result.slug} onClick={() => handleClick(result)}>
                 {result.name}
               </li>
             );
@@ -294,10 +321,7 @@ export const ProductNameInput = ({
 const ImageContainer = ({ urls }: { urls: string[] }) => {
   const [selectedImages, setSelectedImages] = useState<string[]>(urls);
 
-  const handleButtonClick = (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    index: number
-  ) => {
+  const selectMainImage = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     const [movedImage] = selectedImages.splice(index, 1);
     setSelectedImages([movedImage, ...selectedImages]);
@@ -323,7 +347,7 @@ const ImageContainer = ({ urls }: { urls: string[] }) => {
           <img src={image} width="300" />
           <input type="hidden" name="images" value={image} />
           {index !== 0 && (
-            <button onClick={(e) => handleButtonClick(e, index)}>
+            <button onClick={(e) => selectMainImage(e, index)}>
               Select as main image
             </button>
           )}
@@ -412,6 +436,7 @@ export default function NewPrebuiltForm({
       }}
     >
       {state?.message}
+      {state?.saveError}
       <h2>Main Info</h2>
       <input type="hidden" name="brand" value={brand} />
       <input type="hidden" name="url" value={rawResults.url} />
@@ -429,7 +454,8 @@ export default function NewPrebuiltForm({
       <br />
 
       <h2 className="text-xl">Parts</h2>
-      {Object.keys(rawResults.prebuiltParts).map((part) => {
+      {Object.keys(processedResults.parts).toSorted().map((part) => {
+        console.log('order', part)
         const key = part as keyof prebuiltParts;
         return (
           <div key={key}>
@@ -438,6 +464,7 @@ export default function NewPrebuiltForm({
               defaultValue={rawResults.prebuiltParts[key]}
             />
             {state?.errors?.[key]}
+            {state?.partError?.[key]}
           </div>
         );
       })}

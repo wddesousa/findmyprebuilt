@@ -1,4 +1,4 @@
-import { fullProductName } from "@/app/api/prebuilts/types";
+import { fullProductName } from "@/app/types";
 import { cleanedResults } from "@/app/api/scrape/types";
 import { productSearchResult } from "@/app/types";
 import axios from "axios";
@@ -15,28 +15,27 @@ export async function fetchPrebuilt(productName: string) {
   }
 }
 
-export const inputMap: Record<
+export const inputMap: Partial<Record<
   keyof cleanedResults["processedResults"],
   "number" | "text" | "boolean" | "dropdown"
-> = {
+>> = {
   os_id: "dropdown",
   base_price: "text",
   psu_wattage: "number",
   rear_fan_mm: "number",
   customizable: "boolean",
   front_fan_mm: "number",
-  cpu_cooler_mm: "number",
-  gpu_chipset_id: "dropdown",
+  cpu_air_cooler_height_mm: "number",
+  cpu_aio_cooler_size_mm: "number",
   memory_modules: "number",
-  cpu_cooler_type: "dropdown",
   main_storage_gb: "number",
   memory_speed_id: "dropdown",
-  moba_form_factor_id: "dropdown",
+  moba_form_factor: "dropdown",
   case_form_factor: "dropdown",
   moba_chipset_id: "dropdown",
   warranty_months: "number",
   memory_module_gb: "number",
-  seconday_storage_gb: "number",
+  secondary_storage_gb: "number",
   main_storage_type_id: "dropdown",
   psu_efficiency_rating: "dropdown",
   secondary_storage_type_id: "dropdown",

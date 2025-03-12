@@ -37,6 +37,7 @@ import {
 } from "@prisma/client";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { formFactorSerializer, formFactorSizes } from "@/app/utils";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -270,58 +271,57 @@ export async function cleanPrebuiltScrapeResults(
   );
   const psuInfo = getPsuInfo(scrapeResults.prebuiltParts.psu);
   const price = getNumber(scrapeResults.prebuilt.base_price);
+  const memorySpeedId = memoryInfo.ddr && memoryInfo.speed
+  ? (
+      await prisma.memorySpeed.findUnique({
+        where: {
+          ddr_speed: {
+            ddr: memoryInfo.ddr as DoubleDataRate,
+            speed: memoryInfo.speed,
+          },
+        },
+      })
+    )?.id : null;
 
-  const processedResults = {
+  const processedResults: cleanedResults["processedResults"] = {
     base_price: price ? new Prisma.Decimal(price.toFixed(2)) : null,
-    cpu_cooler_mm: getNumber(scrapeResults.prebuilt.cpu_cooler_mm),
-    cpu_cooler_type: scrapeResults.prebuilt.cpu_cooler_type
-      ? getCoolerType(scrapeResults.prebuilt.cpu_cooler_type)
-      : null,
+    cpu_air_cooler_height_mm:  getNumber(scrapeResults.prebuilt.cpu_air_cooler_height_mm),
+    cpu_aio_cooler_size_mm: getNumber(scrapeResults.prebuilt.cpu_aio_cooler_size_mm),
     customizable: scrapeResults.prebuilt.customizable,
     front_fan_mm: getNumber(scrapeResults.prebuilt.front_fan_mm),
     rear_fan_mm: getNumber(scrapeResults.prebuilt.rear_fan_mm),
     os_id: await findIdByName(scrapeResults.prebuilt.os, "operativeSystem"),
-    gpu_chipset_id: scrapeResults.prebuiltParts.gpu
-      ? await findIdByName(
-          cleanGpuBrand(scrapeResults.prebuiltParts.gpu),
-          "gpuChipset"
-        )
-      : null,
     moba_chipset_id: await findIdByName(
       scrapeResults.prebuiltParts.moba,
       "mobaChipset"
     ),
-    moba_form_factor_id: await findIdByName(
-      scrapeResults.prebuilt.moba_form_factor,
-      "formFactor"
-    ),
-    case_form_factor_id: await findIdByName(
-      scrapeResults.prebuilt.case_form_factor,
-      "formFactor"
-    ),
-    main_storage_gb: mainStorageInfo?.size,
-    seconday_storage_gb: secondaryStorageInfo?.size,
-    main_storage_type_id: mainStorageInfo?.type?.id,
-    secondary_storage_type_id: secondaryStorageInfo?.type?.id,
+    moba_form_factor: scrapeResults.prebuilt.moba_form_factor ?? null,
+    case_form_factor: scrapeResults.prebuilt.case_form_factor ?? null,
+    main_storage_gb: mainStorageInfo.size ?? null,
+    secondary_storage_gb: secondaryStorageInfo.size ?? null,
+    main_storage_type_id: mainStorageInfo?.type?.id ?? null,
+    secondary_storage_type_id: secondaryStorageInfo?.type?.id ?? null,
     memory_modules: memoryInfo.modules.number,
     memory_module_gb: memoryInfo.modules.size,
-    memory_speed_id:
-      memoryInfo.ddr && memoryInfo.speed
-        ? (
-            await prisma.memorySpeed.findUnique({
-              where: {
-                ddr_speed: {
-                  ddr: memoryInfo.ddr as DoubleDataRate,
-                  speed: memoryInfo.speed,
-                },
-              },
-            })
-          )?.id
-        : null,
+    memory_speed_id: memorySpeedId ?? null,
     warranty_months: getNumber(scrapeResults.prebuilt.warranty_months),
-    wireless: scrapeResults.prebuilt.wireless,
+    wireless: scrapeResults.prebuilt.wireless ?? null,
     psu_efficiency_rating: psuInfo.rating,
     psu_wattage: psuInfo.wattage,
+    parts: {
+      psu: scrapeResults.prebuiltParts.psu ? cleanTrademarks(scrapeResults.prebuiltParts.psu ) : null,
+      cpu:  scrapeResults.prebuiltParts.cpu ? cleanTrademarks(scrapeResults.prebuiltParts.cpu ) : null,
+      case:  scrapeResults.prebuiltParts.case ? cleanTrademarks(scrapeResults.prebuiltParts.case ) : null,
+      cpu_cooler:  scrapeResults.prebuiltParts.cpu_cooler ? cleanTrademarks(scrapeResults.prebuiltParts.cpu_cooler ) : null,
+      gpu:  scrapeResults.prebuiltParts.gpu ? cleanTrademarks(scrapeResults.prebuiltParts.gpu ) : null,
+      gpu_chipset:  scrapeResults.prebuiltParts.gpu_chipset ? cleanTrademarks(scrapeResults.prebuiltParts.gpu_chipset ) : null,
+      front_fan:  scrapeResults.prebuiltParts.front_fan ? cleanTrademarks(scrapeResults.prebuiltParts.front_fan ) : null,
+      rear_fan:  scrapeResults.prebuiltParts.rear_fan ? cleanTrademarks(scrapeResults.prebuiltParts.rear_fan ) : null,
+      main_storage:  scrapeResults.prebuiltParts.main_storage ? cleanTrademarks(scrapeResults.prebuiltParts.main_storage ) : null,
+      second_storage:  scrapeResults.prebuiltParts.second_storage ? cleanTrademarks(scrapeResults.prebuiltParts.second_storage ) : null,
+      moba:  scrapeResults.prebuiltParts.moba ? cleanTrademarks(scrapeResults.prebuiltParts.moba ) : null,
+      ram:  scrapeResults.prebuiltParts.ram ? cleanTrademarks(scrapeResults.prebuiltParts.ram ) : null,
+    }
   };
 
   return {
@@ -364,17 +364,12 @@ export async function getStorageInfo(storage: string | null | undefined) {
 export function getLargestFormFactor(forms?: string[]) {
   //normalize possible names
   //if one of the provided names is not in the list then just return undefined so we put it manually when submitting the prebuilt and avoid mistakes
-  
-  if (!Array.isArray(forms) || typeof forms[0] !== 'string') return undefined;
 
-  const sizeOrder: Record<string, { weight: number; name: string }> = {
-    MINIITX:  { weight: 1, name: "Mini ITX" },
-    MICROATX: { weight: 2, name: "Micro ATX" },
-    ATX:      { weight: 3, name: "ATX" },
-    EATX:     { weight: 4, name: "EATX" },
-  };
-  const serialize = (form: string) =>
-    form.toUpperCase().replace(/[ -]/, "").trim();
+  if (!Array.isArray(forms) || typeof forms[0] !== "string") return undefined;
+
+  const sizeOrder = formFactorSizes;
+
+  const serialize = formFactorSerializer;
 
   const largest = forms.reduce(
     (acc, curr) => {
@@ -451,9 +446,10 @@ function getPsuRating(psu: string): PsuRating | null {
   return null;
 }
 
-export function getCoolerType(cooler: string): CpuCoolerType | null {
+export function getCoolerType(cooler?: string): CpuCoolerType | null {
+  if (!cooler) return null;
   if (cooler.toLowerCase().includes("air")) return "AIR";
-  if (cooler.toLowerCase().match(/aio|liquid/)) return "LIQUID";
+  if (cooler.toLowerCase().match(/aio|liquid/)) return "AIO";
   return null;
 }
 export function getMemoryInfo(memory: string | null | undefined) {

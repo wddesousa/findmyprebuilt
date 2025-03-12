@@ -591,7 +591,7 @@ export const prebuiltExternalValues: prebuiltForeignValues = {
     { id: "0UZmNb5f3pxFabBkykne3", name: "SSD" },
     { id: "IjWROHFtMUUewcZBkusQg", name: "7200 RPM" },
   ],
-  moba_form_factor_id: [
+  moba_form_factor: [
     { id: "gsgadsgs", name: "Micro ATX" },
     { id: "asdfasfasd", name: "Mini ITX" },
     { id: "asdfasd", name: "ATX" },
@@ -615,25 +615,25 @@ export const prebuiltExternalValues: prebuiltForeignValues = {
 export const cleanPrebuiltScrapeResultSet: cleanedResults["processedResults"] =
   {
     base_price: new Prisma.Decimal(829),
-    cpu_cooler_mm: 120,
-    cpu_cooler_type: CpuCoolerType.AIR,
+    cpu_air_cooler_height_mm: 120,
+    cpu_aio_cooler_size_mm: null,
     customizable: true,
     front_fan_mm: 120,
     rear_fan_mm: 120,
     os_id: "1",
     gpu_chipset_id: "1",
     moba_chipset_id: "1",
-    moba_form_factor_id: "1",
-    case_form_factor_id: "1",
+    moba_form_factor: "ATX",
+    case_form_factor: "ATX",
     main_storage_gb: 1024,
-    seconday_storage_gb: null,
+    secondary_storage_gb: null,
     main_storage_type_id: "1",
-    secondary_storage_type_id: undefined,
+    secondary_storage_type_id: null,
     memory_modules: 2,
     memory_module_gb: 8,
     memory_speed_id: "1",
     warranty_months: 24,
-    wireless: undefined,
+    wireless: null,
     psu_efficiency_rating: PsuRating.GOLD,
     psu_wattage: 650,
   };
@@ -644,8 +644,8 @@ export const scrapeNzxtResults = {
     base_price: "829",
     front_fan_mm: "120",
     rear_fan_mm: "120",
-    cpu_cooler_mm: "120",
-    cpu_cooler_type: "Air Cooler",
+    cpu_air_cooler_height_mm: "120",
+    cpu_aio_cooler_size_mm: undefined,
     os: "Windows 11 Home",
     warranty_months: "24",
     moba_form_factor: undefined,
@@ -671,20 +671,64 @@ export const scrapeNzxtResults = {
     "https://www.datocms-assets.com/34299/1727324327-player-1-ww-09-04-24-side-white.png",
     "https://www.datocms-assets.com/34299/1727324330-player-1-ww-09-04-24-front-white.png",
   ],
-  performance: expect.objectContaining({
-    "League of Legends": {
-      R1080P: 200,
-      R1440P: 200,
-      R2160P: 200,
+  performance: [
+    {
+      name: "Counter-Strike 2",
+      resolutions: [
+        { fps: 150, name: "R1080P" },
+        { fps: 90, name: "R1440P" },
+        { fps: 45, name: "R2160P" },
+      ],
     },
-  }),
-  // performance: expect.objectContaining({
-  //   [expect.any(String)]: expect.objectContaining({
-  //     R1080P: expect.any(Number),
-  //     R1440P: expect.any(Number),
-  //     R2160P: expect.any(Number),
-  //   }),
-  // }),
+    {
+      name: "Grand Theft Auto V",
+      resolutions: [
+        { fps: 65, name: "R1080P" },
+        { fps: 40, name: "R1440P" },
+        { fps: 0, name: "R2160P" },
+      ],
+    },
+    {
+      name: "Fortnite",
+      resolutions: [
+        { fps: 65, name: "R1080P" },
+        { fps: 40, name: "R1440P" },
+        { fps: 20, name: "R2160P" },
+      ],
+    },
+    {
+      name: "Valorant",
+      resolutions: [
+        { fps: 310, name: "R1080P" },
+        { fps: 265, name: "R1440P" },
+        { fps: 125, name: "R2160P" },
+      ],
+    },
+    {
+      name: "League of Legends",
+      resolutions: [
+        { fps: 200, name: "R1080P" },
+        { fps: 200, name: "R1440P" },
+        { fps: 200, name: "R2160P" },
+      ],
+    },
+    {
+      name: "Black Myth: Wukong",
+      resolutions: [
+        { fps: 20, name: "R1080P" },
+        { fps: 0, name: "R1440P" },
+        { fps: 0, name: "R2160P" },
+      ],
+    },
+    {
+      name: "Cyberpunk 2077",
+      resolutions: [
+        { fps: 45, name: "R1080P" },
+        { fps: 35, name: "R1440P" },
+        { fps: 0, name: "R2160P" },
+      ],
+    },
+  ],
   url: expect.stringContaining(".html"),
   name: "Player: One",
   brandName: "NZXT",
@@ -1517,3 +1561,69 @@ export const intelChipsets = [
     brand_id: "eFnJ1xyvFdp8pO3yAnwc-",
   },
 ];
+
+
+export const expectedPerformancePrismaObject = {
+  create: [
+    {
+      game: {
+        connectOrCreate: {
+          create: { name: "Counter-Strike 2" },
+          where: { name: "Counter-Strike 2" },
+        },
+      },
+      resolution: "R1080P",
+      fps: 150,
+    },
+    {
+      game: {
+        connectOrCreate: {
+          create: { name: "Counter-Strike 2" },
+          where: { name: "Counter-Strike 2" },
+        },
+      },
+      resolution: "R1440P",
+      fps: 90,
+    },
+    {
+      game: {
+        connectOrCreate: {
+          create: { name: "Counter-Strike 2" },
+          where: { name: "Counter-Strike 2" },
+        },
+      },
+      resolution: "R2160P",
+      fps: 45,
+    },
+    {
+      game: {
+        connectOrCreate: {
+          create: { name: "Grand Theft Auto V" },
+          where: { name: "Grand Theft Auto V" },
+        },
+      },
+      resolution: "R1080P",
+      fps: 65,
+    },
+    {
+      game: {
+        connectOrCreate: {
+          create: { name: "Grand Theft Auto V" },
+          where: { name: "Grand Theft Auto V" },
+        },
+      },
+      resolution: "R1440P",
+      fps: 40,
+    },
+    {
+      game: {
+        connectOrCreate: {
+          create: { name: "Grand Theft Auto V" },
+          where: { name: "Grand Theft Auto V" },
+        },
+      },
+      resolution: "R2160P",
+      fps: 0,
+    }
+  ],
+}

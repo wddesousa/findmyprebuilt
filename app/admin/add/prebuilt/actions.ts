@@ -1,51 +1,11 @@
 "use server";
 
-import { z } from "zod";
-import { formDataToObject, uploadImageToCloud } from "./utils/db";
-import { CpuCoolerType, PsuRating } from "@prisma/client";
-import { cleanedResults } from "@/app/api/scrape/types";
-
+import { formDataToObject, getGpuChipset, saveNewPrebuilt, uploadImageToCloud } from "./utils/db";
+import { cleanedResults, prebuiltParts } from "@/app/api/scrape/types";
 import { generateSlug } from "@/app/utils";
-import { L } from "vitest/dist/chunks/reporters.nr4dxCkA.js";
+import { prebuiltSchema, PrebuiltSchemaType } from "./types";
+import {getProductByFullName} from "@/app/db";
 
-const schema = z.object({
-  brand: z.string().min(1),
-  name: z.string().min(5),
-  url: z.string().min(1),
-  os_id: z.string().min(1),
-  base_price: z.coerce.number().min(300).max(20000),
-  psu_wattage: z.coerce.number().min(400).max(1400),
-  rear_fan_mm: z.coerce.number().min(92).max(140),
-  customizable: z.coerce.boolean(),
-  front_fan_mm: z.coerce.number().min(92).max(140),
-  cpu_cooler_mm: z.coerce.number().min(92).max(140),
-  gpu_chipset_id: z.string().min(1),
-  memory_modules: z.coerce.number().min(1).max(4),
-  cpu_cooler_type: z.nativeEnum(CpuCoolerType),
-  main_storage_gb: z.coerce.number().max(24000).min(8),
-  memory_speed_id: z.string().min(1),
-  moba_chipset_id: z.string().min(1),
-  warranty_months: z.coerce.number().min(0).max(60),
-  memory_module_gb: z.coerce.number().max(16).min(4),
-  secondary_storage_gb: z.coerce.number().max(24000).min(8),
-  main_storage_type_id: z.string().min(1),
-  psu_efficiency_rating: z.nativeEnum(PsuRating),
-  moba_form_factor_id: z.string().min(1),
-  case_form_factor: z.string().min(1),
-  cpu: z.string(),
-  gpu: z.string(),
-  psu: z.string(),
-  ram: z.string(),
-  case: z.string(),
-  moba: z.string(),
-  rear_fan: z.string(),
-  front_fan: z.string(),
-  cpu_cooler: z.string(),
-  main_storage: z.string(),
-  second_storage: z.string(),
-  amazon: z.array(z.string()).min(1),
-  images: z.array(z.string().min(1)).min(1),
-});
 
 export async function submitPrebuilt(
   cleanedResults: cleanedResults,
@@ -56,7 +16,7 @@ export async function submitPrebuilt(
     "images",
     "amazon",
   ]);
-  const validatedFields = schema.safeParse(unvalidatedFields);
+  const validatedFields = prebuiltSchema.safeParse(unvalidatedFields);
   console.log(formData);
   console.log(unvalidatedFields);
 
@@ -69,6 +29,27 @@ export async function submitPrebuilt(
 
   const data = validatedFields.data;
 
+  for (const part of Object.keys(cleanedResults.processedResults.parts)) {
+    //validate that the parts provided exist in the database
+    const key = part as keyof prebuiltParts;
+    if (data[key] !== '') {
+      try {
+        const product = key === 'gpu_chipset' ? await getGpuChipset(data[key]) :  await getProductByFullName(data[key]);
+        if (product.length === 0) 
+          throw Error()
+
+        //change the data from the form from a part name to the id in the database
+        data[key] = product[0].id;
+        
+      } catch (error) {
+        console.error(error);
+        return {
+          partError: {[key]: `The provided name for the pc part ${part} doesn't exist in the database`}
+        }
+      }
+    }
+  }
+
   for (let index = 0; index < data.images.length; index++) {
     const image = data.images[index];
     try {
@@ -80,6 +61,16 @@ export async function submitPrebuilt(
       return { imageError: `Error uploading images ${error}` };
     }
   }
+
+  try {
+    await saveNewPrebuilt(data, cleanedResults)
+  } catch(error) {
+    console.log(error);
+    return {
+      saveError: `Error saving prebuilt: ${error}`
+    }
+  }
+
 
   return {
     message: "Success",

@@ -4,14 +4,14 @@ import fs from "fs";
 
 import { fileURLToPath } from "url";
 import { serializeNumber } from "../../serializers";
-import { scraperRawResults } from "../../types";
+import { scraperRawResults, gamePerformance } from "../../types";
 import {
   NzxtSpecCategory,
   NZXTSpecs,
   NzxtCategorySpecMap,
   NzxtSpecValues,
 } from "../types/nzxt";
-import { getLargestFormFactor } from "../../utils";
+import { getCoolerType, getLargestFormFactor } from "../../utils";
 
 export function processNzxtData(data: any, url: string): scraperRawResults {
   const nzxtData = data.props.pageProps.data;
@@ -33,13 +33,17 @@ export function processNzxtData(data: any, url: string): scraperRawResults {
   const caseFormFactor = caseSpecs?.["Motherboard Support"]
     ? caseSpecs["Motherboard Support"].split(",")
     : undefined;
+
+    const coolerType = getCoolerType(cpuCoolerSpecs?.["Cooling type"]);
+
   return {
     prebuilt: {
       base_price: String(baseProductInfo.variant.price),
       customizable: true,
       front_fan_mm: getFanSize(frontFanSpecs),
       rear_fan_mm: getFanSize(rearFanSpecs),
-      cpu_cooler_mm: getFanSize(cpuCoolerSpecs),
+      cpu_air_cooler_height_mm: coolerType === "AIR" ? getFanSize(cpuCoolerSpecs) : null,
+      cpu_aio_cooler_size_mm: coolerType === "AIO" ?  getFanSize(cpuCoolerSpecs) : null,
       cpu_cooler_type: cpuCoolerSpecs?.["Cooling type"],
       moba_form_factor: mobaSpecs?.["Form Factor"],
       case_form_factor: getLargestFormFactor(caseFormFactor),
@@ -56,10 +60,11 @@ export function processNzxtData(data: any, url: string): scraperRawResults {
     },
     prebuiltParts: {
       psu: `${psuSpecs?.Model} ${psuSpecs?.Rating} ${psuSpecs?.Wattage}`,
-      cpu: keySpecs?.["CPU"],
-      case: caseSpecs?.Model,
-      cpu_cooler: cpuCoolerSpecs?.Model,
-      gpu: keySpecs?.["GPU"],
+      cpu: keySpecs?.["CPU"] ?? null,
+      case: caseSpecs?.Model ?? null,
+      cpu_cooler: cpuCoolerSpecs?.Model ?? null,
+      gpu: null,
+      gpu_chipset: keySpecs?.["GPU"],
       front_fan: frontFanSpecs?.Model,
       rear_fan: rearFanSpecs?.Model,
       main_storage: keySpecs?.["Storage"],
@@ -87,22 +92,33 @@ export function processPerformance(gamePerformance: any) {
     valorant: "Valorant",
   };
 
-  const performance: scraperRawResults["performance"] = Object.keys(
-    gamePerformance
-  ).reduce((acc, game) => {
+  const performance: gamePerformance = Object.keys(gamePerformance).reduce((acc, game) => {
     if (game !== "timeSpyOverallScore" && !(game in gameAcronymMap))
       throw Error(`Game ${game} not found in map`);
-    return game !== "timeSpyOverallScore"
-      ? {
-          ...acc,
-          [gameAcronymMap[game]]: {
-            R1080P: Number(gamePerformance[game]["1080"]),
-            R1440P: Number(gamePerformance[game]["1440"].split("(")[0]),
-            R2160P: Number(gamePerformance[game]["4k"].split("(")[0]),
+
+    if (game !== "timeSpyOverallScore") {
+      const resolutions = []
+      acc.push({
+        name: gameAcronymMap[game],
+        resolutions: [
+          {
+            fps: Number(gamePerformance[game]["1080"]),
+            name: "R1080P",
           },
-        }
-      : acc;
-  }, {});
+          {
+            fps: Number(gamePerformance[game]["1440"].split("(")[0]),
+            name: "R1440P",
+          },
+          {
+            fps: Number(gamePerformance[game]["4k"].split("(")[0]),
+            name: "R2160P",
+          }
+        ]
+      });
+    }
+
+    return acc;
+  }, [] as gamePerformance);
 
   return performance;
 }

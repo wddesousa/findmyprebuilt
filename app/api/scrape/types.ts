@@ -17,6 +17,8 @@ import {
   FormFactor,
   CaseFan,
   Prebuilt,
+  Resolution,
+  GpuChipset,
 } from "@prisma/client"; // Adjust based on your models
 import { Decimal } from "@prisma/client/runtime/library";
 
@@ -83,6 +85,7 @@ export type prebuiltBrands = "NZXT" | "test";
 
 type PartsMap = {
   cpu: Cpu;
+  gpu_chipset: GpuChipset;
   gpu: Gpu;
   ram: Memory;
   main_storage: Storage;
@@ -97,10 +100,13 @@ type PartsMap = {
 
 export type rawResult = string | null | undefined;
 
-type gamePerformance = Record<
-  string,
-  Record<"R1080P" | "R1440P" | "R2160P", number>
->;
+export type gamePerformance = Array<{
+  name: string;
+  resolutions: Array<{
+    name: Resolution;
+    fps: number;
+  }>;
+}>;
 
 export type scraperRawResults = {
   // The result from scrapers. Each value should be serializable later on by the main serializer that is used for all scrapers
@@ -109,7 +115,8 @@ export type scraperRawResults = {
     customizable: boolean;
     front_fan_mm: rawResult;
     rear_fan_mm: rawResult;
-    cpu_cooler_mm: rawResult;
+    cpu_air_cooler_height_mm: rawResult;
+    cpu_aio_cooler_size_mm: rawResult;
     cpu_cooler_type: rawResult;
     moba_form_factor: rawResult;
     case_form_factor: rawResult;
@@ -117,27 +124,38 @@ export type scraperRawResults = {
     warranty_months: rawResult;
     wireless: boolean | null | undefined;
   };
-  prebuiltParts: prebuiltParts
+  prebuiltParts: prebuiltParts;
   specsHtml: string; //save here the raw hmlt of specs to detect changes in the future
   images: string[];
-  performance?: gamePerformance;
+  performance: gamePerformance;
   url: string;
   name: string;
-  brandName: prebuiltBrands
+  brandName: prebuiltBrands;
 };
 
-export type prebuiltParts = Record<keyof PartsMap, rawResult> ;
+export type prebuiltParts = Record<keyof PartsMap, rawResult>;
 
+//processedResults is used to build the submit form so none of their allowed values should be undefined
 type processedResults = {
-  [K in keyof Omit<Prebuilt, "product_id" | "cpu_id" | "specs_html">]:
-    | Prebuilt[K]
-    | null
-    | undefined;
+  [K in keyof Omit<
+    Prebuilt,
+    | "product_id"
+    | "cpu_id"
+    | "gpu_chipset_id"
+    | "moba_form_factor_id"
+    | "specs_html"
+    | "gaming_score"
+    | "creator_score"
+    | "budget_score"
+  >]: Prebuilt[K] | null;
 };
 
 export type cleanedResults = {
   rawResults: scraperRawResults;
-  processedResults: processedResults & {case_form_factor_id: rawResult}
+  processedResults: processedResults & {
+    case_form_factor: string | null;
+    moba_form_factor: string | null;
+  } & { parts: Record<keyof prebuiltParts, string | null> };
 };
 
 export type prebuiltTrackerResults = {

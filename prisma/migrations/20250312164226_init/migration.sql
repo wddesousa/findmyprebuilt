@@ -2,7 +2,7 @@
 CREATE TYPE "ProductType" AS ENUM ('GPU', 'CPU', 'MOBA', 'CASE', 'PREBUILT', 'MEMORY', 'STORAGE', 'COOLER', 'PSU', 'CASEFAN');
 
 -- CreateEnum
-CREATE TYPE "CpuCoolerType" AS ENUM ('AIR', 'LIQUID');
+CREATE TYPE "CpuCoolerType" AS ENUM ('AIR', 'AIO');
 
 -- CreateEnum
 CREATE TYPE "DoubleDataRate" AS ENUM ('DDR2', 'DDR3', 'DDR4', 'DDR5', 'DDR6', 'DDR7');
@@ -28,9 +28,9 @@ CREATE TABLE "Product" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "url" TEXT NOT NULL,
-    "asin" TEXT,
     "slug" TEXT NOT NULL,
     "is_retired" BOOLEAN NOT NULL DEFAULT false,
+    "score" INTEGER NOT NULL,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
@@ -52,11 +52,11 @@ CREATE TABLE "Prebuilt" (
     "memory_speed_id" TEXT NOT NULL,
     "main_storage_gb" INTEGER NOT NULL,
     "moba_form_factor_id" TEXT NOT NULL,
-    "seconday_storage_gb" INTEGER,
-    "front_fan_mm" DOUBLE PRECISION NOT NULL,
-    "rear_fan_mm" DOUBLE PRECISION NOT NULL,
-    "cpu_cooler_mm" DOUBLE PRECISION NOT NULL,
-    "cpu_cooler_type" "CpuCoolerType" NOT NULL,
+    "secondary_storage_gb" INTEGER,
+    "front_fan_mm" INTEGER NOT NULL,
+    "rear_fan_mm" INTEGER NOT NULL,
+    "cpu_air_cooler_height_mm" INTEGER,
+    "cpu_aio_cooler_size_mm" INTEGER,
     "os_id" TEXT NOT NULL,
     "wireless" BOOLEAN NOT NULL,
     "psu_wattage" INTEGER NOT NULL,
@@ -69,6 +69,9 @@ CREATE TABLE "Prebuilt" (
     "main_storage_type_id" TEXT NOT NULL,
     "secondary_storage_type_id" TEXT NOT NULL,
     "cpu_id" TEXT NOT NULL,
+    "gaming_score" INTEGER NOT NULL,
+    "creator_score" INTEGER NOT NULL,
+    "budget_score" INTEGER NOT NULL,
 
     CONSTRAINT "Prebuilt_pkey" PRIMARY KEY ("product_id")
 );
@@ -82,7 +85,7 @@ CREATE TABLE "PrebuiltParts" (
     "psu_id" TEXT,
     "cooler_id" TEXT,
     "front_fan_id" TEXT,
-    "back_fan_id" TEXT,
+    "rear_fan_id" TEXT,
 
     CONSTRAINT "PrebuiltParts_pkey" PRIMARY KEY ("prebuilt_id")
 );
@@ -201,6 +204,17 @@ CREATE TABLE "Store" (
 );
 
 -- CreateTable
+CREATE TABLE "AffiliateInfo" (
+    "id" TEXT NOT NULL,
+    "store_id" TEXT NOT NULL,
+    "product_id" TEXT NOT NULL,
+    "affiliate_id" TEXT,
+    "url" TEXT NOT NULL,
+
+    CONSTRAINT "AffiliateInfo_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Gpu" (
     "product_id" TEXT NOT NULL,
     "part_number" TEXT[],
@@ -229,6 +243,7 @@ CREATE TABLE "Gpu" (
 CREATE TABLE "GpuChipset" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "score_3dmark" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "GpuChipset_pkey" PRIMARY KEY ("id")
 );
@@ -256,6 +271,7 @@ CREATE TABLE "Cpu" (
     "lithography_nm" INTEGER NOT NULL,
     "includes_cpu_cooler" BOOLEAN NOT NULL,
     "simultaneous_multithreading" BOOLEAN NOT NULL,
+    "score_3dmark" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Cpu_pkey" PRIMARY KEY ("product_id")
 );
@@ -477,6 +493,9 @@ CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
 CREATE INDEX "Product_is_retired_idx" ON "Product"("is_retired");
 
 -- CreateIndex
+CREATE INDEX "Product_slug_idx" ON "Product"("slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Product_name_brand_id_key" ON "Product"("name", "brand_id");
 
 -- CreateIndex
@@ -493,6 +512,9 @@ CREATE UNIQUE INDEX "MemorySpeed_ddr_speed_key" ON "MemorySpeed"("ddr", "speed")
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Price_store_id_product_id_key" ON "Price"("store_id", "product_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AffiliateInfo_store_id_product_id_key" ON "AffiliateInfo"("store_id", "product_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "GpuChipset_name_key" ON "GpuChipset"("name");
@@ -588,7 +610,7 @@ ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_cooler_id_fkey" FOREIG
 ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_front_fan_id_fkey" FOREIGN KEY ("front_fan_id") REFERENCES "CaseFan"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_back_fan_id_fkey" FOREIGN KEY ("back_fan_id") REFERENCES "CaseFan"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_rear_fan_id_fkey" FOREIGN KEY ("rear_fan_id") REFERENCES "CaseFan"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Storage" ADD CONSTRAINT "Storage_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -606,13 +628,19 @@ ALTER TABLE "CaseFan" ADD CONSTRAINT "CaseFan_product_id_fkey" FOREIGN KEY ("pro
 ALTER TABLE "Memory" ADD CONSTRAINT "Memory_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Memory" ADD CONSTRAINT "Memory_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Memory" ADD CONSTRAINT "Memory_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Price" ADD CONSTRAINT "Price_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Price" ADD CONSTRAINT "Price_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AffiliateInfo" ADD CONSTRAINT "AffiliateInfo_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AffiliateInfo" ADD CONSTRAINT "AffiliateInfo_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Gpu" ADD CONSTRAINT "Gpu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -35,8 +35,8 @@ async function main() {
   } catch (e) {
     console.log("skipping intel chipsets");
   }
-
-  try {
+    console.log(prebuiltForUpload)
+    await prisma.newProductQueue.deleteMany({});
     await prisma.newProductQueue.create({
       data: {
         scraped_data: prebuiltForUpload,
@@ -44,9 +44,7 @@ async function main() {
         website_url: "test.com",
       },
     });
-  } catch {
-    console.log("skipped product queue");
-  }
+  
 
   await prisma.gpuChipset.upsert({
     where: { name: "GeForce RTX 3050" },
