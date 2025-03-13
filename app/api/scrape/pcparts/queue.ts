@@ -11,6 +11,6 @@ export async function addPartcrapingJob(
 ) {
   await scrapeQueue.add(
     `scrape-${productUrl}`,
-    { delay: 3000 }
+    { delay: 0 }
   );
 }

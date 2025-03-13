@@ -251,7 +251,7 @@ model Price {
 
 model Store {
   id               String          @id @default(nanoid())
-  name             String
+  name             String @unique
   store_region_iso String
   prices           Price[]
   affiliates       AffiliateInfo[]

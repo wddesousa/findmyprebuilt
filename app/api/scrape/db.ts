@@ -2,7 +2,7 @@ import { spec } from "node:test/reporters";
 import { PrismaModelMap } from "./types";
 import prisma from "@/app/db";
 import { generateSlug } from "@/app/utils";
-import { Prisma, ProductType, PsuRating } from "@prisma/client";
+import { Cooler, Prisma, ProductType, PsuRating } from "@prisma/client";
 
 export async function saveCpu(specs: PrismaModelMap["cpu"]) {
   const data = {
@@ -369,7 +369,7 @@ export async function saveCooler(specs: PrismaModelMap["cooler"]) {
   //         orderBy: [{ name: 'asc' }]
   //     },
   // })
-  const data = {
+  const data: Prisma.Args<typeof prisma.cooler, "create"> = {
     data: {
       product: {
         create: {

@@ -15,10 +15,12 @@ export async function fetchPrebuilt(productName: string) {
   }
 }
 
-export const inputMap: Partial<Record<
-  keyof cleanedResults["processedResults"],
-  "number" | "text" | "boolean" | "dropdown"
->> = {
+export const inputMap: Partial<
+  Record<
+    keyof cleanedResults["processedResults"],
+    "number" | "text" | "boolean" | "dropdown"
+  >
+> = {
   os_id: "dropdown",
   base_price: "text",
   psu_wattage: "number",
@@ -42,13 +44,24 @@ export const inputMap: Partial<Record<
   wireless: "boolean",
 };
 
-export const searchValue = async (target: HTMLInputElement) => {
-  const { name, value } = target;
+export const searchValue = async (name: string, value: string) => {
   const params = new URLSearchParams({ keyword: value });
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_AUTOCOMPLETE_URL}/${name}?keyword=${params.toString()}`
     );
+    return response.data as productSearchResult[];
+  } catch (error) {
+    console.error("Error:", error);
+  }
+  return [];
+};
+
+export const sendScrapeRequest = async (url: string) => {
+  try {
+    const response = await axios.post(`/api/scrape/pcparts`, {
+      url: url,
+    });
     return response.data as productSearchResult[];
   } catch (error) {
     console.error("Error:", error);

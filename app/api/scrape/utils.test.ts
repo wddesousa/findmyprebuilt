@@ -2,6 +2,7 @@ import { describe, expect, test, it, vi } from "vitest";
 import fs from "fs";
 import {
   cleanPrebuiltScrapeResults,
+  getAmazonAsin,
   getLargestFormFactor,
   getMemoryInfo,
   getPsuInfo,
@@ -90,6 +91,12 @@ describe("getPsuInfo", () => {
         });
       }
     );
+  });
+});
+
+describe("getAmazonAsin", () => {
+  it("correctly extracts ASIN", () => {
+    expect(getAmazonAsin("https://www.amazon.com/Cooler-Master-Silencio-Anodized-Gun-Metal/dp/B07H25DYM3/ref=pd_ci_mcx_mh_mcx_views_0_image?pd_rd_w=16CM8&content-id=amzn1.sym.bb21fc54-1dd8-448e-92bb-2ddce187f4ac%3Aamzn1.symc.40e6a10e-cbc4-4fa5-81e3-4435ff64d03b&pf_rd_p=bb21fc54-1dd8-448e-92bb-2ddce187f4ac&pf_rd_r=AMTW77GH6CMS65DEDE3W&pd_rd_wg=WAA4Q&pd_rd_r=58f61ee3-8c40-4cb5-a1cc-8f1dd8c923e8&pd_rd_i=B07H25DYM3&th=1")).toBe("B07H25DYM3")
   });
 });
 

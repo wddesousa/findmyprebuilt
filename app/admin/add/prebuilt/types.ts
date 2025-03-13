@@ -35,7 +35,7 @@ export const prebuiltSchema = z.object({
     .string()
     .transform((value) => (value === "" ? undefined : value))
     .pipe(z.coerce.number().min(240).max(420).optional()),
-  gpu_chipset_id_score: z.coerce.number().min(300).optional(),
+  gpu_chipset_score: z.coerce.number().min(300).optional(),
   memory_modules: z.coerce.number().min(1).max(4),
   main_storage_gb: z.coerce.number().max(24000).min(8),
   memory_speed_id: z.string().min(1),

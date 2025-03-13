@@ -16,7 +16,12 @@ import {
 import { useDebouncedCallback } from "use-debounce";
 import { prebuiltForeignValues } from "../types";
 import { productSearchResult } from "@/app/types";
-import { fetchPrebuilt, inputMap, searchValue } from "../utils/client";
+import {
+  fetchPrebuilt,
+  inputMap,
+  searchValue,
+  sendScrapeRequest,
+} from "../utils/client";
 import { v4 as uuidv4 } from "uuid";
 
 const CheckboxInput = ({
@@ -97,7 +102,6 @@ export const DropdownInput = ({
 }) => {
   const key = name as keyof prebuiltForeignValues;
   const [selected, setSelected] = useState<string>(defaultValue ?? "");
-  console.log(name);
 
   if (!(name in databaseValues)) {
     throw Error(`dropdown not configured for ${name}`);
@@ -137,57 +141,70 @@ export const MainSpecsInputs = ({
   databaseValues: prebuiltForeignValues;
   state: any;
 }) => {
-  console.log(processedResults);
-  return Object.keys(processedResults).toSorted().map((spec) => {
-    const key = spec as keyof cleanedResults["processedResults"];
-    const value = processedResults[key];
+  return Object.keys(processedResults)
+    .toSorted()
+    .map((spec) => {
+      const key = spec as keyof cleanedResults["processedResults"];
+      const value = processedResults[key];
 
-    const getInput = () => {
-      switch (inputMap[key]) {
-        case "boolean":
-          return (
-            <CheckboxInput
-              defaultChecked={value === true}
-              name={key}
-              label={key}
-            />
-          );
-        case "text":
-          return (
-            <TextInput
-              defaultValue={(value as string) ?? undefined}
-              name={key}
-              label={key}
-            />
-          );
-        case "number":
-          return (
-            <TextInput
-              defaultValue={(value as string) ?? undefined}
-              name={key}
-              label={key}
-            />
-          );
-        case "dropdown":
-          return (
-            <DropdownInput
-              name={key}
-              label={key}
-              databaseValues={databaseValues}
-              defaultValue={value as string}
-            />
-          );
-      }
-    };
-    return (
-      <div key={key}>
-        {getInput()}
-        {state?.errors?.[key]}
-      </div>
-    );
-  });
+      const getInput = () => {
+        switch (inputMap[key]) {
+          case "boolean":
+            return (
+              <CheckboxInput
+                defaultChecked={value === true}
+                name={key}
+                label={key}
+              />
+            );
+          case "text":
+            return (
+              <TextInput
+                defaultValue={(value as string) ?? undefined}
+                name={key}
+                label={key}
+              />
+            );
+          case "number":
+            return (
+              <TextInput
+                defaultValue={(value as string) ?? undefined}
+                name={key}
+                label={key}
+              />
+            );
+          case "dropdown":
+            return (
+              <DropdownInput
+                name={key}
+                label={key}
+                databaseValues={databaseValues}
+                defaultValue={value as string}
+              />
+            );
+        }
+      };
+      return (
+        <div key={key}>
+          {getInput()}
+          {state?.errors?.[key]}
+        </div>
+      );
+    });
   // return <input type={typeMapping[key as keyof cleanedResults["processedResults"]]} name={key} defaultValue={processedResults[key as keyof cleanedResults["processedResults"]] as string} />
 };
+
+// export const ScrapeSearchBox = ({
+//   name
+// }: {
+//   name: string
+// }) => {
+//   const [url, setUrl] = useState<string>('');
+
+//   return ( <input type="text"
+//     name={name}
+//     />)
+// }
 
 export const SearchInput = ({
   name,
@@ -196,26 +213,31 @@ export const SearchInput = ({
   name: keyof prebuiltParts;
   defaultValue?: rawResult;
 }) => {
-  const baseResult = {
+  const baseResult: productSearchResult = {
     brand: "",
     image: "",
     name: "",
     slug: "",
     type: "",
   };
+  var isWaitingScrapeRequest = false;
   const [results, setResults] = useState<productSearchResult[]>([]);
-  const [partName, setPart] = useState<productSearchResult>(
+  const [part, setPart] = useState<productSearchResult>(
     defaultValue ? { ...baseResult, name: defaultValue } : baseResult
   );
-  const [scoreValue, setScorevalue] = useState<string>('');
+  const [scoreValue, setScorevalue] = useState<string>("");
+  const [isScrape, setIsScrape] = useState<boolean>(false);
+  const [scrapeUrl, setScrapeUrl] = useState<string>("");
 
   const debounced = useDebouncedCallback(async (target: HTMLInputElement) => {
-    const data = await searchValue(target);
+    const data = await searchValue(name, target.value);
     setResults(data);
   }, 300);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debounced(e.currentTarget);
+    if (e.currentTarget.value.length > 4) {
+      debounced(e.currentTarget);
+    }
     setPart({
       ...baseResult,
       name: e.currentTarget.value,
@@ -227,19 +249,94 @@ export const SearchInput = ({
     setResults([]);
   };
 
+  const handleClearButton = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setPart(baseResult);
+    setResults([]);
+  };
+
+  const scrapeInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleScrapeButton = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsScrape(true);
+    setTimeout(
+      () => (scrapeInputRef.current ? scrapeInputRef.current.focus() : null),
+      0
+    );
+  };
+
+  const handleScrapeOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.currentTarget.value;
+    setScrapeUrl(value);
+  };
+  const handleScrapeSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const value = e.currentTarget.value;
+    if (e.key === "Enter" && value !== "") {
+      isWaitingScrapeRequest = true;
+      sendScrapeRequest(value);
+      isWaitingScrapeRequest = false;
+      setIsScrape(false);
+    } else if (e.key === "Escape") {
+      if (!isWaitingScrapeRequest) {
+        setIsScrape(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (part.name !== "") {
+      searchValue(name, part.name)
+        .then((result) => setResults(result))
+        .catch((error) => console.log(error));
+    }
+  }, []);
+
   return (
     <>
+      {isScrape && (
+        <div className="bg-black bg-opacity-50 backdrop-opacity-60 fixed top-0 m-auto w-screen h-screen ">
+          <div className="flex flex-row justify-end h-full">
+            <button
+              className="cursor-pointer block"
+              disabled={isWaitingScrapeRequest}
+              onClick={(e) => {
+                e.preventDefault();
+                setIsScrape(false);
+              }}
+            >
+              X
+            </button>
+            <input
+              type="text"
+              ref={scrapeInputRef}
+              placeholder="PCPartPicker URL"
+              className="w-3/6 block m-auto text-black"
+              name={name}
+              value={scrapeUrl}
+              onChange={handleScrapeOnChange}
+              onKeyDown={handleScrapeSubmit}
+            />
+          </div>
+        </div>
+      )}
+
       <label htmlFor={name}>
         {name}
         <input
           type="text"
+          id={name}
           className="text-black"
           name={name}
-          value={partName.name}
+          value={part.name}
           onChange={onChange}
         />
       </label>
-      {partName.score_3dmark === 0 && (
+      <button onClick={handleClearButton}>Clear</button>
+      {name !== "gpu_chipset" && (
+        <button onClick={handleScrapeButton}>Scrape</button>
+      )}
+      {part.score_3dmark === 0 && (
         <label htmlFor={`${name}_score`}>
           3dmark score for {name}
           <input
@@ -357,7 +454,15 @@ const ImageContainer = ({ urls }: { urls: string[] }) => {
   );
 };
 
-const StoreLinkInput = ({ title, name }: { title: string; name: string }) => {
+const StoreLinkInput = ({ 
+  title,
+  name,
+  multiple
+}: { 
+    title: string; 
+    name: string;
+    multiple: boolean
+  }) => {
   const [inputs, setInputs] = useState<{ id: string; value: string }[]>([
     { id: uuidv4(), value: "" },
   ]);
@@ -401,7 +506,7 @@ const StoreLinkInput = ({ title, name }: { title: string; name: string }) => {
           />
         </div>
       ))}
-      <button onClick={handleAddInput}>add more</button>
+      {multiple && <button onClick={handleAddInput}>add more</button>}
     </label>
   );
 };
@@ -428,56 +533,59 @@ export default function NewPrebuiltForm({
   const brand = rawResults.brandName;
 
   return (
-    <form
-      onSubmit={(e) => {
-        //workaround for bug that resets the form on submission
-        e.preventDefault();
-        startTransition(() => action(new FormData(e.currentTarget)));
-      }}
-    >
-      {state?.message}
-      {state?.saveError}
-      <h2>Main Info</h2>
-      <input type="hidden" name="brand" value={brand} />
-      <input type="hidden" name="url" value={rawResults.url} />
-      <ProductNameInput brandName={brand} prebuiltName={rawResults.name} />
-      {state?.errors?.name}
-      <h2>Images</h2>
-      <ImageContainer urls={rawResults.images} />
-      {state?.imageError}
-      <h2 className="text-xl">Basic Specs</h2>
-      <MainSpecsInputs
-        processedResults={processedResults}
-        databaseValues={databaseValues}
-        state={state}
-      />
-      <br />
+    <div>
+      <form
+        onSubmit={(e) => {
+          //workaround for bug that resets the form on submission
+          e.preventDefault();
+          startTransition(() => action(new FormData(e.currentTarget)));
+        }}
+      >
+        {state?.message}
+        {state?.saveError}
+        <h2>Main Info</h2>
+        <input type="hidden" name="brand" value={brand} />
+        <input type="hidden" name="url" value={rawResults.url} />
+        <ProductNameInput brandName={brand} prebuiltName={rawResults.name} />
+        {state?.errors?.name}
+        <h2>Images</h2>
+        <ImageContainer urls={rawResults.images} />
+        {state?.imageError}
+        <h2 className="text-xl">Basic Specs</h2>
+        <MainSpecsInputs
+          processedResults={processedResults}
+          databaseValues={databaseValues}
+          state={state}
+        />
+        <br />
 
-      <h2 className="text-xl">Parts</h2>
-      {Object.keys(processedResults.parts).toSorted().map((part) => {
-        console.log('order', part)
-        const key = part as keyof prebuiltParts;
-        return (
-          <div key={key}>
-            <SearchInput
-              name={key}
-              defaultValue={rawResults.prebuiltParts[key]}
-            />
-            {state?.errors?.[key]}
-            {state?.partError?.[key]}
-          </div>
-        );
-      })}
-      <h2>Ecommerce stores</h2>
-      <StoreLinkInput title="Amazon" name="amazon" />
-      {state?.errors?.amazon}
-      <div className="">
-        <button disabled={pending} type="submit">
-          Submit
-        </button>
-        <button>Skip for now</button>
-        <button>Delete forever</button>
-      </div>
-    </form>
+        <h2 className="text-xl">Parts</h2>
+        {Object.keys(processedResults.parts)
+          .toSorted()
+          .map((part) => {
+            const key = part as keyof prebuiltParts;
+            return (
+              <div key={key}>
+                <SearchInput
+                  name={key}
+                  defaultValue={rawResults.prebuiltParts[key]}
+                />
+                {state?.errors?.[key]}
+                {state?.partError?.[key]}
+              </div>
+            );
+          })}
+        <h2>Ecommerce stores</h2>
+        <StoreLinkInput title="Amazon" name="amazon" multiple={false} />
+        {state?.errors?.amazon}
+        <div className="">
+          <button disabled={pending} type="submit">
+            Submit
+          </button>
+          <button>Skip for now</button>
+          <button>Delete forever</button>
+        </div>
+      </form>
+    </div>
   );
 }

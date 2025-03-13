@@ -1,6 +1,7 @@
-import { PrismaClient, Prisma, Product, TypeOfEdit } from "@prisma/client";
+import { PrismaClient, Prisma, Product, TypeOfEdit, Prebuilt } from "@prisma/client";
 import { cleanedResults } from "./api/scrape/types";
-import { fullProductName } from "./types";
+import { fullProductName, includePrebuiltParts, PrebuiltWithParts } from "./types";
+import { prebuiltSchema } from "./admin/add/prebuilt/types";
 
 const prismaClientSingleton = () => {
   return new PrismaClient();
@@ -68,49 +69,13 @@ export async function getProductByFullName(fullName: string) {
   );
 }
 
-export async function getAllPrebuilts() {
-  return await prisma.prebuilt.findMany({
-    include: {
-      product: {
-        include: {
-          brand: true,
-        },
-      },
-      cpu: true,
-      parts: {
-        include: {
-          case: true,
-          cooler: true,
-          front_fan: true,
-          rear_fan: true,
-          gpu: true,
-          moba: true,
-          psu: true,
-        },
-      },
-    },
-  });
-}
 
 // export async function scorePrebuilt(
 //   prebuilt: Prebuilt & Cpu & Moba & Gpu & Case
 // ) {}
 
 export async function getPrebuiltScoringValues() {
-  const minMax = await prisma.prebuilt.aggregate({
-    _max: {
-      base_price: true,
-      cpu_air_cooler_height_mm: true,
-      cpu_aio_cooler_size_mm: true,
-      front_fan_mm: true,
-      rear_fan_mm: true,
-      main_storage_gb: true,
-      secondary_storage_gb: true,
-      memory_module_gb: true,
-      memory_modules: true,
-      psu_wattage: true,
-      warranty_months: true,
-    },
+  return await prisma.prebuilt.aggregate({
     _min: {
       base_price: true,
       cpu_air_cooler_height_mm: true,
@@ -124,12 +89,54 @@ export async function getPrebuiltScoringValues() {
       psu_wattage: true,
       warranty_months: true,
     },
+    _max: {
+      base_price: true,
+      cpu_air_cooler_height_mm: true,
+      cpu_aio_cooler_size_mm: true,
+      front_fan_mm: true,
+      rear_fan_mm: true,
+      main_storage_gb: true,
+      secondary_storage_gb: true,
+      memory_module_gb: true,
+      memory_modules: true,
+      psu_wattage: true,
+      warranty_months: true,
+    }
   });
 
-  const topCpus = [
-
-  ]
 }
+
+export function getPrebuiltScore(d: Awaited<ReturnType<typeof getPrebuiltScoringValues>>, prebuilt: PrebuiltWithParts
+) {
+  const [minCoolerValue, maxCoolerValue, coolerValue] = (prebuilt.cpu_aio_cooler_size_mm ? [d._min.cpu_aio_cooler_size_mm, d._max.cpu_aio_cooler_size_mm, prebuilt.cpu_aio_cooler_size_mm]: [d._min.cpu_air_cooler_height_mm, d._max.cpu_air_cooler_height_mm, prebuilt.cpu_air_cooler_height_mm])as number[]
+
+  const prebuiltScores = {
+    pricing: getNegativeMetricScore(d._min.base_price!.toNumber(), d._max.base_price!.toNumber(), prebuilt.base_price.toNumber()),
+    coolingPower: getContinuousMetricScore(minCoolerValue, maxCoolerValue, coolerValue),
+    coolingType: prebuilt.cpu_aio_cooler_size_mm ? 100 : 0,
+    frontFanPower: getContinuousMetricScore(d._min.front_fan_mm!, d._max.front_fan_mm!, prebuilt.front_fan_mm),
+  }
+}
+
+export async function getFullPrebuilt(slug: string): Promise<PrebuiltWithParts> {
+  return await prisma.prebuilt.findFirstOrThrow({
+    where: {
+      product: {
+        slug: slug
+      }
+    },
+    ...includePrebuiltParts
+  })
+}
+export async function getAllPrebuilts(): Promise<PrebuiltWithParts[]> {
+  return await prisma.prebuilt.findMany(includePrebuiltParts)
+}
+
+//more is better
+const getContinuousMetricScore = (min: number, max: number, value: number) => ((value - min)/(max-min)) * 100
+
+//less is better
+const getNegativeMetricScore = (min: number, max: number, value: number) => ((max - value)/(max-min)) * 100
 
 export async function getCpuScoringvalues() {}
 // export async function addProductToTracker(brandId: string, url: string) {

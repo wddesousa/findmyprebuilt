@@ -1,5 +1,5 @@
 import { describe, expect, test, it, vi } from "vitest";
-import { getAllCompatibleFormFactors, getPerformancePrismaObject } from "./db";
+import { getAllCompatibleFormFactors, getPerformancePrismaObject } from "./server";
 import { gamePerformance } from "@/app/api/scrape/types";
 import { expectedPerformancePrismaObject } from "@/tests/helpers/utils";
 

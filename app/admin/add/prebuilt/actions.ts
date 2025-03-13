@@ -1,6 +1,6 @@
 "use server";
 
-import { formDataToObject, getGpuChipset, saveNewPrebuilt, uploadImageToCloud } from "./utils/db";
+import { formDataToObject, getGpuChipset, saveNewPrebuilt, uploadImageToCloud } from "./utils/server";
 import { cleanedResults, prebuiltParts } from "@/app/api/scrape/types";
 import { generateSlug } from "@/app/utils";
 import { prebuiltSchema, PrebuiltSchemaType } from "./types";
@@ -14,7 +14,6 @@ export async function submitPrebuilt(
 ) {
   const unvalidatedFields = await formDataToObject(formData, [
     "images",
-    "amazon",
   ]);
   const validatedFields = prebuiltSchema.safeParse(unvalidatedFields);
   console.log(formData);

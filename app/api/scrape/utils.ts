@@ -330,6 +330,9 @@ export async function cleanPrebuiltScrapeResults(
   };
 }
 
+export const getAmazonAsin = (url: string) =>
+  url.match(/\/dp\/([^\/]+)\//)?.[1];
+
 const getNumber = (value: any) => (value ? serializeNumber(value) : null);
 const findIdByName = async (
   name: any,
