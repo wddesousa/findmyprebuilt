@@ -27,7 +27,7 @@ model Product {
   url        String          @unique
   slug       String          @unique
   is_retired Boolean         @default(false)
-  score             Int
+  score             Int @default(0)
   prices     Price[]
   prebuilts  Prebuilt[]
   cases      Case[]
@@ -79,8 +79,7 @@ model Prebuilt {
   base_price                Decimal         @db.Decimal(7, 2)
   memory_modules            Int
   memory_module_gb          Int
-  memory_speed              MemorySpeed     @relation(fields: [memory_speed_id], references: [id])
-  memory_speed_id           String
+  memory_speed_mhz              Int     
   main_storage_gb           Int
   case_form_factors         FormFactor[]    @relation(name: "Prebuilt_CaseFormFactors")
   moba_form_factor          FormFactor      @relation(name: "Prebuilt_MobaFormFactor", fields: [moba_form_factor_id], references: [id])
@@ -108,9 +107,10 @@ model Prebuilt {
   secondary_storage_type_id String
   cpu                       Cpu             @relation(fields: [cpu_id], references: [product_id])
   cpu_id                    String
-  gaming_score              Int
-  creator_score             Int
-  budget_score              Int
+  scores Json
+  gaming_score              Int @default(0)
+  creator_score             Int @default(0)
+  budget_score              Int @default(0)
   parts                     PrebuiltParts?
   performance               Performance[]
 }
@@ -213,19 +213,7 @@ model Memory {
   timing             String
   ecc_registered     String
   heat_spreader      Boolean
-  memory_speed       MemorySpeed @relation(fields: [memory_speed_id], references: [id])
-  memory_speed_id    String
-}
-
-model MemorySpeed {
-  id        String         @id @default(nanoid())
-  ddr       DoubleDataRate
-  speed     Int
-  memories  Memory[]
-  prebuilts Prebuilt[]
-  mobas     Moba[]
-
-  @@unique([ddr, speed])
+  memory_speed_mhz       Int
 }
 
 enum DoubleDataRate {
@@ -342,7 +330,6 @@ model Moba {
   chipset                      MobaChipset          @relation(fields: [chipset_id], references: [id])
   chipset_id                   String
   memory_max                   Int
-  memory_speeds                MemorySpeed[]
   memory_slots                 Int
   color                        String
   pcie_x16_slots               Int
@@ -368,6 +355,7 @@ model Moba {
   raid_support                 Boolean
   uses_back_connect_connectors Boolean
   prebuilts                    PrebuiltParts[]
+  memory_speeds                MemorySpeedOnMobas[]
 }
 
 model MobaChipset {
@@ -445,6 +433,13 @@ model OperativeSystem {
   id        String     @id @default(nanoid())
   name      String     @unique
   prebuilts Prebuilt[]
+}
+
+model MemorySpeedOnMobas {
+  id        String     @id @default(nanoid())
+  speed      Int     @unique
+  moba Moba  @relation(fields: [moba_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  moba_id  String
 }
 
 enum PsuRating {

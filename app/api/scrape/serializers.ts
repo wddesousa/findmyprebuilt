@@ -47,8 +47,7 @@ export const serializeArray = (value: string): any => {
 
 const getMemorySpeed = (value: string): MemorySpeed => ({
   id: "",
-  ddr: value.split("-")[0].trim() as DoubleDataRate,
-  speed: parseFloat(value.split("-")[1].trim()),
+  speed: parseInt(value.split("-")[1].trim()),
 });
 
 //this returns the spec that is added to the actual product name so we know where the real product name ends. For some product we need a function that returns the index of where to cut off the title to get the real product name

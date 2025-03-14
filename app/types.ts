@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
-
+import prisma
+ from "./db";
 export type productSearchResult = {
   type: string;
   name: string;
@@ -17,7 +18,7 @@ export type fullProductName = {
 };
 
 // 1: Define a type that includes the relation to `Post`
-export const includePrebuiltParts = Prisma.validator<Prisma.PrebuiltDefaultArgs>()({
+export const includePrebuiltParts = Prisma.validator<Prisma.Args<typeof prisma.prebuilt, 'findFirst'>>()({
   include: { 
     cpu: true,
     main_storage_type: true,

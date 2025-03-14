@@ -99,7 +99,7 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
   return prisma.gpu.create(data);
 }
 export async function saveMoba(specs: PrismaModelMap["moba"]) {
-  const data = {
+  const data: Prisma.Args<typeof prisma.moba, 'create'> = {
     data: {
       product: {
         create: {
@@ -135,11 +135,8 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
       },
       memory_max: specs.memory_max,
       memory_speeds: {
-        connectOrCreate: specs.memory_speed.map((speed) => ({
-          where: {
-            ddr_speed: { ddr: speed.ddr, speed: speed.speed },
-          },
-          create: { ddr: speed.ddr, speed: speed.speed },
+        create: specs.memory_speed.map((speed) => ({
+          speed: speed.speed
         })),
       },
       memory_slots: specs.memory_slots,
@@ -192,7 +189,7 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
 }
 
 export async function saveMemory(specs: PrismaModelMap["memory"]) {
-  const data = {
+  const data: Prisma.Args<typeof prisma.memory, 'create'> = {
     data: {
       product: {
         create: {
@@ -209,20 +206,7 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
         },
       },
       part_number: specs.part_number,
-      memory_speed: {
-        connectOrCreate: {
-          where: {
-            ddr_speed: {
-              ddr: specs.memory_speed.ddr,
-              speed: specs.memory_speed.speed,
-            },
-          },
-          create: {
-            ddr: specs.memory_speed.ddr,
-            speed: specs.memory_speed.speed,
-          },
-        },
-      },
+      memory_speed_ghz: specs.memory_speed.speed,
       form_factor: specs.form_factor,
       modules: specs.modules,
       color: specs.color,
@@ -235,7 +219,6 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
     },
     include: {
       product: { include: { brand: true } },
-      memory_speed: true,
     },
   };
   return prisma.memory.create(data);

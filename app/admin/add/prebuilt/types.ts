@@ -8,7 +8,6 @@ export interface foreignValues {
 
 export type prebuiltForeignValues = {
   os_id: foreignValues[];
-  memory_speed_id: foreignValues[];
   moba_chipset_id: foreignValues[];
   main_storage_type_id: foreignValues[];
   secondary_storage_type_id: foreignValues[];

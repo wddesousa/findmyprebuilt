@@ -36,7 +36,6 @@ export async function getForeignValues(): Promise<prebuiltForeignValues> {
   const formFactors = await getFormFactors();
   return {
     os_id: await getOperativeSystems(),
-    memory_speed_id: await getMemorySpeeds(),
     moba_chipset_id: await getMobaChipsets(),
     main_storage_type_id: storageTypes,
     secondary_storage_type_id: storageTypes,
@@ -178,13 +177,6 @@ export async function getOperativeSystems(): Promise<foreignValues[]> {
 
 export async function getGpuChipset(name: string) {
   return prisma.gpuChipset.findMany({ where: { name: name } });
-}
-
-export async function getMemorySpeeds(): Promise<foreignValues[]> {
-  return (await prisma.memorySpeed.findMany()).map((mem) => ({
-    id: mem.id,
-    name: `${mem.ddr} ${mem.speed}`,
-  }));
 }
 
 export async function getMobaChipsets(): Promise<foreignValues[]> {

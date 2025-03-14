@@ -271,17 +271,6 @@ export async function cleanPrebuiltScrapeResults(
   );
   const psuInfo = getPsuInfo(scrapeResults.prebuiltParts.psu);
   const price = getNumber(scrapeResults.prebuilt.base_price);
-  const memorySpeedId = memoryInfo.ddr && memoryInfo.speed
-  ? (
-      await prisma.memorySpeed.findUnique({
-        where: {
-          ddr_speed: {
-            ddr: memoryInfo.ddr as DoubleDataRate,
-            speed: memoryInfo.speed,
-          },
-        },
-      })
-    )?.id : null;
 
   const processedResults: cleanedResults["processedResults"] = {
     base_price: price ? new Prisma.Decimal(price.toFixed(2)) : null,
@@ -303,7 +292,7 @@ export async function cleanPrebuiltScrapeResults(
     secondary_storage_type_id: secondaryStorageInfo?.type?.id ?? null,
     memory_modules: memoryInfo.modules.number,
     memory_module_gb: memoryInfo.modules.size,
-    memory_speed_id: memorySpeedId ?? null,
+    memory_speed_mhz: memoryInfo.speed,
     warranty_months: getNumber(scrapeResults.prebuilt.warranty_months),
     wireless: scrapeResults.prebuilt.wireless ?? null,
     psu_efficiency_rating: psuInfo.rating,
@@ -457,25 +446,15 @@ export function getCoolerType(cooler?: string): CpuCoolerType | null {
 }
 export function getMemoryInfo(memory: string | null | undefined) {
   if (!memory)
-    return { ddr: null, speed: null, modules: { number: null, size: null } };
+    return { speed: null, modules: { number: null, size: null } };
 
-  const ddr = getMemoryDdr(memory);
   const speed = getMemorySpeed(memory);
   const modules = getMemoryModules(memory);
 
   return {
-    ddr,
     speed,
     modules,
   };
-}
-
-function getMemoryDdr(memory: string) {
-  const match = memory.toUpperCase().match(/DDR\d/g);
-  if (match) {
-    return match[0];
-  }
-  return null;
 }
 
 function getMemorySpeed(memory: string) {

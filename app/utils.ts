@@ -43,3 +43,13 @@ export const formFactorSizes: Record<string, { weight: number; name: string }> =
   EATX:     { weight: 4, name: "EATX" },
 };
 export const formFactorSerializer = (formFactor: string) => formFactor.toUpperCase().replace(/[ -]/, "").trim();
+
+export const format = {
+  gb: (gb: number) => gb >= 1024 ? `${gb / 1024} TB` : `${gb} GB`,
+  ghz: (ghz: number) => `${ghz} GHz`,
+  mhz: (mhz: number) => `${mhz} MHz`,
+  mb: (mb: number) => `${mb} MB`,
+  mm: (mm: number) => `${mm} mm`,
+  w: (wattage: number) => `${wattage} W`,
+  has: (boolean: boolean) =>  boolean ? 'Yes' : 'No'
+}
