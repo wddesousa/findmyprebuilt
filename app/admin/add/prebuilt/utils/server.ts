@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getProductByFullName } from "@/app/db";
+import prisma, { getAllFormFactors, getAllMobaChipsets, getAllOperativeSystems, getProductByFullName, getPsuEfficiencyRatings, getAllStorageTypes } from "@/app/db";
 import {
   Brand,
   CpuCoolerType,
@@ -10,7 +10,6 @@ import {
 } from "@prisma/client";
 import {
   prebuiltForeignValues,
-  foreignValues,
   PrebuiltSchemaType,
 } from "../types";
 import { v2 as cloudinary } from "cloudinary";
@@ -20,23 +19,27 @@ import {
   formFactorSerializer,
   formFactorSizes,
   generateSlug,
-} from "@/app/utils";
+} from "@/app/lib/utils";
 import {
   cleanedResults,
   gamePerformance,
   prebuiltParts,
 } from "@/app/api/scrape/types";
+import { foreignValues } from "@/app/types";
 
 export async function getQueuedPrebuilt() {
   return prisma.newProductQueue.findFirst({ where: { is_curated: false } });
 }
 
 export async function getForeignValues(): Promise<prebuiltForeignValues> {
-  const storageTypes = await getStorageTypes();
-  const formFactors = await getFormFactors();
+  const setNamesAsId = (values: foreignValues[]): foreignValues[] => values.map(value => ({...value, id: value.name}))
+
+  const storageTypes = await getAllStorageTypes();
+  const formFactors = setNamesAsId(await getAllFormFactors())
+
   return {
-    os_id: await getOperativeSystems(),
-    moba_chipset_id: await getMobaChipsets(),
+    os_id: await getAllOperativeSystems(),
+    moba_chipset_id: await getAllMobaChipsets(),
     main_storage_type_id: storageTypes,
     secondary_storage_type_id: storageTypes,
     psu_efficiency_rating: await getPsuEfficiencyRatings(),
@@ -169,43 +172,6 @@ export async function getAllCompatibleFormFactors(
     if (formFactor === formFactorSizes[form].name) return compatibleFormFactors;
   }
   return compatibleFormFactors;
-}
-
-export async function getOperativeSystems(): Promise<foreignValues[]> {
-  return prisma.operativeSystem.findMany();
-}
-
-export async function getGpuChipset(name: string) {
-  return prisma.gpuChipset.findMany({ where: { name: name } });
-}
-
-export async function getMobaChipsets(): Promise<foreignValues[]> {
-  const chipsets = await prisma.mobaChipset.findMany({});
-  return JSON.parse(JSON.stringify(chipsets));
-}
-
-export async function getStorageTypes(): Promise<foreignValues[]> {
-  return prisma.storageType.findMany({});
-}
-
-export async function getFormFactors(): Promise<foreignValues[]> {
-  const forms = await prisma.formFactor.findMany({});
-  return forms && forms.map((form) => ({ id: form.name, name: form.name }));
-}
-
-export async function getProductsByType(
-  type: ProductType
-): Promise<foreignValues[]> {
-  return prisma.product.findMany({
-    where: { type: type },
-  });
-}
-
-export async function getPsuEfficiencyRatings(): Promise<foreignValues[]> {
-  return Object.values(PsuRating).map((rating) => ({
-    id: rating,
-    name: rating,
-  }));
 }
 
 export async function formDataToObject(

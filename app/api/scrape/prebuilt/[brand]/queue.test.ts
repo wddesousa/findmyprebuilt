@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { Queue, Worker, Job } from "bullmq";
-import { redis } from "@/app/redis";
+import { redis } from "@/app/lib/redis";
 import { addPrebuiltScrapingJob } from "./queue";
 
 const queue = new Queue("prebuiltScraperQueue", { connection: redis });

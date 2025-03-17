@@ -17,6 +17,11 @@ export type fullProductName = {
   name: string;
 };
 
+export interface foreignValues {
+  id: string;
+  name: string;
+}
+
 // 1: Define a type that includes the relation to `Post`
 export const includePrebuiltParts = Prisma.validator<Prisma.Args<typeof prisma.prebuilt, 'findFirst'>>()({
   include: { 
@@ -24,7 +29,6 @@ export const includePrebuiltParts = Prisma.validator<Prisma.Args<typeof prisma.p
     main_storage_type: true,
     gpu_chipset: true,
     case_form_factors: true,
-    memory_speed: true,
     moba_form_factor: true,
     os: true,
     moba_chipset: true,

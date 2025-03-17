@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     include: ["**/*.test.ts*", "!tests"],
-    setupFiles: ["app/singleton.ts"],
+    setupFiles: ["app/lib/singleton.ts"],
     environment: "jsdom",
   },
 });

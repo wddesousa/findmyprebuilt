@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { redis } from "@/app/redis";
+import { redis } from "@/app/lib/redis";
 
 
 // Create a queue

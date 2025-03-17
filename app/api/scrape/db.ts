@@ -1,7 +1,7 @@
 import { spec } from "node:test/reporters";
 import { PrismaModelMap } from "./types";
 import prisma from "@/app/db";
-import { generateSlug } from "@/app/utils";
+import { generateSlug } from "@/app/lib/utils";
 import { Cooler, Prisma, ProductType, PsuRating } from "@prisma/client";
 
 export async function saveCpu(specs: PrismaModelMap["cpu"]) {
@@ -99,7 +99,7 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
   return prisma.gpu.create(data);
 }
 export async function saveMoba(specs: PrismaModelMap["moba"]) {
-  const data: Prisma.Args<typeof prisma.moba, 'create'> = {
+  const data: Prisma.Args<typeof prisma.moba, "create"> = {
     data: {
       product: {
         create: {
@@ -136,7 +136,7 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
       memory_max: specs.memory_max,
       memory_speeds: {
         create: specs.memory_speed.map((speed) => ({
-          speed: speed.speed
+          speed: speed.speed,
         })),
       },
       memory_slots: specs.memory_slots,
@@ -184,12 +184,12 @@ export async function saveMoba(specs: PrismaModelMap["moba"]) {
       socket: true,
     },
   };
-  console.log(specs.chipset_id)
+  console.log(specs.chipset_id);
   return prisma.moba.create(data);
 }
 
 export async function saveMemory(specs: PrismaModelMap["memory"]) {
-  const data: Prisma.Args<typeof prisma.memory, 'create'> = {
+  const data: Prisma.Args<typeof prisma.memory, "create"> = {
     data: {
       product: {
         create: {
@@ -206,7 +206,7 @@ export async function saveMemory(specs: PrismaModelMap["memory"]) {
         },
       },
       part_number: specs.part_number,
-      memory_speed_ghz: specs.memory_speed.speed,
+      memory_speed_mhz: specs.memory_speed_mhz,
       form_factor: specs.form_factor,
       modules: specs.modules,
       color: specs.color,
@@ -381,6 +381,7 @@ export async function saveCooler(specs: PrismaModelMap["cooler"]) {
       height_mm: specs.height_mm,
       water_cooled_radiador_mm: specs.water_cooled_radiador_mm,
     },
+    include: { product: { include: { brand: true } } },
   };
   return prisma.cooler.create(data);
 }
@@ -430,6 +431,6 @@ export async function upsertBrand(brand: string) {
   });
 }
 
-export async function getBrand(brand:string) {
-  return prisma.brand.findFirst({where: {name: brand}})
+export async function getBrand(brand: string) {
+  return prisma.brand.findFirst({ where: { name: brand } });
 }

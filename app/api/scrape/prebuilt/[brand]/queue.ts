@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { redis } from "../../../../redis";
+import { redis } from "../../../../lib/redis";
 import { Brand } from "@prisma/client";
 
 

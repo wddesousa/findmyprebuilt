@@ -10,7 +10,6 @@ import {
   Memory,
   Brand,
   MobaChipset,
-  MemorySpeed,
   MobaM2Slots,
   StorageType,
   Cooler,
@@ -19,6 +18,7 @@ import {
   Prebuilt,
   Resolution,
   GpuChipset,
+  MemorySpeedOnMobas,
 } from "@prisma/client"; // Adjust based on your models
 import { Decimal } from "@prisma/client/runtime/library";
 
@@ -50,10 +50,10 @@ export type PrismaModelMap = {
   cpu: ProductSpecs & Cpu;
   gpu: ProductSpecs & Gpu;
   moba: ProductSpecs &
-    Moba & { memory_speed: Omit<MemorySpeed[], "id"> } & {
+    Moba & { memory_speed: Omit<MemorySpeedOnMobas[], "id"> } & {
       m_2_slots: Omit<MobaM2Slots[], "id">;
     };
-  memory: ProductSpecs & Memory & { memory_speed: Omit<MemorySpeed, "id"> };
+  memory: ProductSpecs & Memory
   storage: ProductSpecs & Storage;
   cooler: ProductSpecs & Cooler & { cpu_sockets: Omit<Socket[], "id"> };
   psu: ProductSpecs & Psu;

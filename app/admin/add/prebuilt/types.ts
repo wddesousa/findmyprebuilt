@@ -1,10 +1,8 @@
 import { z } from "zod";
 import { CpuCoolerType, PsuRating } from "@prisma/client";
+import { foreignValues } from "@/app/types";
 
-export interface foreignValues {
-  id: string;
-  name: string;
-}
+
 
 export type prebuiltForeignValues = {
   os_id: foreignValues[];

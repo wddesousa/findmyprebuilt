@@ -1,6 +1,6 @@
 import { upsertBrand } from "../db"
 import { getPuppeteerInstance } from "../utils"
-import { sleep } from "@/app/utils"
+import { sleep } from "@/app/lib/utils"
 import { MobaChipsetSpecs, MobaChipsetlSerializationMap, mobaAmdChipsetIndexes } from '../types'
 import { genericSerialize, mobaChipsetCustomSerializer, serializeNumber } from "../serializers"
 import prisma from '@/app/db'

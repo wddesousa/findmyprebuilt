@@ -34,10 +34,11 @@ import {
   DoubleDataRate,
   PsuRating,
   Prisma,
+  Product,
 } from "@prisma/client";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { formFactorSerializer, formFactorSizes } from "@/app/utils";
+import { formFactorSerializer, formFactorSizes } from "@/app/lib/utils";
 
 process.env.DEBUG = "puppeteer:*";
 
@@ -135,7 +136,7 @@ export async function processPartScrapedData(url: string, scrapedData: string) {
       `Product type ${product_type} not configured for serialization`
     );
 
-  const serialized = await serializeProduct(productKey, url, $);
+  const serialized = await serializeProduct(productKey, url, $) as unknown as {product: Product};
   return serialized;
 }
 
@@ -240,6 +241,8 @@ async function serializeProduct<T extends keyof PrismaModelMap>(
     default:
       break;
   }
+
+  throw Error("Serializer not defined correctly")
 }
 
 function removeTrademarks(scrapeResults: any): any {
@@ -408,11 +411,11 @@ function getStorageSize(storage: any) {
 }
 
 export function getPsuInfo(psu: string | null | undefined): {
-  rating: PsuRating | null;
+  rating: PsuRating;
   wattage: number | null;
 } {
   // there is 0 chance there's a prebuilt being sold with a PSU that is not 80+ rated so will assume that
-  if (!psu) return { rating: null, wattage: null };
+  if (!psu) return { rating: PsuRating.NONE, wattage: null };
 
   return {
     rating: getPsuRating(psu),
@@ -428,14 +431,14 @@ function getPsuWattage(psu: string) {
   return null;
 }
 
-function getPsuRating(psu: string): PsuRating | null {
+function getPsuRating(psu: string): PsuRating {
   const match = psu
     .toUpperCase()
     .match(/TITANIUM|PLATINUM|GOLD|SILVER|BRONZE/g);
   if (match) {
     return match[0] as PsuRating;
   }
-  return null;
+  return PsuRating.NONE;
 }
 
 export function getCoolerType(cooler?: string): CpuCoolerType | null {

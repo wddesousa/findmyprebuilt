@@ -9,7 +9,7 @@ import {
   getStorageInfo,
   processPartScrapedData,
 } from "./utils";
-import { prismaMock } from "@/app/singleton";
+import { prismaMock } from "@/app/lib/singleton";
 import { MobaChipset, Prisma, PrismaClient } from "@prisma/client";
 import {
   cleanPrebuiltScrapeResultSet,

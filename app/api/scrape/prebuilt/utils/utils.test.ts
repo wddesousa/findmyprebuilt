@@ -1,4 +1,4 @@
-import { prismaMock } from "@/app/singleton";
+import { prismaMock } from "@/app/lib/singleton";
 import { describe, expect, test, it, beforeEach } from "vitest";
 import { findProductUpdates, prebuiltList, savePrebuiltScrapeResults } from "./utils";
 import { cleanedResults } from "../../types";

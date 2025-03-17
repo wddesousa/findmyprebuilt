@@ -1,8 +1,8 @@
 "use server";
 
-import { formDataToObject, getGpuChipset, saveNewPrebuilt, uploadImageToCloud } from "./utils/server";
+import { formDataToObject, getGpuChipsets, saveNewPrebuilt, uploadImageToCloud } from "./utils/server";
 import { cleanedResults, prebuiltParts } from "@/app/api/scrape/types";
-import { generateSlug } from "@/app/utils";
+import { generateSlug } from "@/app/lib/utils";
 import { prebuiltSchema, PrebuiltSchemaType } from "./types";
 import {getProductByFullName} from "@/app/db";
 
@@ -33,7 +33,7 @@ export async function submitPrebuilt(
     const key = part as keyof prebuiltParts;
     if (data[key] !== '') {
       try {
-        const product = key === 'gpu_chipset' ? await getGpuChipset(data[key]) :  await getProductByFullName(data[key]);
+        const product = key === 'gpu_chipset' ? await getGpuChipsets(data[key]) :  await getProductByFullName(data[key]);
         if (product.length === 0) 
           throw Error()
 

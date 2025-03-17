@@ -15,7 +15,7 @@ import {
   cleanPrebuiltScrapeResultSet,
   prebuiltExternalValues,
 } from "@/tests/helpers/utils";
-import { sleep } from "@/app/utils";
+import { sleep } from "@/app/lib/utils";
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
