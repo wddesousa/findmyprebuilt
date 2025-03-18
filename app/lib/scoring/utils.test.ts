@@ -2,12 +2,13 @@ import { PsuRating } from "@prisma/client";
 import { describe, expect, test, it, vi } from "vitest";
 import {
   addMinMaxScore,
+  calculateScore,
   getContinuousMetricScore,
   getDesirabilityFromOrderScore,
   getHasFeatureScore,
   getNegativeMetricScore,
   getTheMoreTheBetterScore,
-} from "./scoring";
+} from "./utils";
 
 describe("getDesirabilityFromOrderScore", () => {
   describe("correctly calculates scores", () => {
@@ -124,7 +125,7 @@ describe("addMinMaxScore", () => {
           { min: 10, max: 100, avg: 0, value: 50 },
           { min: 10, max: 100, avg: 50, value: 100 },
         ],
-        expected: {min: 20, max: 300, avg: 100, value: 200}
+        expected: { min: 20, max: 300, avg: 100, value: 200 },
       },
     ])(
       "scores $scores sum up to $expected", // Use $ to reference named parameters
@@ -132,5 +133,65 @@ describe("addMinMaxScore", () => {
         expect(addMinMaxScore(scores)).toStrictEqual(expected);
       }
     );
+  });
+});
+
+describe("calculateScore", () => {
+  it("throws error on total coefficient larger than 1", () => {
+    expect(() =>
+      calculateScore(
+        {
+          ascore: 0.9,
+          anotherscore: 0.2,
+        },
+        {
+          ascore: { total: 100 },
+          anotherscore: { total: 100 },
+        }
+      )
+    ).toThrow(/Coefficient is more than a 1/);
+  });
+  it("throws error on total coefficient smaller than 1", () => {
+    expect(() =>
+      calculateScore(
+        {
+          ascore: 0.8,
+          anotherscore: 0.1,
+        },
+        {
+          ascore: { total: 100 },
+          anotherscore: { total: 100 },
+        }
+      )
+    ).toThrow(/Total coefficient is less than 1/);
+  });
+  it("throws error on total score larger than 100", () => {
+    expect(() =>
+      calculateScore(
+        {
+          ascore: 0.9,
+          anotherscore: 0.1,
+        },
+        {
+          ascore: { total: 105 },
+          anotherscore: { total: 100 },
+        }
+      )
+    ).toThrow(/Total score is more than 100/);
+  });
+  
+  it("calculates total score", () => {
+    expect(
+      calculateScore(
+        {
+          ascore: 0.9,
+          anotherscore: 0.1,
+        },
+        {
+          ascore: { total: 80 },
+          anotherscore: { total: 100 },
+        }
+      )
+    ).toBe(82);
   });
 });

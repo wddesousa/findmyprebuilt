@@ -132,6 +132,10 @@ model PrebuiltParts {
   front_fan_id   String?
   rear_fan       CaseFan? @relation("Prebuilt_BackFans", fields: [rear_fan_id], references: [product_id])
   rear_fan_id    String?
+  memory       Memory? @relation(fields: [memory_id], references: [product_id])
+  memory_id    String?
+  storage       Storage? @relation(fields: [storage_id], references: [product_id])
+  storage_id    String?
 }
 
 model StorageType {
@@ -152,6 +156,7 @@ model Storage {
   form_factor     String
   interface       String
   nvme            Boolean
+  prebuilts PrebuiltParts[]
 }
 
 model Case {
@@ -214,6 +219,7 @@ model Memory {
   ecc_registered     String
   heat_spreader      Boolean
   memory_speed_mhz       Int
+  prebuilts PrebuiltParts[]
 }
 
 enum DoubleDataRate {

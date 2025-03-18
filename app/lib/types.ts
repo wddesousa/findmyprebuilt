@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
-import prisma
- from "./db";
+import prisma from "../db";
 export type productSearchResult = {
   type: string;
   name: string;
@@ -22,10 +21,14 @@ export interface foreignValues {
   name: string;
 }
 
+const includeProduct = {include: { product: { include: { brand: true } } }}
+
 // 1: Define a type that includes the relation to `Post`
-export const includePrebuiltParts = Prisma.validator<Prisma.Args<typeof prisma.prebuilt, 'findFirst'>>()({
-  include: { 
-    cpu: true,
+export const includePrebuiltParts = Prisma.validator<
+  Prisma.Args<typeof prisma.prebuilt, "findFirst">
+>()({
+  include: {
+    cpu: includeProduct,
     main_storage_type: true,
     gpu_chipset: true,
     case_form_factors: true,
@@ -35,23 +38,25 @@ export const includePrebuiltParts = Prisma.validator<Prisma.Args<typeof prisma.p
     product: {
       include: {
         brand: true,
-      }
+      },
     },
     secondary_storage_type: true,
     performance: true,
     parts: {
       include: {
-        case: true,
-        moba: true,
-        cooler: true,
-        gpu: true,
-        front_fan: true,
-        psu: true,
-        rear_fan: true,
-      }
-    }
+        case: includeProduct,
+        moba: includeProduct,
+        cooler: includeProduct,
+        gpu: includeProduct,
+        front_fan: includeProduct,
+        psu: includeProduct,
+        rear_fan: includeProduct,
+        memory: includeProduct,
+        storage: includeProduct
+      },
+    },
   },
-})
+});
 
 // // 2: Define a type that only contains a subset of the scalar fields
 // const userPersonalData = Prisma.validator<Prisma.UserDefaultArgs>()({
@@ -59,5 +64,6 @@ export const includePrebuiltParts = Prisma.validator<Prisma.Args<typeof prisma.p
 // })
 
 // 3: This type will include a prebuilt and all their parts
-export type PrebuiltWithParts = Prisma.PrebuiltGetPayload<typeof includePrebuiltParts>
-
+export type PrebuiltWithParts = Prisma.PrebuiltGetPayload<
+  typeof includePrebuiltParts
+>;
