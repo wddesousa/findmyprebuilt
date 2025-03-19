@@ -144,7 +144,9 @@ type processedResults = {
     | "gpu_chipset_id"
     | "moba_form_factor_id"
     | "specs_html"
-    | "gaming_score"
+    | "gaming_score_1080p"
+    | "gaming_score_1440p"
+    | "gaming_score_2160p"
     | "creator_score"
     | "budget_score"
   >]: Prebuilt[K] | null;

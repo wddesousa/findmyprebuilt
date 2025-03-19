@@ -27,7 +27,7 @@ model Product {
   url        String          @unique
   slug       String          @unique
   is_retired Boolean         @default(false)
-  scores Json
+  scores Json 
   total_score             Int @default(0)
   prices     Price[]
   prebuilts  Prebuilt[]
@@ -108,7 +108,9 @@ model Prebuilt {
   secondary_storage_type_id String
   cpu                       Cpu             @relation(fields: [cpu_id], references: [product_id])
   cpu_id                    String
-  gaming_score              Int @default(0)
+  gaming_score_1080p              Int @default(0)
+  gaming_score_1440p              Int @default(0)
+  gaming_score_2160p              Int @default(0)
   creator_score             Int @default(0)
   budget_score              Int @default(0)
   parts                     PrebuiltParts?
@@ -134,8 +136,10 @@ model PrebuiltParts {
   rear_fan_id    String?
   memory       Memory? @relation(fields: [memory_id], references: [product_id])
   memory_id    String?
-  storage       Storage? @relation(fields: [storage_id], references: [product_id])
+  storage       Storage? @relation("Prebuilt_MainStorage",fields: [storage_id], references: [product_id])
   storage_id    String?
+  secondary_storage       Storage? @relation("Prebuilt_SecondaryStorage", fields: [secondary_storage_id], references: [product_id])
+  secondary_storage_id    String?
 }
 
 model StorageType {
@@ -156,7 +160,8 @@ model Storage {
   form_factor     String
   interface       String
   nvme            Boolean
-  prebuilts PrebuiltParts[]
+  main_storage_on_prebuilts PrebuiltParts[] @relation("Prebuilt_MainStorage")
+ secondary_storage_on_prebuilts PrebuiltParts[] @relation("Prebuilt_SecondaryStorage")
 }
 
 model Case {
@@ -516,7 +521,7 @@ model ProductTracker {
 model Image {
   id         Int     @id @default(autoincrement())
   url        String
-  is_main    Boolean @default(false)
+  is_main    Boolean
   product_id String
   product    Product @relation(fields: [product_id], references: [id])
 

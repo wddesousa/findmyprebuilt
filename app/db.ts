@@ -104,10 +104,6 @@ export async function getProductByFullName(fullName: string) {
   );
 }
 
-
-
-
-
 export async function getFullPrebuilt(
   slug: string
 ): Promise<PrebuiltWithParts> {
@@ -119,6 +115,25 @@ export async function getFullPrebuilt(
     },
     ...includePrebuiltParts,
   });
+}
+
+export async function getAllPrebuiltScores() {
+  return await prisma.prebuilt.findMany({
+    select: {
+      product_id: true,
+      budget_score: true,
+      gaming_score_1080p: true,
+      gaming_score_1440p: true,
+      gaming_score_2160p: true,
+      creator_score: true,
+      product: {
+        select: {
+          scores: true,
+          total_score: true
+        }
+      }
+    }
+  })
 }
 
 export async function getAllPrebuilts(): Promise<PrebuiltWithParts[]> {

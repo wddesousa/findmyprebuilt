@@ -1,6 +1,6 @@
-import { fullProductName } from "@/app/types";
+import { fullProductName } from "@/app/lib/types";
 import { cleanedResults } from "@/app/api/scrape/types";
-import { productSearchResult } from "@/app/types";
+import { productSearchResult } from "@/app/lib/types";
 import axios from "axios";
 
 export async function fetchPrebuilt(productName: string) {
@@ -31,7 +31,7 @@ export const inputMap: Partial<
   cpu_aio_cooler_size_mm: "number",
   memory_modules: "number",
   main_storage_gb: "number",
-  memory_speed_id: "dropdown",
+  memory_speed_mhz: "number",
   moba_form_factor: "dropdown",
   case_form_factor: "dropdown",
   moba_chipset_id: "dropdown",

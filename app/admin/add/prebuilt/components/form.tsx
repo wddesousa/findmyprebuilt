@@ -15,7 +15,7 @@ import {
 } from "@/app/api/scrape/types";
 import { useDebouncedCallback } from "use-debounce";
 import { prebuiltForeignValues } from "../types";
-import { productSearchResult } from "@/app/types";
+import { productSearchResult } from "@/app/lib/types";
 import {
   fetchPrebuilt,
   inputMap,
@@ -568,7 +568,7 @@ export default function NewPrebuiltForm({
               <div key={key}>
                 <SearchInput
                   name={key}
-                  defaultValue={rawResults.prebuiltParts[key]}
+                  defaultValue={processedResults.parts[key]}
                 />
                 {state?.errors?.[key]}
                 {state?.partError?.[key]}

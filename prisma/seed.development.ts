@@ -53,18 +53,57 @@ async function main() {
   });
 
   try {
-    const speed = await prisma.memorySpeed.create({
-      data: { speed: 5200, ddr: "DDR5" },
-    });
-  } catch (e) {}
-
-  try {
     await prisma.storageType.createMany({
       data: [{ name: "SSD" }, { name: "7200 RPM" }],
     });
   } catch (e) {
     console.log("skipping storage types");
   }
+
+    await prisma.cpu.deleteMany();
+    await prisma.cpu.create({
+      data: 
+        {
+          core_count:0,
+          core_family:'1',
+          ecc_support: true,
+          includes_cooler: false,
+          includes_cpu_cooler: false,
+          integrated_graphics: 'test',
+          l2_cache_mb:1,
+          l3_cache_mb:3,
+          lithography_nm:3,
+          maximum_supported_memory_gb:4,
+          microarchitecture:'zemn',
+          packaging: 'l',
+          performance_core_boost_clock_ghz: 2,
+          performance_core_clock_ghz: 3,
+          series: "3",
+          simultaneous_multithreading: true,
+          tdp_w: 23,
+          thread_count: 2,
+          part_number: ["test"],
+          socket: {create: {
+             name: 'imasocket',
+          }
+        },
+
+          product: {
+            create: {
+              name: "Core i5-13400F",
+              slug: "etst",
+              type: "CPU",
+              url: 'tets.com',
+              scores: ({}),
+              brand: {
+                connect: {name: "Intel"}
+              }
+            }
+          }
+
+        },
+    });
+  
 
   try {
     await prisma.operativeSystem.createMany({

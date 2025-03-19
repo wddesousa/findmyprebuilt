@@ -46,25 +46,25 @@ export const prebuilt1080pCoefficients: prebuiltScoreCoefficients = {
     psuScore: 0.005,
     mobaChipsetScores: 0.01,
     cpuCoolingPower: 0.005,
-    connectivity: 0.01,
+    connectivity: 0,
     coolingType: 0.005,
     formFactorCompatibility: 0.005,
     frontFanPower: 0.005,
     mainStorageType: 0.01,
-    memorySpeed: 0.02,
+    memorySpeed: 0.065,
     psuPower: 0.005,
     psuRating: 0.01,
     rearFanPower: 0.005,
     secondaryStorageType: 0.005,
     storageCapacity: 0.01,
-    totalMemory: 0.02,
+    totalMemory: 0.05,
     warranty: 0.02,
 };
 
 // For 1440p gaming - More balanced between CPU and GPU
 export const prebuilt1440pCoefficients: prebuiltScoreCoefficients = {
     cpuScore: 0.3,
-    gpu3dMark: 0.35, // GPU starts to matter more at 1440p
+    gpu3dMark: 0.4, // GPU starts to matter more at 1440p
     pricing: 0.05,
     gpuScore: 0.05,
     caseScore: 0.005,
@@ -77,15 +77,15 @@ export const prebuilt1440pCoefficients: prebuiltScoreCoefficients = {
     psuScore: 0.005,
     mobaChipsetScores: 0.01,
     cpuCoolingPower: 0.005,
-    connectivity: 0.01,
+    connectivity: 0,
     coolingType: 0.005,
     formFactorCompatibility: 0.005,
-    frontFanPower: 0.005,
+    frontFanPower: 0.01,
     mainStorageType: 0.01,
     memorySpeed: 0.02,
-    psuPower: 0.005,
-    psuRating: 0.01,
-    rearFanPower: 0.005,
+    psuPower: 0.01,
+    psuRating: 0.02,
+    rearFanPower: 0.01,
     secondaryStorageType: 0.005,
     storageCapacity: 0.01,
     totalMemory: 0.02,
@@ -95,7 +95,7 @@ export const prebuilt1440pCoefficients: prebuiltScoreCoefficients = {
 // For 4K gaming - GPU becomes the dominant factor
 export const prebuilt4kCoefficients: prebuiltScoreCoefficients = {
     cpuScore: 0.2,
-    gpu3dMark: 0.5, // GPU is king at 4K
+    gpu3dMark: 0.515, // GPU is king at 4K
     pricing: 0.05,
     gpuScore: 0.05,
     caseScore: 0.005,

@@ -8,7 +8,7 @@ CREATE TYPE "CpuCoolerType" AS ENUM ('AIR', 'AIO');
 CREATE TYPE "DoubleDataRate" AS ENUM ('DDR2', 'DDR3', 'DDR4', 'DDR5', 'DDR6', 'DDR7');
 
 -- CreateEnum
-CREATE TYPE "PsuRating" AS ENUM ('TITANIUM', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE');
+CREATE TYPE "PsuRating" AS ENUM ('TITANIUM', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'NONE');
 
 -- CreateEnum
 CREATE TYPE "M2Key" AS ENUM ('M', 'B', 'BM', 'E');
@@ -30,7 +30,8 @@ CREATE TABLE "Product" (
     "url" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "is_retired" BOOLEAN NOT NULL DEFAULT false,
-    "score" INTEGER NOT NULL,
+    "scores" JSONB NOT NULL,
+    "total_score" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
@@ -49,14 +50,14 @@ CREATE TABLE "Prebuilt" (
     "base_price" DECIMAL(7,2) NOT NULL,
     "memory_modules" INTEGER NOT NULL,
     "memory_module_gb" INTEGER NOT NULL,
-    "memory_speed_id" TEXT NOT NULL,
+    "memory_speed_mhz" INTEGER NOT NULL,
     "main_storage_gb" INTEGER NOT NULL,
     "moba_form_factor_id" TEXT NOT NULL,
-    "secondary_storage_gb" INTEGER,
+    "secondary_storage_gb" INTEGER NOT NULL DEFAULT 0,
     "front_fan_mm" INTEGER NOT NULL,
     "rear_fan_mm" INTEGER NOT NULL,
-    "cpu_air_cooler_height_mm" INTEGER,
-    "cpu_aio_cooler_size_mm" INTEGER,
+    "cpu_air_cooler_height_mm" INTEGER NOT NULL DEFAULT 0,
+    "cpu_aio_cooler_size_mm" INTEGER NOT NULL DEFAULT 0,
     "os_id" TEXT NOT NULL,
     "wireless" BOOLEAN NOT NULL,
     "psu_wattage" INTEGER NOT NULL,
@@ -69,9 +70,11 @@ CREATE TABLE "Prebuilt" (
     "main_storage_type_id" TEXT NOT NULL,
     "secondary_storage_type_id" TEXT NOT NULL,
     "cpu_id" TEXT NOT NULL,
-    "gaming_score" INTEGER NOT NULL,
-    "creator_score" INTEGER NOT NULL,
-    "budget_score" INTEGER NOT NULL,
+    "gaming_score_1080p" INTEGER NOT NULL DEFAULT 0,
+    "gaming_score_1440p" INTEGER NOT NULL DEFAULT 0,
+    "gaming_score_2160p" INTEGER NOT NULL DEFAULT 0,
+    "creator_score" INTEGER NOT NULL DEFAULT 0,
+    "budget_score" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Prebuilt_pkey" PRIMARY KEY ("product_id")
 );
@@ -86,6 +89,9 @@ CREATE TABLE "PrebuiltParts" (
     "cooler_id" TEXT,
     "front_fan_id" TEXT,
     "rear_fan_id" TEXT,
+    "memory_id" TEXT,
+    "storage_id" TEXT,
+    "secondary_storage_id" TEXT,
 
     CONSTRAINT "PrebuiltParts_pkey" PRIMARY KEY ("prebuilt_id")
 );
@@ -169,18 +175,9 @@ CREATE TABLE "Memory" (
     "timing" TEXT NOT NULL,
     "ecc_registered" TEXT NOT NULL,
     "heat_spreader" BOOLEAN NOT NULL,
-    "memory_speed_id" TEXT NOT NULL,
+    "memory_speed_mhz" INTEGER NOT NULL,
 
     CONSTRAINT "Memory_pkey" PRIMARY KEY ("product_id")
-);
-
--- CreateTable
-CREATE TABLE "MemorySpeed" (
-    "id" TEXT NOT NULL,
-    "ddr" "DoubleDataRate" NOT NULL,
-    "speed" INTEGER NOT NULL,
-
-    CONSTRAINT "MemorySpeed_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -393,6 +390,15 @@ CREATE TABLE "OperativeSystem" (
 );
 
 -- CreateTable
+CREATE TABLE "MemorySpeedOnMobas" (
+    "id" TEXT NOT NULL,
+    "speed" INTEGER NOT NULL,
+    "moba_id" TEXT NOT NULL,
+
+    CONSTRAINT "MemorySpeedOnMobas_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Socket" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -445,7 +451,7 @@ CREATE TABLE "ProductTracker" (
 CREATE TABLE "Image" (
     "id" SERIAL NOT NULL,
     "url" TEXT NOT NULL,
-    "is_main" BOOLEAN NOT NULL DEFAULT false,
+    "is_main" BOOLEAN NOT NULL,
     "product_id" TEXT NOT NULL,
 
     CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
@@ -465,14 +471,6 @@ CREATE TABLE "_Prebuilt_CaseFormFactors" (
     "B" TEXT NOT NULL,
 
     CONSTRAINT "_Prebuilt_CaseFormFactors_AB_pkey" PRIMARY KEY ("A","B")
-);
-
--- CreateTable
-CREATE TABLE "_MemorySpeedToMoba" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_MemorySpeedToMoba_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
@@ -508,10 +506,10 @@ CREATE UNIQUE INDEX "StorageType_name_key" ON "StorageType"("name");
 CREATE UNIQUE INDEX "FormFactor_name_key" ON "FormFactor"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MemorySpeed_ddr_speed_key" ON "MemorySpeed"("ddr", "speed");
+CREATE UNIQUE INDEX "Price_store_id_product_id_key" ON "Price"("store_id", "product_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Price_store_id_product_id_key" ON "Price"("store_id", "product_id");
+CREATE UNIQUE INDEX "Store_name_key" ON "Store"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AffiliateInfo_store_id_product_id_key" ON "AffiliateInfo"("store_id", "product_id");
@@ -527,6 +525,9 @@ CREATE UNIQUE INDEX "MobaM2Slots_key_type_size_key" ON "MobaM2Slots"("key_type",
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OperativeSystem_name_key" ON "OperativeSystem"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MemorySpeedOnMobas_speed_key" ON "MemorySpeedOnMobas"("speed");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Socket_name_key" ON "Socket"("name");
@@ -553,9 +554,6 @@ CREATE INDEX "_CaseToFormFactor_B_index" ON "_CaseToFormFactor"("B");
 CREATE INDEX "_Prebuilt_CaseFormFactors_B_index" ON "_Prebuilt_CaseFormFactors"("B");
 
 -- CreateIndex
-CREATE INDEX "_MemorySpeedToMoba_B_index" ON "_MemorySpeedToMoba"("B");
-
--- CreateIndex
 CREATE INDEX "_CoolerToSocket_B_index" ON "_CoolerToSocket"("B");
 
 -- AddForeignKey
@@ -563,9 +561,6 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_brand_id_fkey" FOREIGN KEY ("brand
 
 -- AddForeignKey
 ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Prebuilt" ADD CONSTRAINT "Prebuilt_moba_form_factor_id_fkey" FOREIGN KEY ("moba_form_factor_id") REFERENCES "FormFactor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -613,6 +608,15 @@ ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_front_fan_id_fkey" FOR
 ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_rear_fan_id_fkey" FOREIGN KEY ("rear_fan_id") REFERENCES "CaseFan"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_memory_id_fkey" FOREIGN KEY ("memory_id") REFERENCES "Memory"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_storage_id_fkey" FOREIGN KEY ("storage_id") REFERENCES "Storage"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PrebuiltParts" ADD CONSTRAINT "PrebuiltParts_secondary_storage_id_fkey" FOREIGN KEY ("secondary_storage_id") REFERENCES "Storage"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Storage" ADD CONSTRAINT "Storage_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -626,9 +630,6 @@ ALTER TABLE "CaseFan" ADD CONSTRAINT "CaseFan_product_id_fkey" FOREIGN KEY ("pro
 
 -- AddForeignKey
 ALTER TABLE "Memory" ADD CONSTRAINT "Memory_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Memory" ADD CONSTRAINT "Memory_memory_speed_id_fkey" FOREIGN KEY ("memory_speed_id") REFERENCES "MemorySpeed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Price" ADD CONSTRAINT "Price_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -682,6 +683,9 @@ ALTER TABLE "Cooler" ADD CONSTRAINT "Cooler_product_id_fkey" FOREIGN KEY ("produ
 ALTER TABLE "Psu" ADD CONSTRAINT "Psu_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "MemorySpeedOnMobas" ADD CONSTRAINT "MemorySpeedOnMobas_moba_id_fkey" FOREIGN KEY ("moba_id") REFERENCES "Moba"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Performance" ADD CONSTRAINT "Performance_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "Game"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -704,12 +708,6 @@ ALTER TABLE "_Prebuilt_CaseFormFactors" ADD CONSTRAINT "_Prebuilt_CaseFormFactor
 
 -- AddForeignKey
 ALTER TABLE "_Prebuilt_CaseFormFactors" ADD CONSTRAINT "_Prebuilt_CaseFormFactors_B_fkey" FOREIGN KEY ("B") REFERENCES "Prebuilt"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_MemorySpeedToMoba" ADD CONSTRAINT "_MemorySpeedToMoba_A_fkey" FOREIGN KEY ("A") REFERENCES "MemorySpeed"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_MemorySpeedToMoba" ADD CONSTRAINT "_MemorySpeedToMoba_B_fkey" FOREIGN KEY ("B") REFERENCES "Moba"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CoolerToSocket" ADD CONSTRAINT "_CoolerToSocket_A_fkey" FOREIGN KEY ("A") REFERENCES "Cooler"("product_id") ON DELETE CASCADE ON UPDATE CASCADE;

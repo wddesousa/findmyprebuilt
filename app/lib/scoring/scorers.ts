@@ -1,6 +1,10 @@
 import { CpuCoolerType, PsuRating } from "@prisma/client";
 
-import { getAllFormFactors } from "../../db";
+import {
+  getAllFormFactors,
+  getAllPrebuilts,
+  getAllPrebuiltScores,
+} from "@/app/db";
 import { PrebuiltWithParts } from "../types";
 import {
   AnyScore,
@@ -27,8 +31,16 @@ import {
   getMobaChipsetScoringValues,
   getPrebuiltScoringValues,
   calculateScore,
+  calculateMobaChipsetFinalScore,
 } from "./utils";
-import { prebuiltBaseCoefficients } from "./coefficients";
+import {
+  prebuilt1080pCoefficients,
+  prebuilt1440pCoefficients,
+  prebuilt4kCoefficients,
+  prebuiltBaseCoefficients,
+  prebuiltBudgetCoefficients,
+  prebuiltVideoEditingCoefficients,
+} from "./coefficients";
 
 export async function getPrebuiltStats() {
   const prebuiltStats = await getPrebuiltScoringValues();
@@ -120,23 +132,6 @@ export function getMobaChipsetScores(
       value: chipset.max_usb_5_gbps,
     }),
   };
-}
-
-const calculateMobaChipsetFinalScore = (
-  scores: mobaChipsetScores
-) => {
-  const total: mobaChipsetScoreCoefficients = {
-    pciGeneration: 0.1,
-    usb5Allowance: 0.05,
-    usb10Allowance: 0.1,
-    usb20Allowance: 0.2,
-    allowsCpuOc: 0.2,
-    allowsMemoryOc: 0.1,
-    guaranteedUsb4thGen: 0.2,
-    totalPortAllowance: 0.05
-  }
-
-  return calculateScore(total, scores)
 }
 
 export function getPrebuiltScores(
@@ -281,11 +276,3 @@ export function getPrebuiltScores(
     },
   };
 }
-
-export const calculatePrebuiltFinalScore = (scores: prebuiltScores) => {
-  const totalScoreCoefficients = prebuiltBaseCoefficients
-  const totalScore = calculateScore(totalScoreCoefficients, scores);
-
-  // const creatorScore =
-  // const gamingScore =
-};

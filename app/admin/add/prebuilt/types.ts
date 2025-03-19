@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CpuCoolerType, PsuRating } from "@prisma/client";
-import { foreignValues } from "@/app/types";
+import { foreignValues } from "@/app/lib/types";
 
 
 
@@ -21,6 +21,7 @@ export const prebuiltSchema = z.object({
   os_id: z.string().min(1),
   base_price: z.coerce.number().min(300).max(20000),
   psu_wattage: z.coerce.number().min(400).max(1400),
+  memory_speed_mhz: z.coerce.number().min(2133).max(5333),
   rear_fan_mm: z.coerce.number().min(92).max(140),
   customizable: z.coerce.boolean(),
   front_fan_mm: z.coerce.number().min(92).max(140),
@@ -35,14 +36,13 @@ export const prebuiltSchema = z.object({
   gpu_chipset_score: z.coerce.number().min(300).optional(),
   memory_modules: z.coerce.number().min(1).max(4),
   main_storage_gb: z.coerce.number().max(24000).min(8),
-  memory_speed_id: z.string().min(1),
   moba_chipset_id: z.string().min(1),
   wireless: z.coerce.boolean(),
   warranty_months: z.coerce.number().min(0).max(60),
   memory_module_gb: z.coerce.number().max(16).min(4),
-  secondary_storage_gb: z.coerce.number().max(24000).min(8),
+  secondary_storage_gb: z.coerce.number().max(24000).optional(),
   main_storage_type_id: z.string().min(1),
-  secondary_storage_type_id: z.string().min(1),
+  secondary_storage_type_id: z.string(),
   psu_efficiency_rating: z.nativeEnum(PsuRating),
   moba_form_factor: z.string().min(3),
   case_form_factor: z.string().min(3),
@@ -59,7 +59,7 @@ export const prebuiltSchema = z.object({
   cpu_cooler: z.string(),
   main_storage: z.string(),
   second_storage: z.string(),
-  amazon: z.array(z.string()).min(1),
+  amazon: z.string().optional(),
   images: z.array(z.string().min(1)).min(1),
 })
 .refine(
