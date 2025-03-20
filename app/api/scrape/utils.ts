@@ -306,7 +306,7 @@ export async function cleanPrebuiltScrapeResults(
       case:  scrapeResults.prebuiltParts.case ? cleanTrademarks(scrapeResults.prebuiltParts.case ) : null,
       cpu_cooler:  scrapeResults.prebuiltParts.cpu_cooler ? cleanTrademarks(scrapeResults.prebuiltParts.cpu_cooler ) : null,
       gpu:  scrapeResults.prebuiltParts.gpu ? cleanTrademarks(scrapeResults.prebuiltParts.gpu ) : null,
-      gpu_chipset:  scrapeResults.prebuiltParts.gpu_chipset ? cleanTrademarks(scrapeResults.prebuiltParts.gpu_chipset ) : null,
+      gpu_chipset:  scrapeResults.prebuiltParts.gpu_chipset ? cleanGpuBrand(scrapeResults.prebuiltParts.gpu_chipset ) : null,
       front_fan:  scrapeResults.prebuiltParts.front_fan ? cleanTrademarks(scrapeResults.prebuiltParts.front_fan ) : null,
       rear_fan:  scrapeResults.prebuiltParts.rear_fan ? cleanTrademarks(scrapeResults.prebuiltParts.rear_fan ) : null,
       main_storage:  scrapeResults.prebuiltParts.main_storage ? cleanTrademarks(scrapeResults.prebuiltParts.main_storage ) : null,
@@ -334,7 +334,7 @@ const findIdByName = async (
     ? (await (prisma[model] as any).findUnique({ where: { name: name } }))?.id
     : null;
 const cleanGpuBrand = (gpu: string) =>
-  gpu.replace(/(NVIDIA|AMD|Nvidia) /, "").trim();
+  cleanTrademarks(gpu.replace(/(NVIDIA|AMD|Nvidia) /, ""));
 
 export function getCpuBrandName(cpu: string) {
   if (cpu.toLowerCase().includes("intel")) return "Intel";

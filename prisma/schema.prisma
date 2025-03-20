@@ -524,8 +524,6 @@ model Image {
   is_main    Boolean
   product_id String
   product    Product @relation(fields: [product_id], references: [id])
-
-  @@unique([product_id, is_main])
 }
 
 enum TypeOfEdit {

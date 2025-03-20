@@ -98,7 +98,6 @@ export async function getProductByFullName(fullName: string) {
       FROM "Product" p
       JOIN "Brand" b ON p.brand_id = b.id
       WHERE CONCAT(b.name, ' ', p.name) = ${fullName}
-      AND type = 'PREBUILT'
       LIMIT 1
     `
   );

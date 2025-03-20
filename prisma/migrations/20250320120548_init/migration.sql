@@ -545,9 +545,6 @@ CREATE UNIQUE INDEX "NewProductQueue_website_url_key" ON "NewProductQueue"("webs
 CREATE UNIQUE INDEX "ProductTracker_brand_id_key" ON "ProductTracker"("brand_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Image_product_id_is_main_key" ON "Image"("product_id", "is_main");
-
--- CreateIndex
 CREATE INDEX "_CaseToFormFactor_B_index" ON "_CaseToFormFactor"("B");
 
 -- CreateIndex

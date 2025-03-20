@@ -56,7 +56,7 @@ export const prebuiltForUpload: cleanedResults = {
     front_fan_mm: 120,
     rear_fan_mm: 120,
     os_id: "1",
-    moba_chipset_id: "1",
+    moba_chipset_id: "eFnJ1asdgdp8pO3yAnwc",
     main_storage_gb: 1024,
     secondary_storage_gb: null,
     main_storage_type_id: "1",

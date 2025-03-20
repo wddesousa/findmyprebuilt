@@ -58,12 +58,12 @@ export async function submitPrebuilt(
   for (let index = 0; index < data.images.length; index++) {
     const image = data.images[index];
     try {
-      const uploaded = await uploadImageToCloud(
+      const imgUrl = await uploadImageToCloud(
         image,
         generateSlug(data.brand, data.name)
       );
-      data.images[index] = uploaded.url;
-      console.log(uploaded);
+      data.images[index] = imgUrl;
+      console.log(imgUrl);
     } catch (error) {
       console.error(error);
       return { imageError: `Error uploading images ${error}` };
@@ -75,7 +75,7 @@ export async function submitPrebuilt(
     await updateAllPrebuiltScores();
     console.log(JSON.stringify(await prisma.prebuilt.findMany({})))
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return {
       saveError: `Error during prebuilt save: ${error}`,
     };

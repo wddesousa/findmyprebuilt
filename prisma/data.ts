@@ -14,7 +14,7 @@ export const intelChipsets = [
       brand_id: 'eFnJ1xyvFdp8pO3yAnwc-'
     },
     {
-      
+      id: "eFnJ1asdgdp8pO3yAnwc",
       name: 'H810',
       pci_generation: 4,
       cpu_oc: false,

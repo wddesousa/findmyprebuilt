@@ -4,7 +4,7 @@ import {
   scrapeIntelMobaChipsets,
 } from "@/app/api/scrape/mobachipsets/utils";
 import { prebuiltForUpload } from "./data.development";
-import { formFactors, intelChipsets } from "./data"
+import { formFactors, intelChipsets } from "./data";
 
 async function main() {
   // if (!await prisma.mobaChipset.findFirst({where: {brand: {name: 'AMD'}}})) {
@@ -14,13 +14,17 @@ async function main() {
   // }
 
   // await scrapeIntelMobaChipsets('https://www.intel.com/content/www/us/en/products/details/chipsets/desktop-chipsets/products.html')
-  try {
-    await prisma.brand.create({
-      data: { name: "Intel", id: intelChipsets[0].brand_id },
-    });
-  } catch (e) {
-    console.log("skipping intel brand");
-  }
+
+  await prisma.product.deleteMany();
+  await prisma.mobaChipset.deleteMany();
+  await prisma.brand.deleteMany();
+  await prisma.brand.createMany({
+    data: [
+      { name: "Intel", id: intelChipsets[0].brand_id }, 
+      { name: "NZXT" }
+    ],
+  });
+
   try {
     await prisma.mobaChipset.createMany({
       data: intelChipsets,
@@ -35,16 +39,15 @@ async function main() {
   } catch (e) {
     console.log("skipping intel chipsets");
   }
-    console.log(prebuiltForUpload)
-    await prisma.newProductQueue.deleteMany({});
-    await prisma.newProductQueue.create({
-      data: {
-        scraped_data: prebuiltForUpload,
-        type: "ADD",
-        website_url: "test.com",
-      },
-    });
-  
+  console.log(prebuiltForUpload);
+  await prisma.newProductQueue.deleteMany({});
+  await prisma.newProductQueue.create({
+    data: {
+      scraped_data: prebuiltForUpload,
+      type: "ADD",
+      website_url: "test.com",
+    },
+  });
 
   await prisma.gpuChipset.upsert({
     where: { name: "GeForce RTX 3050" },
@@ -60,50 +63,48 @@ async function main() {
     console.log("skipping storage types");
   }
 
-    await prisma.cpu.deleteMany();
-    await prisma.cpu.create({
-      data: 
-        {
-          core_count:0,
-          core_family:'1',
-          ecc_support: true,
-          includes_cooler: false,
-          includes_cpu_cooler: false,
-          integrated_graphics: 'test',
-          l2_cache_mb:1,
-          l3_cache_mb:3,
-          lithography_nm:3,
-          maximum_supported_memory_gb:4,
-          microarchitecture:'zemn',
-          packaging: 'l',
-          performance_core_boost_clock_ghz: 2,
-          performance_core_clock_ghz: 3,
-          series: "3",
-          simultaneous_multithreading: true,
-          tdp_w: 23,
-          thread_count: 2,
-          part_number: ["test"],
-          socket: {create: {
-             name: 'imasocket',
-          }
+  await prisma.socket.deleteMany();
+  await prisma.cpu.create({
+    data: {
+      core_count: 0,
+      core_family: "1",
+      ecc_support: true,
+      includes_cooler: false,
+      includes_cpu_cooler: false,
+      integrated_graphics: "test",
+      l2_cache_mb: 1,
+      l3_cache_mb: 3,
+      lithography_nm: 3,
+      maximum_supported_memory_gb: 4,
+      microarchitecture: "zemn",
+      packaging: "l",
+      performance_core_boost_clock_ghz: 2,
+      performance_core_clock_ghz: 3,
+      series: "3",
+      simultaneous_multithreading: true,
+      tdp_w: 23,
+      thread_count: 2,
+      part_number: ["test"],
+      socket: {
+        create: {
+          name: "imasocket",
         },
+      },
 
-          product: {
-            create: {
-              name: "Core i5-13400F",
-              slug: "etst",
-              type: "CPU",
-              url: 'tets.com',
-              scores: ({}),
-              brand: {
-                connect: {name: "Intel"}
-              }
-            }
-          }
-
+      product: {
+        create: {
+          name: "Core i5-13400F",
+          slug: "etst",
+          type: "CPU",
+          url: "tets.com",
+          scores: {},
+          brand: {
+            connect: { name: "Intel" },
+          },
         },
-    });
-  
+      },
+    },
+  });
 
   try {
     await prisma.operativeSystem.createMany({
