@@ -3,7 +3,10 @@ import {
   scrapeAmdMobaChipsets,
   scrapeIntelMobaChipsets,
 } from "@/app/api/scrape/mobachipsets/utils";
-import { prebuiltForUpload } from "./data.development";
+import {
+  prebuiltForUpload as prebuiltForQueue,
+  uploadedPrebuilt,
+} from "./data.development";
 import { formFactors, intelChipsets } from "./data";
 
 async function main() {
@@ -18,11 +21,9 @@ async function main() {
   await prisma.product.deleteMany();
   await prisma.mobaChipset.deleteMany();
   await prisma.brand.deleteMany();
+  await prisma.game.create({ data: { name: "League Of Legends" } });
   await prisma.brand.createMany({
-    data: [
-      { name: "Intel", id: intelChipsets[0].brand_id }, 
-      { name: "NZXT" }
-    ],
+    data: [{ name: "Intel", id: intelChipsets[0].brand_id }],
   });
 
   try {
@@ -39,11 +40,10 @@ async function main() {
   } catch (e) {
     console.log("skipping intel chipsets");
   }
-  console.log(prebuiltForUpload);
   await prisma.newProductQueue.deleteMany({});
   await prisma.newProductQueue.create({
     data: {
-      scraped_data: prebuiltForUpload,
+      scraped_data: prebuiltForQueue,
       type: "ADD",
       website_url: "test.com",
     },
@@ -93,6 +93,7 @@ async function main() {
 
       product: {
         create: {
+          id: "CPUID",
           name: "Core i5-13400F",
           slug: "etst",
           type: "CPU",
@@ -119,6 +120,7 @@ async function main() {
       ],
     });
   } catch (e) {}
+  await prisma.prebuilt.create(uploadedPrebuilt);
 }
 
 main()

@@ -449,7 +449,7 @@ CREATE TABLE "ProductTracker" (
 
 -- CreateTable
 CREATE TABLE "Image" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "url" TEXT NOT NULL,
     "is_main" BOOLEAN NOT NULL,
     "product_id" TEXT NOT NULL,

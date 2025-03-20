@@ -519,7 +519,7 @@ model ProductTracker {
 }
 
 model Image {
-  id         Int     @id @default(autoincrement())
+  id                     String   @id @default(nanoid())
   url        String
   is_main    Boolean
   product_id String

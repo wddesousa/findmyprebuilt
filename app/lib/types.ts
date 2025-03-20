@@ -38,6 +38,7 @@ export const includePrebuiltParts = Prisma.validator<
     product: {
       include: {
         brand: true,
+        images: true,
       },
     },
     secondary_storage_type: true,

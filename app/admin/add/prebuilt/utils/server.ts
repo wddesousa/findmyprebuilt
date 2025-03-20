@@ -7,6 +7,7 @@ import prisma, {
   getProductByFullName,
   getPsuEfficiencyRatings,
   getAllStorageTypes,
+  getFullPrebuilt,
 } from "@/app/db";
 import {
   Brand,
@@ -32,6 +33,7 @@ import {
 import { foreignValues } from "@/app/lib/types";
 
 export async function getQueuedPrebuilt() {
+  console.log('done prebuilts', (await getFullPrebuilt('nzxt-player:-one')).product.images)
   return prisma.newProductQueue.findFirst({ where: { is_curated: false } });
 }
 
