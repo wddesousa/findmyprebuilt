@@ -3,6 +3,7 @@ import { PrebuiltWithParts } from "@/app/lib/types";
 import Image from "@/app/components/Image";
 import Section from "../../components/Section";
 import SpecsOverview from "../../components/SpecsOverview";
+import { getFullName } from "@/app/lib/utils";
 
 interface Post {
   id: string;
@@ -38,7 +39,7 @@ export default async function Page({
   return (
     <main className="w-full">
       <Section bg="w">
-        <h1 className="text-2xl">{prebuilt.product.name}</h1>
+        <h1 className="text-2xl">{getFullName(prebuilt.product)}</h1>
         <div className="flex">
           <div className="flex-1">
             <Image

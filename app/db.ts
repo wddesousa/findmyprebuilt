@@ -106,8 +106,8 @@ export async function getProductByFullName(fullName: string) {
 
 export async function getFullPrebuilt(
   slug: string
-) {
-  const result = await prisma.prebuilt.findFirst({
+): Promise<PrebuiltWithParts  | null>{
+  return await prisma.prebuilt.findFirst({
     where: {
       product: {
         slug: slug,
@@ -115,31 +115,6 @@ export async function getFullPrebuilt(
     },
     ...includePrebuiltParts,
   });
-  if (result) {
-    const formatPrebuilt = {
-      ...result,
-      product: {
-        fullName: `${result.product.brand.name} ${result.product.name}`,
-      },
-      cpu: {
-        fullName: `${result.cpu.product.brand.name} ${result.cpu.product.name}`,
-      },
-    };
-    if (result.parts) {
-      formatPrebuilt.parts = {
-        ...result.parts,
-        ...Object.entries(result.parts).reduce((acc, [key, value]) => {
-          // if (!value) return acc;
-          acc[key] = {
-            ...value,
-            fullName: `${value.product.brand.name} ${value.product.name}`,
-          };
-          return acc;
-        }, {} as Record<string, { fullName: string }>)
-      }
-    }
-  }
-  return result;
 }
 
 export async function getAllPrebuiltScores() {

@@ -4,31 +4,23 @@ import prisma, {
   getAllFormFactors,
   getAllMobaChipsets,
   getAllOperativeSystems,
-  getProductByFullName,
   getPsuEfficiencyRatings,
   getAllStorageTypes,
-  getFullPrebuilt,
 } from "@/app/db";
 import {
-  Brand,
-  CpuCoolerType,
   ProductType,
-  PsuRating,
   Prisma,
 } from "@prisma/client";
 import { prebuiltForeignValues, PrebuiltSchemaType } from "../types";
 import { v2 as cloudinary } from "cloudinary";
-import { getAmazonAsin, getCpuBrandName } from "@/app/api/scrape/utils";
-import slugify from "slugify";
+import { getAmazonAsin } from "@/app/api/scrape/utils";
 import {
-  formFactorSerializer,
   formFactorSizes,
   generateSlug,
 } from "@/app/lib/utils";
 import {
   cleanedResults,
   gamePerformance,
-  prebuiltParts,
 } from "@/app/api/scrape/types";
 import { foreignValues } from "@/app/lib/types";
 
