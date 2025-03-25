@@ -1,9 +1,13 @@
-import prisma, { getFullPrebuilt } from "@/app/db";
+import prisma, { getFullPrebuilt, getGpuByChipsetOrThrow } from "@/app/db";
 import { PrebuiltWithParts } from "@/app/lib/types";
 import Image from "@/app/components/Image";
 import Section from "../../components/Section";
 import SpecsOverview from "../../components/SpecsOverview";
 import { getFullName } from "@/app/lib/utils";
+import BestPriceButtons from "../../components/BestPriceButtons";
+import { PrebuiltParts } from "@prisma/client";
+import { cleanedResults, PartsMap } from "@/app/api/scrape/types";
+import { getCompatibleCases, getDiyParts } from "../../utils";
 
 interface Post {
   id: string;
@@ -36,12 +40,14 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const prebuilt = (await getFullPrebuilt(slug)) as PrebuiltWithParts;
+  const DIYParts = await getDiyParts(prebuilt);
+
   return (
     <main className="w-full">
       <Section bg="w">
-        <h1 className="text-2xl">{getFullName(prebuilt.product)}</h1>
+        <h1 className="text-3xl">{getFullName(prebuilt.product)}</h1>
         <div className="flex">
-          <div className="flex-1">
+          <div className="flex-1 flex justify-center">
             <Image
               src={prebuilt.product.images[0].url}
               alt={prebuilt.product.name}
@@ -50,10 +56,24 @@ export default async function Page({
             />
           </div>
           <div className="flex-1">
+            <BestPriceButtons prices={prebuilt.product.prices} />
             <SpecsOverview prebuilt={prebuilt} />
           </div>
         </div>
         <p>{prebuilt.gpu_chipset.name}</p>
+      </Section>
+      <Section bg="g">
+        <h2 className="text-2xl">Prices</h2>
+        <div className="flex">
+          <div className="flex-1">
+            <h3 className="text-xl">Prebuilt Prices</h3>
+            <p>Ready to play and with a warranty</p>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl">DIY Prices</h3>
+            <p>Build the same or similar PC by building it yourself</p>
+          </div>
+        </div>
       </Section>
     </main>
   );

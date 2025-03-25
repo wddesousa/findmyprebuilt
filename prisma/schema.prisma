@@ -239,9 +239,10 @@ enum DoubleDataRate {
 model Price {
   id         String   @id @default(nanoid())
   price      Decimal  @db.Decimal(7, 2)
-  created_at DateTime
+  created_at DateTime @default(now())
   store      Store    @relation(fields: [store_id], references: [id])
   store_id   String
+  link      String
   product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   product_id String
 

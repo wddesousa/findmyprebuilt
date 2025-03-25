@@ -102,14 +102,14 @@ export const uploadedPrebuilt: Prisma.Args<typeof prisma.prebuilt, "create"> = {
     memory_module_gb: 8,
     memory_speed_mhz: 3500,
     main_storage_gb: 1024,
-    secondary_storage_gb: 0,
+    secondary_storage_gb: 500,
     front_fan_mm: 120,
     rear_fan_mm: 120,
     cpu_air_cooler_height_mm: 120,
     cpu_aio_cooler_size_mm: 120,
     os: {
       connect: {
-        name: "macOS Monterey" ,
+        name: "macOS Monterey",
       },
     },
     wireless: false,
@@ -161,19 +161,43 @@ export const uploadedPrebuilt: Prisma.Args<typeof prisma.prebuilt, "create"> = {
         images: {
           create: [
             {
-              url: 'nzxt-player:-one/dccb2ivoq9k7sownhvi6',
+              url: "nzxt-player:-one/dccb2ivoq9k7sownhvi6",
               is_main: true,
             },
             {
-              url: 'nzxt-player:-one/l4ci1jcz03o21pfsg58j',
+              url: "nzxt-player:-one/l4ci1jcz03o21pfsg58j",
               is_main: false,
             },
             {
-              url: 'nzxt-player:-one/bu2gc4ilhdcgjj9oeqi4',
+              url: "nzxt-player:-one/bu2gc4ilhdcgjj9oeqi4",
               is_main: false,
-            }
-          ]
-        }
+            },
+          ],
+        },
+        prices: {
+          create: [
+            {
+              price: 829,
+              link: "purchase.com",
+              store: {
+                create: {
+                  name: "Amazon",
+                  store_region_iso: "US",
+                },
+              },
+            },
+            {
+              price: 900,
+              link: "purchaseNZXT.com",
+              store: {
+                create: {
+                  name: "NZXT",
+                  store_region_iso: "US",
+                },
+              },
+            },
+          ],
+        },
       },
     },
     performance: {
@@ -194,6 +218,6 @@ export const uploadedPrebuilt: Prisma.Args<typeof prisma.prebuilt, "create"> = {
           fps: 200,
         },
       ],
-    }
+    },
   },
 };

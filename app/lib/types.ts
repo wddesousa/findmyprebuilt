@@ -21,7 +21,7 @@ export interface foreignValues {
   name: string;
 }
 
-const includeProduct = {include: { product: { include: { brand: true } } }}
+export const includeProduct = {include: { product: { include: { brand: true, prices: {orderBy: {price: Prisma.SortOrder.asc}}, images: true } } }}
 
 // 1: Define a type that includes the relation to `Post`
 export const includePrebuiltParts = Prisma.validator<
@@ -39,6 +39,11 @@ export const includePrebuiltParts = Prisma.validator<
       include: {
         brand: true,
         images: true,
+        prices: {
+          include: {
+            store: true
+          }
+        }
       },
     },
     secondary_storage_type: true,
@@ -53,7 +58,8 @@ export const includePrebuiltParts = Prisma.validator<
         psu: includeProduct,
         rear_fan: includeProduct,
         memory: includeProduct,
-        storage: includeProduct
+        storage: includeProduct,
+        secondary_storage: includeProduct
       },
     },
   },
@@ -65,6 +71,8 @@ export const includePrebuiltParts = Prisma.validator<
 // })
 
 // 3: This type will include a prebuilt and all their parts
-export type PrebuiltWithParts = Prisma.PrebuiltGetPayload<
-  typeof includePrebuiltParts
+export type PrebuiltWithParts = Prisma.Result<
+  typeof prisma.prebuilt,
+  typeof includePrebuiltParts,
+  'findFirstOrThrow'
 >;

@@ -83,7 +83,7 @@ export type prebuiltScraperFunction = (
 
 export type prebuiltBrands = "NZXT" | "test";
 
-type PartsMap = {
+export type PartsMap = {
   cpu: Cpu;
   gpu_chipset: GpuChipset;
   gpu: Gpu;

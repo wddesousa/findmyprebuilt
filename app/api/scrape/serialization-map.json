@@ -81,7 +81,7 @@
       "memory": {
         "Manufacturer": ["brand", false],
         "Part #": ["part_number", "array"],
-        "Speed": ["memory_speed", "custom"],
+        "Speed": ["memory_speed_mhz", "custom"],
         "Form Factor": ["form_factor", false],
         "Modules": ["modules", false],
         "Price / GB": ["ignored", true],

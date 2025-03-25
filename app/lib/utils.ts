@@ -1,18 +1,21 @@
-import { Prebuilt, Product } from "@prisma/client";
+import { Prebuilt, Product, PsuRating, StorageType } from "@prisma/client";
 import slugify from "slugify";
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 export function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 export const generateSlug = (brand: string, product_name: string) => {
   return slugify(`${brand} ${product_name}`, { lower: true });
 };
 
-export const getFullName = (product: {name: string, brand: {name: string}}) => `${product.brand.name} ${product.name}`;
+export const getFullName = (product: {
+  name: string;
+  brand: { name: string };
+}) => `${product.brand.name} ${product.name}`;
 
 // export const prebuiltColumnMapping: Record<keyof Prebuilt, string> = {
 //   base_price: "Base Price",
@@ -56,4 +59,27 @@ export const format = {
   mm: (mm: number) => `${mm} mm`,
   w: (wattage: number) => `${wattage} W`,
   has: (boolean: boolean) => (boolean ? "Yes" : "No"),
+  month: (months: number) =>`${months} months`,
+  rating: (rating: PsuRating) =>
+    rating === "NONE" ? "80+" : capitalize(rating),
+  memorySpeed: (speed: number) => {
+    const ddrGeneration =
+      speed < 1066
+        ? "DDR"
+        : speed < 2133
+        ? "DDR2"
+        : speed < 3200
+        ? "DDR3"
+        : speed < 4800
+        ? "DDR4"
+        : speed < 6400
+        ? "DDR5"
+        : "DDR6";
+    return `${ddrGeneration} ${speed} MHz`;
+  },
 };
+
+export const getFullStorage = (type: StorageType, size: number) => `${type.name} ${format.gb(size)}`
+
+// export const getFulLPsuInfo = (wattage: number, rating: PsuRating) =>
+//   `${format.w(wattage)} ${format.rating(rating)}`;

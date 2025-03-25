@@ -18,6 +18,11 @@ async function main() {
 
   // await scrapeIntelMobaChipsets('https://www.intel.com/content/www/us/en/products/details/chipsets/desktop-chipsets/products.html')
 
+  await prisma.image.deleteMany();
+  await prisma.price.deleteMany();
+  await prisma.store.deleteMany();
+  await prisma.performance.deleteMany();
+  await prisma.game.deleteMany();
   await prisma.product.deleteMany();
   await prisma.mobaChipset.deleteMany();
   await prisma.brand.deleteMany();

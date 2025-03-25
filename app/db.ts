@@ -16,25 +16,44 @@ import {
   PrebuiltWithParts,
 } from "./lib/types";
 import { M } from "vitest/dist/chunks/environment.LoooBwUu.js";
+import { format } from "./lib/utils";
 
 const prismaClientSingleton = () => {
   return new PrismaClient().$extends({
-    name: "totalMemoryStorage",
+    name: "combiningPrebuiltValues",
     result: {
       prebuilt: {
-        total_memory_gb: {
+        totalMemoryGb: {
           needs: { memory_modules: true, memory_module_gb: true },
           compute(prebuilt) {
             return prebuilt.memory_modules * prebuilt.memory_module_gb;
           },
         },
-        total_storage_gb: {
+        totalStorageGb: {
           needs: { main_storage_gb: true, secondary_storage_gb: true },
           compute(prebuilt) {
             return (
               prebuilt.main_storage_gb + Number(prebuilt.secondary_storage_gb)
             );
           },
+        },
+        psuInfo: {
+          needs: {psu_efficiency_rating: true, psu_wattage: true},
+          compute(prebuilt) {
+            return `${prebuilt.psu_wattage} W ${format.rating(prebuilt.psu_efficiency_rating)}`;
+          }
+        },
+        fullMemoryInfo: {
+          needs: { memory_modules: true, memory_module_gb: true, memory_speed_mhz: true },
+          compute(prebuilt) {
+            return `${prebuilt.memory_modules} x ${prebuilt.memory_module_gb} GB ${format.memorySpeed(prebuilt.memory_speed_mhz)}`;
+          }
+        },
+        coolingType: {
+          needs: { cpu_aio_cooler_size_mm: true },
+          compute(prebuilt) {
+            return prebuilt.cpu_aio_cooler_size_mm > 0 ? `AIO` : 'Air';
+          }
         },
       },
     },
@@ -115,6 +134,13 @@ export async function getFullPrebuilt(
     },
     ...includePrebuiltParts,
   });
+}
+
+export async function getGpuByChipsetOrThrow(chipsetId: string, orderBy: Prisma.Args<typeof prisma.gpu, "findFirstOrThrow">["orderBy"] = undefined) {
+  return await prisma.gpu.findFirstOrThrow({
+    where: { chipset_id: chipsetId },
+    orderBy: orderBy,
+  })
 }
 
 export async function getAllPrebuiltScores() {

@@ -1,7 +1,6 @@
 import {
   DoubleDataRate,
   M2Key,
-  MemorySpeed,
   MobaM2Slots,
   Socket,
 } from "@prisma/client";
@@ -45,7 +44,7 @@ export const serializeArray = (value: string): any => {
     .map((l) => l.trim());
 };
 
-const getMemorySpeed = (value: string): MemorySpeed => ({
+const getMemorySpeed = (value: string) => ({
   id: "",
   speed: parseInt(value.split("-")[1].trim()),
 });
@@ -121,7 +120,7 @@ export const customSerializers: Partial<{
     },
   },
   moba: {
-    memory_speed: (value): MemorySpeed[] =>
+    memory_speed: (value) =>
       serializeArray(value).map(getMemorySpeed),
     m_2_slots: (value): MobaM2Slots[] => {
       const slots = serializeArray(value);
@@ -133,7 +132,7 @@ export const customSerializers: Partial<{
     },
   },
   memory: {
-    memory_speed: getMemorySpeed,
+    memory_speed_mhz: getMemorySpeed,
   },
   cooler: {
     cpu_sockets: (value): Socket[] =>

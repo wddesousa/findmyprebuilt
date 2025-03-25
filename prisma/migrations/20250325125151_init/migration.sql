@@ -184,8 +184,9 @@ CREATE TABLE "Memory" (
 CREATE TABLE "Price" (
     "id" TEXT NOT NULL,
     "price" DECIMAL(7,2) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "store_id" TEXT NOT NULL,
+    "link" TEXT NOT NULL,
     "product_id" TEXT NOT NULL,
 
     CONSTRAINT "Price_pkey" PRIMARY KEY ("id")
