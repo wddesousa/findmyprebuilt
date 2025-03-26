@@ -12,7 +12,9 @@ import { cleanedResults } from "./api/scrape/types";
 import {
   foreignValues,
   fullProductName,
+  includeMobaInfo,
   includePrebuiltParts,
+  includeProduct,
   PrebuiltWithParts,
 } from "./lib/types";
 import { M } from "vitest/dist/chunks/environment.LoooBwUu.js";
@@ -38,22 +40,26 @@ const prismaClientSingleton = () => {
           },
         },
         psuInfo: {
-          needs: {psu_efficiency_rating: true, psu_wattage: true},
+          needs: { psu_efficiency_rating: true, psu_wattage: true },
           compute(prebuilt) {
             return `${prebuilt.psu_wattage} W ${format.rating(prebuilt.psu_efficiency_rating)}`;
-          }
+          },
         },
         fullMemoryInfo: {
-          needs: { memory_modules: true, memory_module_gb: true, memory_speed_mhz: true },
+          needs: {
+            memory_modules: true,
+            memory_module_gb: true,
+            memory_speed_mhz: true,
+          },
           compute(prebuilt) {
             return `${prebuilt.memory_modules} x ${prebuilt.memory_module_gb} GB ${format.memorySpeed(prebuilt.memory_speed_mhz)}`;
-          }
+          },
         },
         coolingType: {
           needs: { cpu_aio_cooler_size_mm: true },
           compute(prebuilt) {
-            return prebuilt.cpu_aio_cooler_size_mm > 0 ? `AIO` : 'Air';
-          }
+            return prebuilt.cpu_aio_cooler_size_mm > 0 ? `AIO` : "Air";
+          },
         },
       },
     },
@@ -125,7 +131,7 @@ export async function getProductByFullName(fullName: string) {
 
 export async function getFullPrebuilt(
   slug: string
-): Promise<PrebuiltWithParts  | null>{
+): Promise<PrebuiltWithParts | null> {
   return await prisma.prebuilt.findFirst({
     where: {
       product: {
@@ -136,11 +142,39 @@ export async function getFullPrebuilt(
   });
 }
 
-export async function getGpuByChipsetOrThrow(chipsetId: string, orderBy: Prisma.Args<typeof prisma.gpu, "findFirstOrThrow">["orderBy"] = undefined) {
+export async function getGpuByChipsetOrThrow(
+  chipsetId: string,
+  orderBy: Prisma.Args<
+    typeof prisma.gpu,
+    "findFirstOrThrow"
+  >["orderBy"] = undefined
+) {
   return await prisma.gpu.findFirstOrThrow({
     where: { chipset_id: chipsetId },
+    ...includeProduct,
     orderBy: orderBy,
-  })
+  });
+}
+
+export async function getMobaByChipsetOrThrow(
+  chipsetId: string,
+  mobaFormFactorId: string,
+  orderBy: Prisma.Args<
+    typeof prisma.moba,
+    "findFirstOrThrow"
+  >["orderBy"] = undefined
+) {
+  return await prisma.moba.findFirstOrThrow({
+    where: {
+      chipset_id: chipsetId,
+      moba_form_factor_id: mobaFormFactorId,
+    },
+    include: {
+      product: includeProduct.include.product,
+      ...includeMobaInfo
+    },
+    orderBy: orderBy,
+  });
 }
 
 export async function getAllPrebuiltScores() {

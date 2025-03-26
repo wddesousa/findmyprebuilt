@@ -17,31 +17,32 @@ datasource db {
 }
 
 model Product {
-  id         String          @id @default(nanoid())
-  name       String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
-  type       ProductType
-  brand      Brand           @relation(fields: [brand_id], references: [id])
-  brand_id   String
-  created_at DateTime        @default(now())
-  updated_at DateTime        @default(now())
-  url        String          @unique
-  slug       String          @unique
-  is_retired Boolean         @default(false)
-  scores Json 
-  total_score             Int @default(0)
-  prices     Price[]
-  prebuilts  Prebuilt[]
-  cases      Case[]
-  memories   Memory[]
-  gpus       Gpu[]
-  cpus       Cpu[]
-  mobas      Moba[]
-  storages   Storage[]
-  coolers    Cooler[]
-  psus       Psu[]
-  fans       CaseFan[]
-  images     Image[]
-  affiliates AffiliateInfo[]
+  id          String          @id @default(nanoid())
+  name        String //for prebuilt variations, this name is used to display when selecting variations of the main build. We can form this name automatically if none is provided by using a pattern like cpu + gpu + moba + memory 
+  type        ProductType
+  brand       Brand           @relation(fields: [brand_id], references: [id])
+  brand_id    String
+  created_at  DateTime        @default(now())
+  updated_at  DateTime        @default(now())
+  url         String          @unique
+  slug        String          @unique
+  is_retired  Boolean         @default(false)
+  scores      Json
+  total_score Int             @default(0)
+  min_price   Decimal         @db.Decimal(7, 2) @default(0) //Update through DB trigger. Use this column only for sorting don't show it directly. Use model Price to show the real prices
+  prices      Price[]
+  prebuilts   Prebuilt[]
+  cases       Case[]
+  memories    Memory[]
+  gpus        Gpu[]
+  cpus        Cpu[]
+  mobas       Moba[]
+  storages    Storage[]
+  coolers     Cooler[]
+  psus        Psu[]
+  fans        CaseFan[]
+  images      Image[]
+  affiliates  AffiliateInfo[]
 
   @@unique([name, brand_id])
   @@index([is_retired])
@@ -80,16 +81,16 @@ model Prebuilt {
   base_price                Decimal         @db.Decimal(7, 2)
   memory_modules            Int
   memory_module_gb          Int
-  memory_speed_mhz              Int     
+  memory_speed_mhz          Int
   main_storage_gb           Int
   case_form_factors         FormFactor[]    @relation(name: "Prebuilt_CaseFormFactors")
   moba_form_factor          FormFactor      @relation(name: "Prebuilt_MobaFormFactor", fields: [moba_form_factor_id], references: [id])
   moba_form_factor_id       String
-  secondary_storage_gb      Int @default(0)
+  secondary_storage_gb      Int             @default(0)
   front_fan_mm              Int
   rear_fan_mm               Int
-  cpu_air_cooler_height_mm  Int @default(0)
-  cpu_aio_cooler_size_mm    Int @default(0)
+  cpu_air_cooler_height_mm  Int             @default(0)
+  cpu_aio_cooler_size_mm    Int             @default(0)
   os                        OperativeSystem @relation(fields: [os_id], references: [id])
   os_id                     String
   wireless                  Boolean
@@ -108,38 +109,38 @@ model Prebuilt {
   secondary_storage_type_id String
   cpu                       Cpu             @relation(fields: [cpu_id], references: [product_id])
   cpu_id                    String
-  gaming_score_1080p              Int @default(0)
-  gaming_score_1440p              Int @default(0)
-  gaming_score_2160p              Int @default(0)
-  creator_score             Int @default(0)
-  budget_score              Int @default(0)
+  gaming_score_1080p        Int             @default(0)
+  gaming_score_1440p        Int             @default(0)
+  gaming_score_2160p        Int             @default(0)
+  creator_score             Int             @default(0)
+  budget_score              Int             @default(0)
   parts                     PrebuiltParts?
   performance               Performance[]
 }
 
 model PrebuiltParts {
-  prebuilt       Prebuilt @relation(fields: [prebuilt_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  prebuilt_id    String   @id
-  moba Moba?    @relation(fields: [moba_id], references: [product_id])
-  moba_id        String?
-  gpu  Gpu?     @relation(fields: [gpu_id], references: [product_id])
-  gpu_id         String?
-  case           Case?    @relation(fields: [case_id], references: [product_id])
-  case_id        String?
-  psu            Psu?     @relation(fields: [psu_id], references: [product_id])
-  psu_id         String?
-  cooler         Cooler?  @relation(fields: [cooler_id], references: [product_id])
-  cooler_id      String?
-  front_fan      CaseFan? @relation("Prebuilt_FrontFans", fields: [front_fan_id], references: [product_id])
-  front_fan_id   String?
-  rear_fan       CaseFan? @relation("Prebuilt_BackFans", fields: [rear_fan_id], references: [product_id])
-  rear_fan_id    String?
-  memory       Memory? @relation(fields: [memory_id], references: [product_id])
-  memory_id    String?
-  storage       Storage? @relation("Prebuilt_MainStorage",fields: [storage_id], references: [product_id])
-  storage_id    String?
-  secondary_storage       Storage? @relation("Prebuilt_SecondaryStorage", fields: [secondary_storage_id], references: [product_id])
-  secondary_storage_id    String?
+  prebuilt             Prebuilt @relation(fields: [prebuilt_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  prebuilt_id          String   @id
+  moba                 Moba?    @relation(fields: [moba_id], references: [product_id])
+  moba_id              String?
+  gpu                  Gpu?     @relation(fields: [gpu_id], references: [product_id])
+  gpu_id               String?
+  case                 Case?    @relation(fields: [case_id], references: [product_id])
+  case_id              String?
+  psu                  Psu?     @relation(fields: [psu_id], references: [product_id])
+  psu_id               String?
+  cooler               Cooler?  @relation(fields: [cooler_id], references: [product_id])
+  cooler_id            String?
+  front_fan            CaseFan? @relation("Prebuilt_FrontFans", fields: [front_fan_id], references: [product_id])
+  front_fan_id         String?
+  rear_fan             CaseFan? @relation("Prebuilt_BackFans", fields: [rear_fan_id], references: [product_id])
+  rear_fan_id          String?
+  memory               Memory?  @relation(fields: [memory_id], references: [product_id])
+  memory_id            String?
+  storage              Storage? @relation("Prebuilt_MainStorage", fields: [storage_id], references: [product_id])
+  storage_id           String?
+  secondary_storage    Storage? @relation("Prebuilt_SecondaryStorage", fields: [secondary_storage_id], references: [product_id])
+  secondary_storage_id String?
 }
 
 model StorageType {
@@ -160,8 +161,9 @@ model Storage {
   form_factor     String
   interface       String
   nvme            Boolean
-  main_storage_on_prebuilts PrebuiltParts[] @relation("Prebuilt_MainStorage")
- secondary_storage_on_prebuilts PrebuiltParts[] @relation("Prebuilt_SecondaryStorage")
+  pcpp_rating Int
+  main_storage_on_prebuilts      PrebuiltParts[] @relation("Prebuilt_MainStorage")
+  secondary_storage_on_prebuilts PrebuiltParts[] @relation("Prebuilt_SecondaryStorage")
 }
 
 model Case {
@@ -181,22 +183,27 @@ model Case {
   expansion_slots              String
   volume_ml                    Int
   dimensions                   String[]
+  pcpp_rating Int
+
 }
 
 model CaseFan {
-  product                Product         @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  product_id             String          @id
-  part_number            String[]
-  size_mm                Int
-  color                  String
-  quantity               String
-  airflow                String
-  noise_level            String
-  pwm                    Boolean
-  led                    String
-  connector              String
-  controller             String
-  static_pressure_mmh2o  Decimal         @db.Decimal(3, 2)
+  product               Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product_id            String   @id
+  part_number           String[]
+  size_mm               Int
+  color                 String
+  quantity              String
+  airflow               String
+  noise_level           String
+  pwm                   Boolean
+  led                   String
+  connector             String
+  controller            String
+  static_pressure_mmh2o Decimal  @db.Decimal(3, 2)
+  pcpp_rating Int
+
+
   front_fan_on_prebuilts PrebuiltParts[] @relation("Prebuilt_FrontFans")
   back_fan_on_prebuilts  PrebuiltParts[] @relation("Prebuilt_BackFans")
 }
@@ -211,19 +218,21 @@ model FormFactor {
 }
 
 model Memory {
-  product            Product     @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  product_id         String      @id
+  product            Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product_id         String   @id
   part_number        String[]
   form_factor        String
-  modules            String
+  modules            Int
+  module_gb          Int
   color              String
   first_word_latency Int
   cas_latency        Int
-  voltage            Decimal     @db.Decimal(3, 2)
+  voltage            Decimal  @db.Decimal(3, 2)
   timing             String
   ecc_registered     String
   heat_spreader      Boolean
-  memory_speed_mhz       Int
+  memory_speed_mhz   Int
+  pcpp_rating Int
   prebuilts PrebuiltParts[]
 }
 
@@ -242,7 +251,7 @@ model Price {
   created_at DateTime @default(now())
   store      Store    @relation(fields: [store_id], references: [id])
   store_id   String
-  link      String
+  link       String
   product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   product_id String
 
@@ -251,7 +260,7 @@ model Price {
 
 model Store {
   id               String          @id @default(nanoid())
-  name             String @unique
+  name             String          @unique
   store_region_iso String
   prices           Price[]
   affiliates       AffiliateInfo[]
@@ -291,15 +300,17 @@ model Gpu {
   external_power             String
   hdmi_outputs               Int
   displayport_outputs        Int
+  pcpp_rating Int
+
   prebuilts                  PrebuiltParts[]
 }
 
 model GpuChipset {
-  id        String     @id @default(nanoid())
-  name      String     @unique
-  score_3dmark               Int @default(0)
-  gpus      Gpu[]
-  prebuilts Prebuilt[]
+  id           String     @id @default(nanoid())
+  name         String     @unique
+  score_3dmark Int        @default(0)
+  gpus         Gpu[]
+  prebuilts    Prebuilt[]
 }
 
 model Cpu {
@@ -326,7 +337,7 @@ model Cpu {
   lithography_nm                   Int
   includes_cpu_cooler              Boolean
   simultaneous_multithreading      Boolean
-  score_3dmark               Int @default(0)
+  score_3dmark                     Int        @default(0)
   prebuilts                        Prebuilt[]
 }
 
@@ -349,7 +360,6 @@ model Moba {
   pcie_x_slots                 Int
   pcie_x1_slots                Int
   pci_slots                    Int
-  m_2_slots                    MobaM2SlotsOnMobas[]
   mini_pcie_slots              Int
   half_mini_pcie_slots         Int
   mini_pcie_msata_slots        Int
@@ -366,6 +376,8 @@ model Moba {
   wireless_networking          String
   raid_support                 Boolean
   uses_back_connect_connectors Boolean
+  pcpp_rating Int
+  m_2_slots                    MobaM2SlotsOnMobas[]
   prebuilts                    PrebuiltParts[]
   memory_speeds                MemorySpeedOnMobas[]
 }
@@ -406,8 +418,8 @@ model MobaM2SlotsOnMobas {
 }
 
 model Cooler {
-  product                  Product         @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  product_id               String          @id
+  product                  Product  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product_id               String   @id
   part_number              String[]
   fan_rpm                  String
   color                    String
@@ -415,12 +427,15 @@ model Cooler {
   cpu_sockets              Socket[]
   water_cooled_radiador_mm Int?
   fanless                  Boolean
-  prebuilts                PrebuiltParts[]
+  pcpp_rating Int
+
+
+  prebuilts PrebuiltParts[]
 }
 
 model Psu {
-  product                          Product         @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  product_id                       String          @id
+  product                          Product    @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product_id                       String     @id
   part_number                      String[]
   type                             String
   efficiency_rating                PsuRating?
@@ -438,7 +453,10 @@ model Psu {
   pcie_6_pin_connectors            Int
   sata_connectors                  Int
   molex_4_pin_connectors           Int
-  prebuilts                        PrebuiltParts[]
+  pcpp_rating Int
+
+
+  prebuilts PrebuiltParts[]
 }
 
 model OperativeSystem {
@@ -448,10 +466,10 @@ model OperativeSystem {
 }
 
 model MemorySpeedOnMobas {
-  id        String     @id @default(nanoid())
-  speed      Int     @unique
-  moba Moba  @relation(fields: [moba_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  moba_id  String
+  id      String @id @default(nanoid())
+  speed   Int    @unique
+  moba    Moba   @relation(fields: [moba_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
+  moba_id String
 }
 
 enum PsuRating {
@@ -520,7 +538,7 @@ model ProductTracker {
 }
 
 model Image {
-  id                     String   @id @default(nanoid())
+  id         String  @id @default(nanoid())
   url        String
   is_main    Boolean
   product_id String

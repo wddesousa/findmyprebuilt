@@ -67,11 +67,11 @@ export default async function Page({
         <div className="flex">
           <div className="flex-1">
             <h3 className="text-xl">Prebuilt Prices</h3>
-            <p>Ready to play and with a warranty</p>
+            <p>Ready-to-play and with a warranty</p>
           </div>
           <div className="flex-1">
             <h3 className="text-xl">DIY Prices</h3>
-            <p>Build the same or similar PC by building it yourself</p>
+            <p>Build the same or similar PC for much less</p>
           </div>
         </div>
       </Section>

@@ -21,7 +21,20 @@ export interface foreignValues {
   name: string;
 }
 
-export const includeProduct = {include: { product: { include: { brand: true, prices: {orderBy: {price: Prisma.SortOrder.asc}}, images: true } } }}
+export const includeProduct = {
+  include: {
+    product: {
+      include: {
+        brand: true,
+        prices: { orderBy: { price: Prisma.SortOrder.asc, stores: true } },
+        images: true,
+      },
+    },
+  },
+};
+export const includeMobaInfo = {
+  include: { m_2_slots: true, memory_speeds: true },
+};
 
 // 1: Define a type that includes the relation to `Post`
 export const includePrebuiltParts = Prisma.validator<
@@ -41,9 +54,9 @@ export const includePrebuiltParts = Prisma.validator<
         images: true,
         prices: {
           include: {
-            store: true
-          }
-        }
+            store: true,
+          },
+        },
       },
     },
     secondary_storage_type: true,
@@ -51,7 +64,12 @@ export const includePrebuiltParts = Prisma.validator<
     parts: {
       include: {
         case: includeProduct,
-        moba: includeProduct,
+        moba: {
+          include: {
+            product: includeProduct.include.product,
+            ...includeMobaInfo
+          }
+        },
         cooler: includeProduct,
         gpu: includeProduct,
         front_fan: includeProduct,
@@ -59,7 +77,7 @@ export const includePrebuiltParts = Prisma.validator<
         rear_fan: includeProduct,
         memory: includeProduct,
         storage: includeProduct,
-        secondary_storage: includeProduct
+        secondary_storage: includeProduct,
       },
     },
   },
@@ -74,5 +92,10 @@ export const includePrebuiltParts = Prisma.validator<
 export type PrebuiltWithParts = Prisma.Result<
   typeof prisma.prebuilt,
   typeof includePrebuiltParts,
-  'findFirstOrThrow'
+  "findFirstOrThrow"
+>;
+export type MobaData = Prisma.Result<
+  typeof prisma.moba,
+  typeof includeMobaInfo,
+  "findFirstOrThrow"
 >;
