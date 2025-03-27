@@ -32,9 +32,14 @@ export const includeProduct = {
     },
   },
 };
-export const includeMobaInfo = {
-  include: { m_2_slots: true, memory_speeds: true },
-};
+export const includeMobaInfo = Prisma.validator<
+  Prisma.Args<typeof prisma.moba, "findFirst">
+>()({
+  include: {
+    m_2_slots: { include: { mobaM2Slot: true } },
+    memory_speeds: true,
+  },
+});
 
 // 1: Define a type that includes the relation to `Post`
 export const includePrebuiltParts = Prisma.validator<
@@ -43,6 +48,8 @@ export const includePrebuiltParts = Prisma.validator<
   include: {
     cpu: includeProduct,
     main_storage_type: true,
+    main_storage_form_factor: true,
+    secondary_storage_form_factor: true,
     gpu_chipset: true,
     case_form_factors: true,
     moba_form_factor: true,
@@ -67,8 +74,8 @@ export const includePrebuiltParts = Prisma.validator<
         moba: {
           include: {
             product: includeProduct.include.product,
-            ...includeMobaInfo
-          }
+            m_2_slots: includeMobaInfo.include?.m_2_slots,
+          },
         },
         cooler: includeProduct,
         gpu: includeProduct,

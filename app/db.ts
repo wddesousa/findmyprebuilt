@@ -227,6 +227,10 @@ export async function getAllFormFactors(): Promise<foreignValues[]> {
   return await prisma.formFactor.findMany({});
 }
 
+export async function getAllStorageFormFactors(): Promise<foreignValues[]> {
+  return await prisma.storageFormFactor.findMany({});
+}
+
 export async function getPsuEfficiencyRatings(): Promise<foreignValues[]> {
   return Object.values(PsuRating).map((rating) => ({
     id: rating,

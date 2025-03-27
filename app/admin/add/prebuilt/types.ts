@@ -9,6 +9,8 @@ export type prebuiltForeignValues = {
   moba_chipset_id: foreignValues[];
   main_storage_type_id: foreignValues[];
   secondary_storage_type_id: foreignValues[];
+  main_storage_form_factor_id: foreignValues[];
+  secondary_storage_form_factor_id: foreignValues[];
   psu_efficiency_rating: foreignValues[];
   moba_form_factor: foreignValues[];
   case_form_factor: foreignValues[];
@@ -42,7 +44,9 @@ export const prebuiltSchema = z.object({
   memory_module_gb: z.coerce.number().max(16).min(4),
   secondary_storage_gb: z.coerce.number().max(24000).optional(),
   main_storage_type_id: z.string().min(1),
+  main_storage_form_factor_id: z.string().min(1),
   secondary_storage_type_id: z.string(),
+  secondary_storage_form_factor_id: z.string(),
   psu_efficiency_rating: z.nativeEnum(PsuRating),
   moba_form_factor: z.string().min(3),
   case_form_factor: z.string().min(3),

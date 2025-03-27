@@ -3,6 +3,7 @@ import { PrismaModelMap } from "./types";
 import prisma from "@/app/db";
 import { generateSlug } from "@/app/lib/utils";
 import { Cooler, Prisma, ProductType, PsuRating } from "@prisma/client";
+import { getPcieAmount } from "./utils";
 
 export async function saveCpu(specs: PrismaModelMap["cpu"]) {
   const data = {
@@ -52,7 +53,12 @@ export async function saveCpu(specs: PrismaModelMap["cpu"]) {
 
   return prisma.cpu.create(data);
 }
-
+/**
+ * extracts the number of pci-e connectors of a specific pin size from a string
+ * @param externalPower the full string to extract from
+ * @param pinSize the targetted pin size
+ * @returns 
+ */
 export async function saveGpu(specs: PrismaModelMap["gpu"]) {
   const data = {
     data: {
@@ -91,6 +97,10 @@ export async function saveGpu(specs: PrismaModelMap["gpu"]) {
       total_slot_width: specs.total_slot_width,
       cooling: specs.cooling,
       external_power: specs.external_power,
+      pci_6: getPcieAmount(specs.external_power, 6),
+      pci_8: getPcieAmount(specs.external_power, 8),
+      pci_12: getPcieAmount(specs.external_power, 12),
+      pci_16: getPcieAmount(specs.external_power, 16),
       hdmi_outputs: specs.hdmi_outputs,
       displayport_outputs: specs.displayport_outputs,
     },

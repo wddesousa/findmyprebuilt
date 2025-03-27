@@ -6,6 +6,7 @@ import prisma, {
   getAllOperativeSystems,
   getPsuEfficiencyRatings,
   getAllStorageTypes,
+  getAllStorageFormFactors
 } from "@/app/db";
 import {
   ProductType,
@@ -33,7 +34,8 @@ export async function getForeignValues(): Promise<prebuiltForeignValues> {
     values.map((value) => ({ ...value, id: value.name }));
 
   const storageTypes = await getAllStorageTypes();
-  const formFactors = setNamesAsId(await getAllFormFactors());
+  const mobaFormFactors = setNamesAsId(await getAllFormFactors());
+  const storageFormFactors = await getAllStorageFormFactors()
 
   return {
     os_id: await getAllOperativeSystems(),
@@ -41,8 +43,10 @@ export async function getForeignValues(): Promise<prebuiltForeignValues> {
     main_storage_type_id: storageTypes,
     secondary_storage_type_id: storageTypes,
     psu_efficiency_rating: await getPsuEfficiencyRatings(),
-    moba_form_factor: formFactors,
-    case_form_factor: formFactors,
+    moba_form_factor: mobaFormFactors,
+    case_form_factor: mobaFormFactors,
+    main_storage_form_factor_id: storageFormFactors,
+    secondary_storage_form_factor_id: storageFormFactors
   };
 }
 
@@ -111,6 +115,8 @@ export async function saveNewPrebuilt(
         moba_chipset: { connect: { id: data.moba_chipset_id } },
         gpu_chipset: { connect: { id: data.gpu_chipset } },
         main_storage_type: { connect: { id: data.main_storage_type_id } },
+        main_storage_form_factor: { connect: {id: data.main_storage_form_factor_id}},
+        secondary_storage_form_factor: { connect: {id: data.secondary_storage_form_factor_id}},
         moba_form_factor: { connect: { name: data.moba_form_factor } },
         os: { connect: { id: data.os_id } },
         cpu: { connect: { product_id: data.cpu } },

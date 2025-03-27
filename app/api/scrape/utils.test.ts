@@ -5,6 +5,7 @@ import {
   getAmazonAsin,
   getLargestFormFactor,
   getMemoryInfo,
+  getPcieAmount,
   getPsuInfo,
   getStorageInfo,
   processPartScrapedData,
@@ -35,6 +36,27 @@ import {
 } from "@/tests/helpers/utils";
 import { scraperRawResults } from "./types";
 import path from "path";
+
+describe("getPcieAmount", () => {
+  describe("gets the right number of pcie ports", () => {
+    test.each([
+      { input: [ "1 x PCIe 6-pin", 6 ], expected: 1 },
+      { input: [ "2 x PCIe 6-pin", 6 ], expected: 2 },
+      { input: [ "1 x PCIe 8-pin", 8 ], expected: 1 },
+      { input: [ "1 x PCIe 8-pin + 1 x PCIe 6-pin", 8 ], expected: 1 },
+      { input: [ "2 x PCIe 8-pin", 8 ], expected: 2 },
+      { input: [ "2 x PCIe 8-pin + 1 x PCIe 6-pin", 8 ], expected: 2 },
+      { input: [ "2 x PCIe 8-pin + 1 x PCIe 6-pin", 6 ], expected: 1 },
+      { input: [ "3 x PCIe 8-pin", 8 ], expected: 3 },
+      { input: [ "1 x PCIe 12-pin", 12 ], expected: 1 },
+      { input: [ "1 x PCIe 16-pin 12VHPWR", 16 ], expected: 1 },
+      { input: [ "1 x EPS 8-pin", 8 ], expected: 0 },
+    ])("$input", async ({ input, expected }) => {
+      expect(getPcieAmount(input[0] as string, input[1] as number)).toBe(expected);
+    });
+  });
+});
+
 describe("getStorageInfo", () => {
   describe("correctly extracts storage info", () => {
     test.each(storageTests)(
@@ -96,7 +118,11 @@ describe("getPsuInfo", () => {
 
 describe("getAmazonAsin", () => {
   it("correctly extracts ASIN", () => {
-    expect(getAmazonAsin("https://www.amazon.com/Cooler-Master-Silencio-Anodized-Gun-Metal/dp/B07H25DYM3/ref=pd_ci_mcx_mh_mcx_views_0_image?pd_rd_w=16CM8&content-id=amzn1.sym.bb21fc54-1dd8-448e-92bb-2ddce187f4ac%3Aamzn1.symc.40e6a10e-cbc4-4fa5-81e3-4435ff64d03b&pf_rd_p=bb21fc54-1dd8-448e-92bb-2ddce187f4ac&pf_rd_r=AMTW77GH6CMS65DEDE3W&pd_rd_wg=WAA4Q&pd_rd_r=58f61ee3-8c40-4cb5-a1cc-8f1dd8c923e8&pd_rd_i=B07H25DYM3&th=1")).toBe("B07H25DYM3")
+    expect(
+      getAmazonAsin(
+        "https://www.amazon.com/Cooler-Master-Silencio-Anodized-Gun-Metal/dp/B07H25DYM3/ref=pd_ci_mcx_mh_mcx_views_0_image?pd_rd_w=16CM8&content-id=amzn1.sym.bb21fc54-1dd8-448e-92bb-2ddce187f4ac%3Aamzn1.symc.40e6a10e-cbc4-4fa5-81e3-4435ff64d03b&pf_rd_p=bb21fc54-1dd8-448e-92bb-2ddce187f4ac&pf_rd_r=AMTW77GH6CMS65DEDE3W&pd_rd_wg=WAA4Q&pd_rd_r=58f61ee3-8c40-4cb5-a1cc-8f1dd8c923e8&pd_rd_i=B07H25DYM3&th=1"
+      )
+    ).toBe("B07H25DYM3");
   });
 });
 

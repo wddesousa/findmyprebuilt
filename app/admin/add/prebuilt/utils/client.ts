@@ -15,11 +15,9 @@ export async function fetchPrebuilt(productName: string) {
   }
 }
 
-export const inputMap: Partial<
-  Record<
-    keyof cleanedResults["processedResults"],
-    "number" | "text" | "boolean" | "dropdown"
-  >
+export const inputMap: Record<
+  Exclude<keyof cleanedResults["processedResults"], "parts">,
+  "number" | "text" | "boolean" | "dropdown"
 > = {
   os_id: "dropdown",
   base_price: "text",
@@ -35,6 +33,8 @@ export const inputMap: Partial<
   moba_form_factor: "dropdown",
   case_form_factor: "dropdown",
   moba_chipset_id: "dropdown",
+  main_storage_form_factor_id: "dropdown",
+  secondary_storage_form_factor_id: "dropdown",
   warranty_months: "number",
   memory_module_gb: "number",
   secondary_storage_gb: "number",

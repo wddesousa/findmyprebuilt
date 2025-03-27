@@ -50,6 +50,11 @@ const LAUNCH_CONFIG = {
 };
 puppeteer.use(StealthPlugin());
 
+export function getPcieAmount(externalPower: string, pinSize: number) {
+  const match = externalPower.match(new RegExp(`(\\d) x PCIe ${pinSize}-pin.*`))
+  return match ? Number(match[1]) : 0
+}
+
 export async function getPuppeteerInstance(
   url: string,
   waitForSelector: string
